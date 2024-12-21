@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Repositories
 {
-    public class WalletRepository : BaseRepository
+    public class WalletRepository : RepositoryBase
     {
         public WalletRepository(DbContext context) : base(context)
         {
