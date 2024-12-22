@@ -1,11 +1,13 @@
 ﻿using ManageLife.Base;
+using ManageLife.Data;
+using ManageLife.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Repositories
 {
-    public class WalletRepository : RepositoryBase
+    public class WalletRepository : RepositoryBase<WalletEntity>, IReposiotyBase<WalletEntity>
     {
-        public WalletRepository(DbContext context) : base(context)
+        public WalletRepository(AppDbContext context) : base(context)
         {
 
         }

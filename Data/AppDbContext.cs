@@ -20,15 +20,5 @@ namespace ManageLife.Data
 
         //    builder.Entity<WalletEntity>();
         //}
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
-
-            string connectionString = _config.GetConnectionString("DefaultConnection");
-            var serverVersion = new MySqlServerVersion(new Version(5, 2, 1));
-
-            optionsBuilder.UseMySql(connectionString, serverVersion, options => options.EnableRetryOnFailure());
-        }
     }
 }

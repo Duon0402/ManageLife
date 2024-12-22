@@ -48,10 +48,11 @@
             return new Result<T>("99", message, default, ex.ToString());
         }
 
-        public static readonly Result DATA_CAN_NOT_CREATE = new Result("01", "Dữ liệu không thể thêm mới");
-        public static readonly Result DATA_CAN_NOT_UPDATE = new Result("02", "Dữ liệu không thêm chỉnh sửa");
-        public static readonly Result DATA_CAN_NOT_DELETE = new Result("03", "Dữ liệu không thể xóa");
+        public static readonly Result DATA_NOT_CREATE = new Result("01", "Dữ liệu không được thêm mới");
+        public static readonly Result DATA_NOT_UPDATE = new Result("02", "Dữ liệu không được chỉnh sửa");
+        public static readonly Result DATA_NOT_DELETE = new Result("03", "Dữ liệu không được xóa");
         public static readonly Result DATA_EXIST = new Result("04", "Dữ liệu đã tồn tại");
         public static readonly Result DATA_NOT_EXIST = new Result("05", "Dữ liệu không tồn tại");
+        public static readonly Result DATA_INVALID = new Result("06", "Dữ liệu không hợp lệ");
     }
 }

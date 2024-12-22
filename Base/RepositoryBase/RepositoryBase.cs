@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ManageLife.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections;
 using System.Linq.Expressions;
@@ -7,9 +8,9 @@ namespace ManageLife.Base
 {
     public class RepositoryBase<T> : IReposiotyBase<T> where T : class, IEntityBase, new()
     {
-        protected readonly DbContext _context;
+        protected readonly AppDbContext _context;
 
-        public RepositoryBase(DbContext context)
+        public RepositoryBase(AppDbContext context)
         {
             _context = context;
         }
@@ -20,12 +21,18 @@ namespace ManageLife.Base
             return entities;
         }
 
-        public async Task<IEnumerable<T>> FindAsync(params Expression<Func<T, object>>[] includeProperties)
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
         {
             IQueryable<T> query = _context.Set<T>();
-            query = includeProperties.Aggregate(query, (current, includeProperties) => current.Include(includeProperties));
-            var entites = await query.ToListAsync();
-            return entites;
+
+            if (includeProperties != null && includeProperties.Any())
+            {
+                query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+            }
+
+            query = query.Where(predicate);
+
+            return await query.ToListAsync();
         }
 
         public async Task<T> GetAsync(string key)
