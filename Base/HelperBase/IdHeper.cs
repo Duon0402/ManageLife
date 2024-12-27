@@ -4,7 +4,7 @@
     {
         public static string NewId()
         {
-            return new Guid().ToString();
+            return Guid.NewGuid().ToString();
         }
     }
 }

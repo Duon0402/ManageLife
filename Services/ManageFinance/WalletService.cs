@@ -34,12 +34,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = new WalletEntity()
-                {
-                    Id = IdHeper.NewId(),
-                    Name = model.Name,
-                    TotalMoney = model.TotalMoney
-                };
+                var entity = model.MapTo<WalletEntity>();
 
                 b = await _repo.InsertAsync(entity);
 
