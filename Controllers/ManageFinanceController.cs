@@ -1,17 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ManageLife.Base;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers
 {
-    public class ManageFinanceController : Controller
+    public class ManageFinanceController : WebControllerBase
     {
-        public ManageFinanceController()
+        public ManageFinanceController(ILogger logger) : base(logger)
         {
-
         }
 
         public IActionResult Index()
         {
             return View();
         }
+
+
     }
 }

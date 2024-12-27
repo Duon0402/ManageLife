@@ -1,36 +1,25 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 
 namespace ManageLife.Base
 {
-    public class MapperBase : IMappeBase
+    public static class MapperBase
     {
-        private readonly IMapper _mapper;
-
-        public MapperBase(Action<IMapperConfigurationExpression> config)
+        private static IMapper _mapper;
+        public static void Configure(IMapper mapper)
         {
-            var mapperConfig = new MapperConfiguration(config);
-            _mapper = mapperConfig.CreateMapper();
+            _mapper = mapper;
         }
 
-        public TDestination MapTo<TDestination>(object source)
+        public static TDestination MapTo<TDestination>(this object source)
         {
-            return _mapper.Map<object, TDestination>(source);
+            if (source == null) return default;
+            return _mapper.Map<TDestination>(source);
         }
 
-        public TDestination MapTo<TSource, TDestination>(TSource source)
+        public static List<TDestination> MapToList<TDestination>(this IEnumerable<object> source)
         {
-            return _mapper.Map<TSource, TDestination>(source);
-        }
-
-        public IEnumerable<TDestination> MapToList<TDestination>(IEnumerable<object> source)
-        {
-            return _mapper.Map<IEnumerable<object>, IEnumerable<TDestination>>(source);
-        }
-
-        public IEnumerable<TDestination> MapToList<TSource, TDestination>(IEnumerable<TSource> source)
-        {
-            return _mapper.Map<IEnumerable<TSource>, IEnumerable<TDestination>>(source);
+            if (source == null) return null;
+            return _mapper.Map<List<TDestination>>(source);
         }
     }
 }

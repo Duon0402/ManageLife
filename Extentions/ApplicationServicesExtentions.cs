@@ -1,4 +1,5 @@
 ﻿using ManageLife.Data;
+using ManageLife.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Extentions
@@ -7,6 +8,10 @@ namespace ManageLife.Extentions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
+
+            #region // AddAutoMapper
+            services.AddAutoMapper(typeof(AutoMapperProfiles));
+            #endregion
 
             #region // AddDbContext
             services.AddDbContext<AppDbContext>(options =>
