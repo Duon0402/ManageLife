@@ -3,10 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Extentions
 {
-    public static class ApplicationServicesExtention
+    public static class ApplicationServicesExtentions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
+
             #region // AddDbContext
             services.AddDbContext<AppDbContext>(options =>
             {
