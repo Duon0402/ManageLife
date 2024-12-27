@@ -7,8 +7,9 @@ namespace ManageLife.Base
         Task<IEnumerable<T>> GetAllAsync();
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties);
         Task<T> GetAsync(string key);
+        Task<T> GetAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties);
         Task<bool> InsertAsync(T entity);
-        Task<bool> UpdateAsync(string key, T entity);
+        Task<bool> UpdateAsync(T entity);
         Task<bool> DeleteAsync(string key);
     }
 }

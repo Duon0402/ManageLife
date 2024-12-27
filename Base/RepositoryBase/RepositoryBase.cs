@@ -41,6 +41,20 @@ namespace ManageLife.Base
             return entity;
         }
 
+        public async Task<T> GetAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
+        {
+            IQueryable<T> query = _context.Set<T>();
+
+            if (includeProperties != null && includeProperties.Any())
+            {
+                query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+            }
+
+            query = query.Where(predicate);
+
+            return await query.FirstOrDefaultAsync();
+        }
+
         public async Task<bool> InsertAsync(T entity)
         {
             await _context.Set<T>().AddAsync(entity);
@@ -48,7 +62,7 @@ namespace ManageLife.Base
             return rs > 0;
         }
 
-        public async Task<bool> UpdateAsync(string key, T entity)
+        public async Task<bool> UpdateAsync(T entity)
         {
             EntityEntry entityEntry = _context.Entry<T>(entity);
             entityEntry.State = EntityState.Modified;

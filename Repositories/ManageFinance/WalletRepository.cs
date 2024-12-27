@@ -1,7 +1,6 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
 using ManageLife.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Repositories
 {
