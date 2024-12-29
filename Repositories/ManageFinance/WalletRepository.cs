@@ -8,7 +8,6 @@ namespace ManageLife.Repositories
     {
         public WalletRepository(AppDbContext context) : base(context)
         {
-
         }
     }
 }
