@@ -2,7 +2,7 @@
 {
     public interface CanUpdate
     {
-        public string UpdatedUser { get; set; }
-        public DateTime UpdatedTime { get; set; }
+        public string? UpdatedUser { get; set; }
+        public DateTime? UpdatedTime { get; set; }
     }
 }

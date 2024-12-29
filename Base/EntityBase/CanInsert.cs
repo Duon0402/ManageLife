@@ -2,7 +2,7 @@
 {
     public interface CanCreate
     {
-        public DateTime CreatedTime { get; set; }
         public string CreatedUser { get; set; }
+        public DateTime CreatedTime { get; set; }
     }
 }

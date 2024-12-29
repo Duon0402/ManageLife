@@ -1,7 +1,12 @@
-﻿namespace ManageLife.Base
+﻿using ManageLife.Data;
+
+namespace ManageLife.Base
 {
     public class ServiceBase
     {
-        public ServiceBase() { }
+        public ServiceBase(AppDbContext context)
+        {
+
+        }
     }
 }

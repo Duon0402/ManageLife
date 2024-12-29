@@ -13,12 +13,11 @@ namespace ManageLife.Data
         }
 
         public DbSet<WalletEntity> Wallets { get; set; }
+        public DbSet<TransactionEntity> Transactions { get; set; }
 
-        //protected override void OnModelCreating(ModelBuilder builder)
-        //{
-        //    base.OnModelCreating(builder);
-
-        //    builder.Entity<WalletEntity>();
-        //}
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+        }
     }
 }

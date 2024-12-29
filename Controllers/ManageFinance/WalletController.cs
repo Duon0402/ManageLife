@@ -40,5 +40,19 @@ namespace ManageLife.Controllers
             var rs = await _service.InsertAsync(model);
             return rs;
         }
+
+        [HttpPut]
+        public async Task<Result> Update(WalletModel model)
+        {
+            var rs = await _service.UpdateAsync(model);
+            return rs;
+        }
+
+        [HttpDelete]
+        public async Task<Result> Delete(string walletId)
+        {
+            var rs = await _service.DeleteAsync(walletId);
+            return rs;
+        }
     }
 }

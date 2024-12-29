@@ -6,11 +6,11 @@ using ManageLife.Repositories;
 
 namespace ManageLife.Services
 {
-    public class WalletService
+    public class WalletService : ServiceBase
     {
         private readonly WalletRepository _repo;
 
-        public WalletService(AppDbContext context)
+        public WalletService(AppDbContext context) : base(context)
         {
             _repo = new WalletRepository(context);
         }
@@ -142,7 +142,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteAsyn(string walletId)
+        public async Task<Result> DeleteAsync(string walletId)
         {
             string msg;
             bool b;

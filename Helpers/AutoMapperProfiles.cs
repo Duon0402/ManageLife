@@ -9,6 +9,7 @@ namespace ManageLife.Helpers
         public AutoMapperProfiles()
         {
             CreateMap<WalletEntity, WalletModel>().ReverseMap();
+            CreateMap<TransactionEntity, TransactionModel>().ReverseMap();
         }
     }
 }
