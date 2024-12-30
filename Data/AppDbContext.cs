@@ -1,4 +1,5 @@
 ﻿using ManageLife.Entities;
+using ManageLife.Entities.ManageFinance;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Data
@@ -12,8 +13,11 @@ namespace ManageLife.Data
             _config = config;
         }
 
+        #region DbSet<>
         public DbSet<WalletEntity> Wallets { get; set; }
         public DbSet<TransactionEntity> Transactions { get; set; }
+        public DbSet<TransactionCategoryEntity> TransactionCategories { get; set; }
+        #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

@@ -2,10 +2,17 @@
 
 namespace ManageLife.Entities.ManageFinance
 {
-    public class TransactionCategoryEntity : EntityBase
+    public class TransactionCategoryEntity : EntityBase, CanCreate, CanUpdate, CanDelete
     {
         public string Name { get; set; }
         public string? Description { get; set; }
         public int TransactionType { get; set; }
+        public string CreatedUser { get; set; }
+        public DateTime CreatedTime { get; set; }
+        public string? UpdatedUser { get; set; }
+        public DateTime? UpdatedTime { get; set; }
+        public string? DeletedUser { get; set; }
+        public DateTime? DeletedTime { get; set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }
