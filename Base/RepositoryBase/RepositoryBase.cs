@@ -82,6 +82,5 @@ namespace ManageLife.Base
             }
             return false;
         }
-
     }
 }

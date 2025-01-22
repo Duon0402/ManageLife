@@ -1,11 +1,11 @@
 ﻿using LinqKit;
 using ManageLife.Base;
 using ManageLife.Data;
-using ManageLife.Entities.ManageFinance;
+using ManageLife.Entities;
 using ManageLife.Models;
 using ManageLife.Repositories;
 
-namespace ManageLife.Services.ManageFinance
+namespace ManageLife.Services
 {
     public class TransactionCategoryService : ServiceBase
     {

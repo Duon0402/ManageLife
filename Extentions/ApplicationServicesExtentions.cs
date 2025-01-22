@@ -16,7 +16,7 @@ namespace ManageLife.Extentions
             #region // AddDbContext
             services.AddDbContext<AppDbContext>(options =>
             {
-                string connectionString = config.GetConnectionString("DefaultConnection");
+                string connectionString = config.GetConnectionString("DefaultConnection") ?? "";
                 var serverVersion = new MySqlServerVersion(new Version(5, 2, 1));
 
                 options.UseMySql(connectionString, serverVersion, mysqlOptions =>

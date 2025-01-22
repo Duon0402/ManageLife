@@ -15,22 +15,32 @@ namespace ManageLife.Controllers
             _service = new WalletService(context);
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var viewModel = new WalletViewModel();
+
+            var rs = await _service.GetListDataAsync();
+            if(rs.IsOk())
+            {
+                if(rs.Data.IsNotEmpty())
+                {
+                    viewModel.Wallets = rs.Data;
+                }
+            }
+            return View(viewModel);
         }
 
         [HttpGet]
         public async Task<Result> GetListData()
         {
-            var rs = await _service.GetListData();
+            var rs = await _service.GetListDataAsync();
             return rs;
         }
 
         [HttpGet]
         public async Task<Result> GetDataById(string walletId)
         {
-            var rs = await _service.GetDataById(walletId);
+            var rs = await _service.GetDataByIdAsync(walletId);
             return rs;
         }
 
