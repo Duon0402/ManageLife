@@ -43,6 +43,7 @@ namespace ManageLife.Services
                 // TODO: Thêm kiểm tra mật khẩu (IsPasswordValid), và thêm Role (mặc định là User)
                 var entity = new UserEntity()
                 {
+                    Id = IdHeper.NewId(),
                     UserName = model.UserName,
                     HashPassword = PasswordHelper.HashPassword(model.Password),
                 };

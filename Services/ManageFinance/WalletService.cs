@@ -15,7 +15,7 @@ namespace ManageLife.Services
             _repo = new WalletRepository(context);
         }
 
-        public async Task<Result<List<WalletModel>>> GetListData()
+        public async Task<Result<List<WalletModel>>> GetListDataAsync()
         {
             string msg;
             try
@@ -38,7 +38,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<WalletModel>> GetDataById(string walletId)
+        public async Task<Result<WalletModel>> GetDataByIdAsync(string walletId)
         {
             string msg;
             try
@@ -65,6 +65,7 @@ namespace ManageLife.Services
                 return Result.Exception<WalletModel>(msg, ex);
             }
         }
+
         public async Task<Result> InsertAsync(WalletModel model)
         {
             string msg;
