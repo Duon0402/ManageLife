@@ -28,5 +28,6 @@ namespace ManageLife.Services
 				var msg = ex.ToString();
 			}
 		}
+
 	}
 }

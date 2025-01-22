@@ -1,7 +1,6 @@
 ﻿using ManageLife.Base;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace ManageLife.Helpers
 {
@@ -114,12 +113,36 @@ namespace ManageLife.Helpers
         public static IHtmlContent TextBox(this IHtmlHelper htmlHelper, TextBoxOptions options)
         {
             // TODO: Bổ sung phần lable
-            var textBoxBuilder = new TagBuilder("input");
-            textBoxBuilder.Attributes.Add("type", "text");
-            textBoxBuilder.Attributes.Add("name", options.Name);
-            textBoxBuilder.Attributes.Add("id", options.Id);
-            textBoxBuilder.Attributes.Add("value", options.Value ?? string.Empty);
-            textBoxBuilder.Attributes.Add("class", options.CssClass);
+            var textBoxBuilder = new TagBuilder("div");
+
+            // Lable
+            var lableBuilder = new TagBuilder("lable");
+            lableBuilder.Attributes.Add("for", options.Name);
+            lableBuilder.Attributes.Add("value", options.Lable ?? options.Name);
+            textBoxBuilder.InnerHtml.AppendHtml(lableBuilder);
+
+            // Input
+            var inputBuilder = new TagBuilder("input");
+            inputBuilder.Attributes.Add("type", "text");
+            inputBuilder.Attributes.Add("name", options.Name);
+
+            if (string.IsNullOrWhiteSpace(options.Id))
+            {
+                inputBuilder.Attributes.Add("id", options.Id);
+            }
+
+            if (string.IsNullOrWhiteSpace(options.Value))
+            {
+                inputBuilder.Attributes.Add("value", options.Value);
+            }
+
+            if (string.IsNullOrWhiteSpace(options.CssClass))
+            {
+                inputBuilder.Attributes.Add("class", options.CssClass);
+
+            }
+
+            textBoxBuilder.InnerHtml.AppendHtml(inputBuilder);
 
             return textBoxBuilder;
         }

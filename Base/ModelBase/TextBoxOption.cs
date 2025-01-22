@@ -8,6 +8,7 @@
         public string? Value { get; set; }
         public string CssClass { get; set; } = "form-control";
 
+        public string? Lable { get; set; }
         public TextBoxOptions()
         {
         }
