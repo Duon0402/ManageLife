@@ -15,11 +15,17 @@ namespace ManageLife.Controllers
             _service = new UserService(context);
         }
 
-        public IActionResult Index()
+        public IActionResult Login()
         {
             return View();
         }
 
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
         public async Task<IActionResult> Register(RegisterAccountModel model)
         {
             var rs = await _service.RegisterAsync(model);
@@ -32,13 +38,14 @@ namespace ManageLife.Controllers
             return Ok(rs);
         }
 
+        [HttpPost]
         public async Task<IActionResult> Login(LoginAccountModel model)
         {
             var rs = await _service.LoginAsync(model);
 
             if (rs.IsOk())
             {
-                return Redirect("Home");
+                return RedirectToAction("Index", "Home");
             }
 
             return Ok(rs);

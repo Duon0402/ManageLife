@@ -24,6 +24,7 @@
 		@{
 			var gridOptions = new DataGridOptions();
 			gridOptions.AllowInsert = true;
+			gridOptions.Id = "wallet_data_grid";
 			@(Html.DataGrid<WalletModel>(Model.Wallets, new List<string> { "Id", "Name", "Balance" }, gridOptions));
 		}
 

@@ -1,6 +1,7 @@
 ﻿using ManageLife.Base;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace ManageLife.Helpers
 {
@@ -13,6 +14,11 @@ namespace ManageLife.Helpers
         {
             var gridBuilder = new TagBuilder("div");
             gridBuilder.AddCssClass("data-grid-container");
+
+            if (!string.IsNullOrWhiteSpace(options?.Id))
+            {
+                gridBuilder.Attributes.Add("id", options.Id);
+            }
 
             #region Toolbar
             var toolBarBuilder = new TagBuilder("div");
@@ -33,8 +39,8 @@ namespace ManageLife.Helpers
             #endregion
 
             #region Table
-            var tableContainerBuilder = new TagBuilder("div");
-            tableContainerBuilder.AddCssClass("table-responsive");
+            var tableContainer = new TagBuilder("div");
+            tableContainer.AddCssClass("table-responsive");
 
             var tableBuilder = new TagBuilder("table");
             tableBuilder.AddCssClass("table table-bordered table-hover");
@@ -78,12 +84,44 @@ namespace ManageLife.Helpers
 
             tableBuilder.InnerHtml.AppendHtml(tbodyBuilder);
 
-            tableContainerBuilder.InnerHtml.AppendHtml(tableBuilder);
+            tableContainer.InnerHtml.AppendHtml(tableBuilder);
             #endregion
 
-            gridBuilder.InnerHtml.AppendHtml(tableContainerBuilder);
+            gridBuilder.InnerHtml.AppendHtml(tableContainer);
 
             return gridBuilder;
+        }
+        #endregion
+
+        #region Form
+        public static IHtmlContent Form<T>(this IHtmlHelper htmlHelper, FormOptions? options = null)
+        {
+            var formContainer = new TagBuilder("div");
+            formContainer.AddCssClass("form-container");
+
+            if (string.IsNullOrWhiteSpace(options?.Id))
+            {
+                formContainer.Attributes.Add("id", options?.Id);
+            }
+
+            var formBuilder = new TagBuilder("form");
+
+            return formContainer;
+        }
+        #endregion
+
+        #region TextBox
+        public static IHtmlContent TextBox(this IHtmlHelper htmlHelper, TextBoxOptions options)
+        {
+            // TODO: Bổ sung phần lable
+            var textBoxBuilder = new TagBuilder("input");
+            textBoxBuilder.Attributes.Add("type", "text");
+            textBoxBuilder.Attributes.Add("name", options.Name);
+            textBoxBuilder.Attributes.Add("id", options.Id);
+            textBoxBuilder.Attributes.Add("value", options.Value ?? string.Empty);
+            textBoxBuilder.Attributes.Add("class", options.CssClass);
+
+            return textBoxBuilder;
         }
         #endregion
     }

@@ -1,0 +1,23 @@
+﻿@model ManageLife.Models.RegisterAccountModel
+
+@{
+	ViewData["Title"] = "Register";
+}
+
+<h2>Register</h2>
+
+<form asp-action="Register" method="post">
+	<div>
+		<label for="username">Username</label>
+		<input type="text" id="username" name="Username" required />
+	</div>
+	<div>
+		<label for="password">Password</label>
+		<input type="password" id="password" name="Password" required />
+	</div>
+	<div>
+		<label for="confirmPassword">confirm Password</label>
+		<input type="password" id="confirmPassword" name="ConfirmPassword" required />
+	</div>
+	<button type="submit">Register</button>
+</form>
