@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using ManageLife.Entities;
-using ManageLife.Entities.ManageFinance;
 using ManageLife.Models;
 
 namespace ManageLife.Helpers
