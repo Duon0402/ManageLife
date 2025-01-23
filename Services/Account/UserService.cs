@@ -80,7 +80,7 @@ namespace ManageLife.Services
 
                 if (entity == null)
                 {
-                    msg = "Tên đăng hoặc mật khẩu không đúng";
+                    msg = "Tên đăng nhập hoặc mật khẩu không đúng";
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
