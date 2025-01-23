@@ -6,7 +6,7 @@
 
 <h2>Login</h2>
 
-<form asp-action="Login" method="post">
+<form id="loginForm">
     <div>
         <label for="username">Username</label>
         <input type="text" id="username" name="Username" required />
@@ -15,5 +15,39 @@
         <label for="password">Password</label>
         <input type="password" id="password" name="Password" required />
     </div>
-    <button type="submit">Login</button>
+    <button type="submit" id="btnLogin">Login</button>
 </form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#loginForm').on('submit', function (e) {
+            e.preventDefault(); 
+
+            const formData = {
+                Username: $('#username').val(),
+                Password: $('#password').val()
+            };
+
+            $.ajax({
+                url: '/Account/Login',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    if (response.success) {
+                        showToast(response.message, 'success', 3000);
+                        setTimeout(function () {
+                            window.location.href = response.redirectUrl;
+                        }, 3000);
+                    } else {
+                        showToast(response.message, 'error', 5000);
+                    }
+                },
+                error: function () {
+                    showToast('An unexpected error occurred. Please try again.', 'error', 5000);
+                }
+            });
+        });
+    });
+</script>
