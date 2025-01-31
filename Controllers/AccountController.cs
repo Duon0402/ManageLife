@@ -26,7 +26,7 @@ namespace ManageLife.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterAccountModel model)
+        public async Task<IActionResult> Register([FromBody] RegisterAccountModel model)
         {
             var rs = await _service.RegisterAsync(model);
 
@@ -35,20 +35,14 @@ namespace ManageLife.Controllers
                 return Redirect("Login");
             }
 
-            return Ok(rs);
+            return Json(rs);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginAccountModel model)
+        public async Task<Result> Login([FromBody] LoginAccountModel model)
         {
             var rs = await _service.LoginAsync(model);
-
-            if (rs.IsOk())
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
-            return Ok(rs);
+            return rs;
         }
     }
 }

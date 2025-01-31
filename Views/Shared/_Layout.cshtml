@@ -9,6 +9,8 @@
 	<link rel="stylesheet" href="~/ManageLife.styles.css" asp-append-version="true" />
 </head>
 <body>
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+
 	<header>
 		<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
 			<div class="container-fluid">
@@ -47,10 +49,11 @@
 			&copy; 2024 - ManageLife - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
 		</div>
 	</footer>
-	<script src="~/lib/jquery/dist/jquery.min.js"></script>
 	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="~/js/site.js" asp-append-version="true"></script>
+	<script src="~/js/ajaxService.js"></script>
 	<script src="~/js/toast.js"></script>
+	<script src="~/js/loading.js"></script>
+	<script src="~/js/site.js" asp-append-version="true"></script>
 	@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -5,36 +5,27 @@
 <h2>Send Telegram Message</h2>
 
 <form id="sendMessageForm">
-    <label for="message">Enter your message:</label>
-    <input type="text" id="message" name="message" required />
-    <button type="submit">Send Message</button>
+    <div class="mb-3">
+        <label for="message" class="form-label">Enter your message:</label>
+        <input type="text" class="form-control" id="message" name="message" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Send Message</button>
 </form>
-
-<div id="result"></div>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script>
     $(document).ready(function () {
         $('#sendMessageForm').on('submit', function (e) {
             e.preventDefault();
             var message = $('#message').val();
-
-            $.ajax({
-                url: '@Url.Action("SendMessage", "Home")',
-                type: 'POST',
-                data: { message: message },
-                success: function (response) {
-                    if (response.Success) {
-                        $('#result').html('<p style="color: green;">' + response.Message + '</p>');
-                    } else {
-                        $('#result').html('<p style="color: red;">Error: ' + response.ErrorMessage + '</p>');
+                ajaxService.post('@Url.Action("SendMessage", "Home")', message, {
+                onSuccess: function (response) {
+                    if (response.success) {
+                        showToast(response.message, 'success');
                     }
-                },
-                error: function () {
-                    $('#result').html('<p style="color: red;">Something went wrong!</p>');
-                }
+                    else {
+                        showToast(response.errorMessage, 'error');
+                    }
+                }})
             });
         });
-    });
 </script>

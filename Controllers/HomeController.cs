@@ -30,7 +30,7 @@ namespace ManageLife.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> SendMessage(string message)
+        public async Task<ActionResult> SendMessage([FromBody] string message)
         {
             try
             {
