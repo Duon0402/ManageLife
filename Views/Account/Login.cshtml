@@ -34,7 +34,7 @@
 
         ajaxService.post('/Account/Login', formData, {
             onSuccess: function (response) {
-                if (response.code == '00') {
+                if (response.isOk()) {
                     window.location.href = '/'
                 }
                 else {

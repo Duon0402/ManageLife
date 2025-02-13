@@ -26,6 +26,11 @@
                     if (settings.hideLoading) {
                         hideLoading();
                     }
+
+                    response.isOk = function () {
+                        return response.code === '00';
+                    };
+
                     if (settings.onSuccess) {
                         settings.onSuccess(response);
                     }

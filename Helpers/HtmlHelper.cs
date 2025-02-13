@@ -7,7 +7,7 @@ namespace ManageLife.Helpers
     public static class HtmlHelper
     {
         // TODO: Thêm phần action để tái sử dụng
-
+        // TODO: Thêm searching, filtering, và paging ...
         #region DataGrid
         public static IHtmlContent DataGrid<T>(this IHtmlHelper htmlHelper, IEnumerable<T> items, IEnumerable<string> columnNames, DataGridOptions? options = null)
         {
@@ -139,7 +139,6 @@ namespace ManageLife.Helpers
             if (string.IsNullOrWhiteSpace(options.CssClass))
             {
                 inputBuilder.Attributes.Add("class", options.CssClass);
-
             }
 
             textBoxBuilder.InnerHtml.AppendHtml(inputBuilder);

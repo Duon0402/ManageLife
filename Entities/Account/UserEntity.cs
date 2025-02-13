@@ -6,5 +6,6 @@ namespace ManageLife.Entities
     {
         public string UserName { get; set; }
         public string HashPassword { get; set; }
+        public string RoleId { get; set; }
     }
 }
