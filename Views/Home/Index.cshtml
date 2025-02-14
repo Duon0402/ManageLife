@@ -1,31 +1,68 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Html
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<h2>Send Telegram Message</h2>
+<div class="send_message_container">
+    <h2>Send Telegram Message</h2>
 
-<form id="sendMessageForm">
-    <div class="mb-3">
-        <label for="message" class="form-label">Enter your message:</label>
-        <input type="text" class="form-control" id="message" name="message" required />
-    </div>
-    <button type="submit" class="btn btn-primary">Send Message</button>
-</form>
+    <form id="sendMessageForm">
+        @{
+            var textBoxOptions = new TextBoxOptions()
+            {
+                Id = "message",
+                Placeholder = "Enter your message",
+                Name = "Message",
+            };
+        }
+        @Html.TextBox(textBoxOptions)
+        <button type="submit" class="btn btn-primary mt-3">Send Message</button>
+    </form>
+</div>
+
+@{
+    var popupOptions = new PopupOptions
+    {
+        Id = "myPopup",
+        Title = "Thông Báo",
+        Width = "500px",
+        MinWidth = "300px",
+        Height = "300px",
+        MinHeight = "200px",
+        ShowTitle = true,
+        ShowCloseButton = true,
+        Content = new HtmlString("<p>Nội dung của popup.</p>")
+    };
+}
+
+@Html.Popup(popupOptions)
+<button type="button" class="btn btn-primary mt-3" onclick="openPopup('myPopup')">Mở Popup</button>
 
 <script>
+    function openPopup(popupId) {
+        $('#' + popupId).modal('show');
+    }
+
+    function closePopup(popupId) {
+        $('#' + popupId).modal('hide');
+    }
+
+
     $(document).ready(function () {
         $('#sendMessageForm').on('submit', function (e) {
             e.preventDefault();
             var message = $('#message').val();
-                ajaxService.post('@Url.Action("SendMessage", "Home")', message, {
+            ajaxService.post('@Url.Action("SendMessage", "Home")', message, {
                 onSuccess: function (response) {
-                    if (response.success) {
-                        showToast(response.message, 'success');
+                    console.log(response);
+                    if (response.isOk()) {
+                        showToast('Gửi tin nhắn thành công', 'success', 10000);
                     }
                     else {
-                        showToast(response.errorMessage, 'error');
+                        showToast(response.message, 'error')
                     }
-                }})
-            });
+                }
+            })
         });
+    });
 </script>

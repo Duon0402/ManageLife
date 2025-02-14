@@ -4,11 +4,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ManageLife.Helpers
 {
-    public static class HtmlHelper
+    public static class DataGridHelper
     {
-        // TODO: Thêm phần action để tái sử dụng
-        // TODO: Thêm searching, filtering, và paging ...
-        #region DataGrid
         public static IHtmlContent DataGrid<T>(this IHtmlHelper htmlHelper, IEnumerable<T> items, IEnumerable<string> columnNames, DataGridOptions? options = null)
         {
             var gridBuilder = new TagBuilder("div");
@@ -90,61 +87,5 @@ namespace ManageLife.Helpers
 
             return gridBuilder;
         }
-        #endregion
-
-        #region Form
-        public static IHtmlContent Form<T>(this IHtmlHelper htmlHelper, FormOptions? options = null)
-        {
-            var formContainer = new TagBuilder("div");
-            formContainer.AddCssClass("form-container");
-
-            if (string.IsNullOrWhiteSpace(options?.Id))
-            {
-                formContainer.Attributes.Add("id", options?.Id);
-            }
-
-            var formBuilder = new TagBuilder("form");
-
-            return formContainer;
-        }
-        #endregion
-
-        #region TextBox
-        public static IHtmlContent TextBox(this IHtmlHelper htmlHelper, TextBoxOptions options)
-        {
-            // TODO: Bổ sung phần lable
-            var textBoxBuilder = new TagBuilder("div");
-
-            // Lable
-            var lableBuilder = new TagBuilder("lable");
-            lableBuilder.Attributes.Add("for", options.Name);
-            lableBuilder.Attributes.Add("value", options.Lable ?? options.Name);
-            textBoxBuilder.InnerHtml.AppendHtml(lableBuilder);
-
-            // Input
-            var inputBuilder = new TagBuilder("input");
-            inputBuilder.Attributes.Add("type", "text");
-            inputBuilder.Attributes.Add("name", options.Name);
-
-            if (string.IsNullOrWhiteSpace(options.Id))
-            {
-                inputBuilder.Attributes.Add("id", options.Id);
-            }
-
-            if (string.IsNullOrWhiteSpace(options.Value))
-            {
-                inputBuilder.Attributes.Add("value", options.Value);
-            }
-
-            if (string.IsNullOrWhiteSpace(options.CssClass))
-            {
-                inputBuilder.Attributes.Add("class", options.CssClass);
-            }
-
-            textBoxBuilder.InnerHtml.AppendHtml(inputBuilder);
-
-            return textBoxBuilder;
-        }
-        #endregion
     }
 }

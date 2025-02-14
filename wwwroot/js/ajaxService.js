@@ -31,12 +31,20 @@
                         return response.code === '00';
                     };
 
+                    response.isException = function () {
+                        return response.code === '99';
+                    };
+
+                    response.isError = function () {
+                        return !this.isOk() && !this.isException();
+                    };
+
                     if (settings.onSuccess) {
                         settings.onSuccess(response);
                     }
                     else {
                         if (response.message) {
-                            showToast(response.message, response.Code == '00' ? 'error' : 'success');
+                            showToast(response.message, response.code == '00' ? 'error' : 'success');
                         }
                     }
 

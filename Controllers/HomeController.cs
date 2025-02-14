@@ -1,4 +1,5 @@
-﻿using ManageLife.Models;
+﻿using ManageLife.Base;
+using ManageLife.Models;
 using ManageLife.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -30,17 +31,10 @@ namespace ManageLife.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> SendMessage([FromBody] string message)
+        public async Task<Result> SendMessage([FromBody] string message)
         {
-            try
-            {
-                await _telegramService.SendMessageAsync(message);
-                return Json(new { Success = true, Message = "Message sent successfully" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { Success = false, ErrorMessage = ex.Message });
-            }
+            var rs = await this._telegramService.SendMessageAsync(message);
+            return rs;
         }
     }
 }
