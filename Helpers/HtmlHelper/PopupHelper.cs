@@ -12,7 +12,7 @@ namespace ManageLife.Helpers
             modalContainer.AddCssClass("modal fade");
             modalContainer.Attributes.Add("id", options.Id);
             modalContainer.Attributes.Add("tabindex", "-1");
-            modalContainer.Attributes.Add("aria-hidden", "true");
+            modalContainer.Attributes.Add("aria-modal", "true");
 
             var modalDialog = new TagBuilder("div");
             modalDialog.AddCssClass("modal-dialog");
