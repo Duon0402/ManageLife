@@ -17,6 +17,7 @@ namespace ManageLife.Helpers
             }
 
             #region Toolbar
+            // TODO: Thêm searching, filtering, sorting
             var toolBarBuilder = new TagBuilder("div");
             toolBarBuilder.AddCssClass("d-flex justify-content-end mb-3");
 
@@ -84,7 +85,7 @@ namespace ManageLife.Helpers
             #endregion
 
             gridBuilder.InnerHtml.AppendHtml(tableContainer);
-
+            // TODO: Thêm paging
             return gridBuilder;
         }
     }
