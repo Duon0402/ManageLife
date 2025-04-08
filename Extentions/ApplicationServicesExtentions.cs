@@ -9,6 +9,14 @@ namespace ManageLife.Extentions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
 
+            services.AddSession(options =>
+            {
+                options.IOTimeout = TimeSpan.FromDays(7); // Thời gian session sống
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+
+            });
+
             #region // AddAutoMapper
             services.AddAutoMapper(typeof(AutoMapperProfiles));
             #endregion
