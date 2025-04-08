@@ -1,4 +1,4 @@
-﻿function showToast(message, type = 'info', duration = 3000) {
+﻿function showToast(message, title = 'Thông báo', type = 'info', duration = 3000) {
     const toastId = `toast-${Date.now()}`;
     const colors = {
         success: '#28a745',
@@ -8,19 +8,16 @@
     };
 
     const toastHtml = `
-        <div id="${toastId}" style="
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: ${colors[type] || colors.info};
-            color: white;
-            padding: 10px 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            animation: fadeIn 0.5s;
-        ">
-            <span>${message}</span>
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header">
+            <img src="..." class="rounded me-2" alt="...">
+            <strong class="me-auto">${title}</strong>
+            <small>11 mins ago</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <div class="toast-body">
+            ${message}
+          </div>
         </div>
     `;
 
