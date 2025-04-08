@@ -68,13 +68,19 @@ namespace ManageLife.Base
         }
 
 
-        // TODO: Sửa lại logic check update và soft delete
-        public async Task<bool> UpdateAsync(T entity)
+        public async Task<bool> UpdateAsync(T entity, bool isSoftDelete = false)
         {
-            if(entity is CanUpdate canUpdate)
+            if (!isSoftDelete && entity is CanUpdate canUpdate)
             {
                 canUpdate.UpdatedTime = DateTimeHelper.Now();
                 canUpdate.UpdatedUser = "System"; // Replace with actual user
+            }
+
+            if (isSoftDelete && entity is SoftDelete softDelete)
+            {
+                softDelete.IsDeleted = true;
+                softDelete.DeletedTime = DateTimeHelper.Now();
+                softDelete.DeletedUser = "System"; // Replace with actual user
             }
 
             EntityEntry entityEntry = _context.Entry<T>(entity);
@@ -90,7 +96,7 @@ namespace ManageLife.Base
             {
                 if (entity is SoftDelete)
                 {
-                    return await UpdateAsync(entity);
+                    return await UpdateAsync(entity, isSoftDelete: true);
                 }
 
                 EntityEntry entityEntry = _context.Entry<T>(entity);
