@@ -47,14 +47,12 @@
         $('#' + popupId).modal('hide');
     }
 
-
     $(document).ready(function () {
         $('#sendMessageForm').on('submit', function (e) {
             e.preventDefault();
             var message = $('#message').val();
             ajaxService.post('@Url.Action("SendMessage", "Home")', message, {
                 onSuccess: function (response) {
-                    console.log(response);
                     if (response.isOk()) {
                         showToast('Gửi tin nhắn thành công', 'success', 10000);
                     }
