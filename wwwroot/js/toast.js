@@ -41,7 +41,7 @@
         </div>
     `;
 
-    $('#toast-container').append(toastHtml);
+    $('#toast-container').prepend(toastHtml);
 
     const $toastEl = $(`#${toastId}`);
     const bsToast = new bootstrap.Toast($toastEl[0], { delay: duration });
