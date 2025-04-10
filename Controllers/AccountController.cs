@@ -26,16 +26,10 @@ namespace ManageLife.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register([FromBody] RegisterAccountModel model)
+        public async Task<Result> Register([FromBody] RegisterAccountModel model)
         {
             var rs = await _service.RegisterAsync(model);
-
-            if (rs.IsOk())
-            {
-                return Redirect("Login");
-            }
-
-            return Json(rs);
+            return rs;
         }
 
         [HttpPost]

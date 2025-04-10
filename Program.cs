@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ManageLife.Base;
+using ManageLife.Data;
 using ManageLife.Extentions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,13 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
+
+// ======= SEED DATA =========
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await Seed.SeedData(context);
+}
 
 // Gán IMapper từ DI vào MapperBase
 var mapper = app.Services.GetRequiredService<IMapper>();

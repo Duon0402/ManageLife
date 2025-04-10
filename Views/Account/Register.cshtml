@@ -1,23 +1,49 @@
-﻿@model ManageLife.Models.RegisterAccountModel
-
-@{
+﻿@{
 	ViewData["Title"] = "Register";
 }
 
-<h2>Register</h2>
+<div class="container d-flex justify-content-center align-items-center">
+    <div class="card" style="width: 100%; max-width: 400px;">
+        <div class="card-body">
+            <h5 class="card-title text-center">Register</h5>
+            <form id="registerForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="Username" required />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="Password" required />
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" name="Confirm Password" required />
+                </div>
+                <button type="submit" class="btn btn-primary w-100" id="btnRegister">Register</button>
+            </form>
+        </div>
+    </div>
+</div>
 
-<form asp-action="Register" method="post">
-	<div>
-		<label for="username">Username</label>
-		<input type="text" id="username" name="Username" required />
-	</div>
-	<div>
-		<label for="password">Password</label>
-		<input type="password" id="password" name="Password" required />
-	</div>
-	<div>
-		<label for="confirmPassword">confirm Password</label>
-		<input type="password" id="confirmPassword" name="ConfirmPassword" required />
-	</div>
-	<button type="submit">Register</button>
-</form>
+<script>
+    $("#registerForm").submit(function (event) {
+        event.preventDefault();
+
+        const formData = {
+            username: $("#username").val(),
+            password: $("#password").val(),
+			confirmPassword: $("#confirmPassword").val(),
+        };
+
+        ajaxService.post('/Account/Register', formData, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    window.location.href = '/'
+                }
+                else {
+                    showToast(response.message, 'error');
+                }
+            },
+        });
+    });
+</script>

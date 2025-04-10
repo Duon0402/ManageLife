@@ -10,10 +10,12 @@ namespace ManageLife.Services
     public class UserService : ServiceBase
     {
         private readonly UserRepository _repo;
+        private readonly RoleRepository _roleRepo;
 
         public UserService(AppDbContext context) : base(context)
         {
             _repo = new UserRepository(context);
+            _roleRepo = new RoleRepository(context);
         }
 
         public async Task<Result> RegisterAsync(RegisterAccountModel model)
@@ -40,12 +42,21 @@ namespace ManageLife.Services
                     msg = "Mật khẩu không khớp";
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
-                // TODO: Thêm kiểm tra mật khẩu (IsPasswordValid), và thêm Role (mặc định là User)
+
+                var userRole = await _roleRepo.GetAsync(x => x.Name == "User" && x.IsDeleted == false);
+                if(userRole == null)
+                {
+                    msg = "Không thể đăng ký tài khoản";
+                    return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
+                }
+
+                // TODO: Thêm kiểm tra mật khẩu (IsPasswordValid)
                 var entity = new UserEntity()
                 {
                     Id = IdHeper.NewId(),
                     UserName = model.UserName,
                     HashPassword = PasswordHelper.HashPassword(model.Password),
+                    RoleId = userRole.Id,
                 };
 
                 var b = await _repo.InsertAsync(entity);
