@@ -44,7 +44,7 @@
                     }
                     else {
                         if (response.message) {
-                            showToast(response.message, response.code == '00' ? 'error' : 'success');
+                            showToast(response.message, 'Thông báo', response.code == '00' ? 'error' : 'success');
                         }
                     }
 
