@@ -2,7 +2,7 @@
 
 namespace ManageLife.Entities
 {
-    public class TransactionCategoryEntity : EntityBase, CanCreate, CanUpdate, CanDelete
+    public class TransactionCategoryEntity : EntityBase, CanCreate, CanUpdate, SoftDelete
     {
         public string Name { get; set; }
         public string? Description { get; set; }

@@ -2,7 +2,7 @@
 
 namespace ManageLife.Entities
 {
-    public class TikTokAccount : EntityBase, CanCreate, CanUpdate, CanDelete
+    public class TikTokAccount : EntityBase, CanCreate, CanUpdate, SoftDelete
     {
         public string Email { get; set; }
         public string Password { get; set; }

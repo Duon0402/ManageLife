@@ -6,5 +6,10 @@
         {
             return DateTime.Now;
         }
+
+        public static DateTime UtcNow()
+        {
+            return DateTime.UtcNow;
+        }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using ManageLife.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System.Collections;
 using System.Linq.Expressions;
 
 namespace ManageLife.Base
@@ -57,13 +56,33 @@ namespace ManageLife.Base
 
         public async Task<bool> InsertAsync(T entity)
         {
+            if (entity is CanCreate canCreate)
+            {
+                canCreate.CreatedTime = DateTimeHelper.Now();
+                canCreate.CreatedUser = "System"; // Replace with actual user
+            }
+
             await _context.Set<T>().AddAsync(entity);
-            var rs =await _context.SaveChangesAsync();
+            var rs = await _context.SaveChangesAsync();
             return rs > 0;
         }
 
-        public async Task<bool> UpdateAsync(T entity)
+
+        public async Task<bool> UpdateAsync(T entity, bool isSoftDelete = false)
         {
+            if (!isSoftDelete && entity is CanUpdate canUpdate)
+            {
+                canUpdate.UpdatedTime = DateTimeHelper.Now();
+                canUpdate.UpdatedUser = "System"; // Replace with actual user
+            }
+
+            if (isSoftDelete && entity is SoftDelete softDelete)
+            {
+                softDelete.IsDeleted = true;
+                softDelete.DeletedTime = DateTimeHelper.Now();
+                softDelete.DeletedUser = "System"; // Replace with actual user
+            }
+
             EntityEntry entityEntry = _context.Entry<T>(entity);
             entityEntry.State = EntityState.Modified;
             var rs = await _context.SaveChangesAsync();
@@ -73,8 +92,13 @@ namespace ManageLife.Base
         public async Task<bool> DeleteAsync(string key)
         {
             var entity = await _context.Set<T>().FirstOrDefaultAsync(n => n.Id == key);
-            if(entity != null)
+            if (entity != null)
             {
+                if (entity is SoftDelete)
+                {
+                    return await UpdateAsync(entity, isSoftDelete: true);
+                }
+
                 EntityEntry entityEntry = _context.Entry<T>(entity);
                 entityEntry.State = EntityState.Deleted;
                 var rs = await _context.SaveChangesAsync();

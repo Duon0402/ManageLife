@@ -54,10 +54,10 @@
             ajaxService.post('@Url.Action("SendMessage", "Home")', message, {
                 onSuccess: function (response) {
                     if (response.isOk()) {
-                        showToast('Gửi tin nhắn thành công', 'success', 10000);
+                        showToast('Gửi tin nhắn thành công', 'Thông báo', 'success', 10000);
                     }
                     else {
-                        showToast(response.message, 'error')
+                        showToast(response.message, 'Thông báo', 'error')
                     }
                 }
             })
