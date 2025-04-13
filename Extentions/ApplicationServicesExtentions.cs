@@ -4,39 +4,43 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Extentions
 {
-    public static class ApplicationServicesExtentions
-    {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
-        {
-            #region AddSession
-            services.AddSession(options =>
-            {
-                options.IOTimeout = TimeSpan.FromDays(7); // Thời gian session sống
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
+	public static class ApplicationServicesExtentions
+	{
+		public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+		{
+			#region DependencyInjection
+			services.AddScoped<IMenuRegister, MenuRegister>();
+			#endregion
 
-            });
-            #endregion
+			#region AddSession
+			services.AddSession(options =>
+			{
+				options.IOTimeout = TimeSpan.FromDays(7); // Thời gian session sống
+				options.Cookie.HttpOnly = true;
+				options.Cookie.IsEssential = true;
 
-            #region // AddAutoMapper
-            services.AddAutoMapper(typeof(AutoMapperProfiles));
-            #endregion
+			});
+			#endregion
 
-            #region // AddDbContext
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                string connectionString = config.GetConnectionString("DefaultConnection") ?? "";
-                var serverVersion = new MySqlServerVersion(new Version(5, 2, 1));
+			#region AddAutoMapper
+			services.AddAutoMapper(typeof(AutoMapperProfiles));
+			#endregion
 
-                options.UseMySql(connectionString, serverVersion, mysqlOptions =>
-                {
-                    mysqlOptions.EnableRetryOnFailure();
-                });
-            });
-            #endregion
+			#region AddDbContext
+			services.AddDbContext<AppDbContext>(options =>
+			{
+				string connectionString = config.GetConnectionString("DefaultConnection") ?? "";
+				var serverVersion = new MySqlServerVersion(new Version(5, 2, 1));
 
-            return services;
-        }
-    }
+				options.UseMySql(connectionString, serverVersion, mysqlOptions =>
+				{
+					mysqlOptions.EnableRetryOnFailure();
+				});
+			});
+			#endregion
+
+			return services;
+		}
+	}
 
 }
