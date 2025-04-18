@@ -9,9 +9,6 @@
         public string CssClass { get; set; } = "form-control";
 
         public string? Lable { get; set; }
-        public TextBoxOptions()
-        {
-        }
 
         public TextBoxOptions(string name)
         {

@@ -50,7 +50,13 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
-                // TODO: Thêm kiểm tra mật khẩu (IsPasswordValid)
+                var (isValid, passwordMsg) = IsPasswordValid(model.Password);
+                if (!isValid)
+                {
+                    msg = passwordMsg;
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
                 var entity = new UserEntity()
                 {
                     Id = IdHeper.NewId(),
@@ -110,6 +116,26 @@ namespace ManageLife.Services
             }
 
             //TODO: Thêm đăng xuất, đổi mật khẩu
+        }
+
+        private (bool isSuccess, string msg) IsPasswordValid(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+                return (false, "Mật khẩu không được để trống");
+
+            if (password.Length < 8)
+                return (false, "Mật khẩu phải có ít nhất 8 ký tự");
+
+            if (!password.Any(char.IsDigit))
+                return (false, "Mật khẩu phải có ít nhất 1 chữ số");
+
+            if (!password.Any(char.IsUpper))
+                return (false, "Mật khẩu phải có ít nhất 1 chữ hoa");
+
+            if (!password.Any(char.IsLower))
+                return (false, "Mật khẩu phải có ít nhất 1 chữ thường");
+
+            return (true, string.Empty);
         }
     }
 }
