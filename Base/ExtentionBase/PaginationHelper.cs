@@ -1,4 +1,4 @@
-﻿namespace ManageLife.Base
+﻿namespace ManageLife.Base.ExtentionBase
 {
     public static class PaginationHelper
     {
