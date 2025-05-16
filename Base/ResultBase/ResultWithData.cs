@@ -10,6 +10,7 @@
             Data = data;
         }
 
+        //TODO: Tối ưu lại code phần base này
         public Result<T> Ok<T>(T data)
         {
             return new Result<T>("00", "Ok", data);
