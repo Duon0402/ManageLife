@@ -10,6 +10,14 @@
 
         public string? Lable { get; set; }
 
+        public TextBoxOptions()
+        {
+            Name = string.Empty;
+            Id = string.Empty;
+            Placeholder = string.Empty;
+            Value = string.Empty;
+        }
+
         public TextBoxOptions(string name)
         {
             Name = name;
