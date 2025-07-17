@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-    public interface SoftDelete
+    public interface ISoftDelete
     {
         public string? DeletedUser { get; set; }
         public DateTime? DeletedTime { get; set; }

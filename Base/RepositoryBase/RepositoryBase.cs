@@ -70,13 +70,13 @@ namespace ManageLife.Base
 
         public async Task<bool> UpdateAsync(T entity, bool isSoftDelete = false)
         {
-            if (!isSoftDelete && entity is CanUpdate canUpdate)
+            if (!isSoftDelete && entity is ICanUpdate canUpdate)
             {
                 canUpdate.UpdatedTime = DateTimeHelper.Now();
                 canUpdate.UpdatedUser = "System"; // Replace with actual user
             }
 
-            if (isSoftDelete && entity is SoftDelete softDelete)
+            if (isSoftDelete && entity is ISoftDelete softDelete)
             {
                 softDelete.IsDeleted = true;
                 softDelete.DeletedTime = DateTimeHelper.Now();
@@ -94,7 +94,7 @@ namespace ManageLife.Base
             var entity = await _context.Set<T>().FirstOrDefaultAsync(n => n.Id == key);
             if (entity != null)
             {
-                if (entity is SoftDelete)
+                if (entity is ISoftDelete)
                 {
                     return await UpdateAsync(entity, isSoftDelete: true);
                 }

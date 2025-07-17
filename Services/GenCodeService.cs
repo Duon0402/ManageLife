@@ -10,6 +10,20 @@ namespace ManageLife.Services
 
         }
 
+        private string MapTypeCSharpToTS(string type)
+        {
+            return type switch
+            {
+                "string" => "string",
+                "int" => "number",
+                "decimal" => "number",
+                "float" => "number",
+                "double" => "number",
+                "bool" => "boolean",
+                "DateTime" => "Date",
+                _ => "any"
 
+            };
+        }
     }
 }
