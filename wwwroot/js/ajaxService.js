@@ -3,67 +3,83 @@
         const defaultOptions = {
             contentType: 'application/json',
             dataType: 'json',
+            processData: true,
             showLoading: true,
             hideLoading: true,
+            headers: {},
+            beforeSend: null,
+            onProgress: null,
             onSuccess: null,
             onError: null,
+            onComplete: null
         };
-        const settings = { ...defaultOptions, ...options };
 
-        if (settings.showLoading) {
-            showLoading();
+        const settings = { ...defaultOptions, ...options };
+        const isFormData = (data instanceof FormData);
+
+        if (isFormData) {
+            settings.contentType = false;
+            settings.processData = false;
         }
+
+        if (settings.showLoading) showLoading();
 
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: url,
                 method: method,
+                data: isFormData ? data : (data ? JSON.stringify(data) : null),
                 contentType: settings.contentType,
+                processData: settings.processData,
                 dataType: settings.dataType,
-                data: data ? JSON.stringify(data) : null,
-                headers: settings.headers || {},
+                headers: settings.headers,
+                beforeSend: function () {
+                    if (typeof settings.beforeSend === 'function') {
+                        settings.beforeSend();
+                    }
+                },
+                xhr: function () {
+                    const xhr = new window.XMLHttpRequest();
+                    if (xhr.upload && typeof settings.onProgress === 'function') {
+                        xhr.upload.addEventListener('progress', function (e) {
+                            if (e.lengthComputable) {
+                                const percent = Math.round((e.loaded / e.total) * 100);
+                                settings.onProgress(percent, e);
+                            }
+                        });
+                    }
+                    return xhr;
+                },
                 success: function (response) {
-                    if (settings.hideLoading) {
-                        hideLoading();
-                    }
+                    if (settings.hideLoading) hideLoading();
 
-                    response.isOk = function () {
-                        return response.code === '00';
-                    };
+                    response.isOk = () => response.code === '00';
+                    response.isException = () => response.code === '99';
+                    response.isError = () => !response.isOk() && !response.isException();
 
-                    response.isException = function () {
-                        return response.code === '99';
-                    };
-
-                    response.isError = function () {
-                        return !this.isOk() && !this.isException();
-                    };
-
-                    if (settings.onSuccess) {
+                    if (typeof settings.onSuccess === 'function') {
                         settings.onSuccess(response);
-                    }
-                    else {
-                        if (response.message) {
-                            showToast(response.message, 'Thông báo', response.code == '00' ? 'error' : 'success');
-                        }
+                    } else if (response.message) {
+                        showToast(response.message, 'Thông báo', response.code === '00' ? 'success' : 'error');
                     }
 
                     resolve(response);
                 },
                 error: function (jqXHR) {
-                    if (settings.hideLoading) {
-                        hideLoading();
-                    }
-                    if (settings.onError) {
+                    if (settings.hideLoading) hideLoading();
+                    if (typeof settings.onError === 'function') {
                         settings.onError(jqXHR);
-                    }
-                    else {
+                    } else {
                         const errorMessage = jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra.';
-                        showToast(errorMessage, 'error');
+                        showToast(errorMessage, 'Lỗi');
                     }
-
                     reject(jqXHR);
                 },
+                complete: function () {
+                    if (typeof settings.onComplete === 'function') {
+                        settings.onComplete();
+                    }
+                }
             });
         });
     },
@@ -84,4 +100,8 @@
     delete: async function (url, options = {}) {
         return await this.request(url, 'DELETE', null, options);
     },
+
+    upload: async function (url, formData, options = {}) {
+        return await this.request(url, 'POST', formData, options);
+    }
 };
