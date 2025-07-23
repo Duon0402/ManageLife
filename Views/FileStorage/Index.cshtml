@@ -1,85 +1,345 @@
 ﻿@{
-    ViewData["Title"] = "File Storage Test";
+	ViewData["Title"] = "File Storage Test";
 }
 
+<style>
+	.file-uploader {
+		width: 500px;
+		background-color: #fff;
+		border-radius: 5px;
+		border: 1px solid #d9d9d9;
+	}
+
+		.file-uploader .uploader-header {
+			display: flex;
+			padding: 20px;
+			background-color: #eff1fb;
+			justify-content: space-between;
+			border-radius: 5px 5px 0 0;
+			align-items: center;
+		}
+
+	.uploader-header .uploader-title {
+		font-size: 1.2rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.uploader-header .file-completed-status {
+		font-size: 1rem;
+		font-weight: 500;
+		color: #333;
+	}
+
+	.file-uploader .file-list {
+		list-style: none;
+		width: 100%;
+		padding-bottom: 10px;
+		max-height: 400px;
+		overflow-y: auto;
+		scrollbar-color: #999 transparent;
+		scrollbar-width: thin;
+	}
+
+		.file-uploader .file-list:has(li) {
+			padding: 20px;
+		}
+
+	.file-list .file-item {
+		display: flex;
+		gap: 14px;
+		margin-bottom: 23px;
+	}
+
+		.file-list .file-item .file-extension {
+			height: 50px;
+			width: 50px;
+			color: #fff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 15px;
+			background-color: #5145ba;
+		}
+
+		.file-list .file-item .file-content-wrapper {
+			flex: 1;
+		}
+
+		.file-list .file-item .file-content {
+			display: flex;
+			width: 100%;
+			justify-content: space-between;
+		}
+
+		.file-list .file-item .file-name {
+			font-size: 1rem;
+			font-weight: 600;
+		}
+
+		.file-list .file-item .file-info {
+			display: flex;
+			gap: 5px;
+		}
+
+			.file-list .file-item .file-info small {
+				color: #5c5c5c;
+				margin-top: 5px;
+				display: block;
+				font-size: 0.9rem;
+				font-weight: 500;
+			}
+
+			.file-list .file-item .file-info .file-status {
+				color: #5145ba;
+			}
+
+		.file-list .file-item .cancel-button {
+			align-self: center;
+			border: none;
+			outline: none;
+			background: none;
+			cursor: pointer;
+			font-size: 1.4rem;
+		}
+
+			.file-list .file-item .cancel-button:hover {
+				color: #e3413f;
+			}
+
+		.file-list .file-item .file-progress-bar {
+			width: 100%;
+			height: 3px;
+			margin-top: 10px;
+			border-radius: 30px;
+			background-color: #d9d9d9;
+		}
+
+			.file-list .file-item .file-progress-bar .file-progress {
+				width: 50%;
+				height: inherit;
+				border-radius: inherit;
+				background-color: #5145ba;
+			}
+
+	.file-uploader .file-upload-box {
+		margin: 10px 20px 20px;
+		border-radius: 5px;
+		min-height: 100px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: 2px dashed #b1add4;
+		transition: all 0.2s ease;
+	}
+
+		.file-uploader .file-upload-box.active {
+			border: 2px solid #5145ba;
+			background-color: #f3f6ff;
+		}
+
+		.file-uploader .file-upload-box .box-title {
+			font-size: 1.05rem;
+			font-weight: 500;
+			color: #626161;
+		}
+
+		.file-uploader .file-upload-box.active .box-title {
+			pointer-events: none;
+		}
+
+	.file-upload-box .box-title .file-browse-button {
+		color: #5145ba;
+		cursor: pointer;
+	}
+
+		.file-upload-box .box-title .file-browse-button:hover {
+			text-decoration: underline;
+		}
+
+</style>
+
 <div class="container mt-4">
-    <h2 class="mb-3">Upload File to Telegram</h2>
+	<div class="file-uploader">
+		<div class="uploader-header">
+			<h2 class="uploader-title">File Uploader</h2>
+			<h4 class="file-completed-status"> 0 / 4 Files Completed </h4>
+		</div>
+		<ul class="file-list"></ul>
+		<div class="file-upload-box">
+			<h2 class="box-title">
+				<span class="file-instruction">Drag files here or</span>
+				<span class="file-browse-button">browse</span>
+			</h2>
+			<input class="file-browse-input" type="file" multiple hidden>
+		</div>
+	</div>
 
-    <!-- Form upload -->
-    <form id="uploadForm" enctype="multipart/form-data">
-        <div class="input-group mb-3">
-            <input type="file" name="file" id="fileInput" class="form-control" />
-            <button type="submit" class="btn btn-primary">Upload</button>
-        </div>
-    </form>
 
-    <div id="uploadStatus" class="alert" style="display:none;"></div>
+	<h2 class="my-3">Upload File to Telegram</h2>
 
-    <hr />
+	<!-- Form upload -->
+	<form id="uploadForm" enctype="multipart/form-data">
+		<div class="input-group mb-3">
+			<input type="file" name="file" id="fileInput" class="form-control" />
+			<button type="submit" class="btn btn-primary">Upload</button>
+		</div>
+	</form>
 
-    <!-- Test lấy URL trực tiếp -->
-    <h3 class="mt-4">Test Get File URL</h3>
-    <div class="input-group mb-3">
-        <input type="text" id="fileIdInput" class="form-control" placeholder="Nhập FileId từ DB" />
-        <button id="btnGetUrl" class="btn btn-info">Get URL</button>
-    </div>
-    <div id="fileUrlResult" class="mt-3"></div>
+	<div id="uploadStatus" class="alert" style="display:none;"></div>
+
+	<hr />
+
+	<!-- Test lấy URL trực tiếp -->
+	<h3 class="mt-4">Test Get File URL</h3>
+	<div class="input-group mb-3">
+		<input type="text" id="fileIdInput" class="form-control" placeholder="Nhập FileId từ DB" />
+		<button id="btnGetUrl" class="btn btn-info">Get URL</button>
+	</div>
+	<div id="fileUrlResult" class="mt-3"></div>
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Submit form upload
-            $('#uploadForm').on('submit', function (e) {
-                e.preventDefault();
-                var formData = new FormData(this);
-                $('#uploadStatus').hide();
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+		$(document).ready(function () {
+			// Submit form upload
+			$('#uploadForm').on('submit', function (e) {
+				e.preventDefault();
+				var formData = new FormData(this);
+				$('#uploadStatus').hide();
 
-                $.ajax({
-                    url: '/filestorage/upload',
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (res) {
-                        if (res.isSuccess || res.success) {
-                            $('#uploadStatus').removeClass().addClass('alert alert-success')
-                                .text(res.message || 'Upload thành công!').show();
-                        } else {
-                            $('#uploadStatus').removeClass().addClass('alert alert-danger')
-                                .text(res.message || 'Upload thất bại!').show();
-                        }
-                    },
-                    error: function () {
-                        $('#uploadStatus').removeClass().addClass('alert alert-danger')
-                            .text('Có lỗi xảy ra khi upload.').show();
-                    }
-                });
-            });
+				$.ajax({
+					url: '/filestorage/upload',
+					type: 'POST',
+					data: formData,
+					processData: false,
+					contentType: false,
+					success: function (res) {
+						if (res.isSuccess || res.success) {
+							$('#uploadStatus').removeClass().addClass('alert alert-success')
+								.text(res.message || 'Upload thành công!').show();
+						} else {
+							$('#uploadStatus').removeClass().addClass('alert alert-danger')
+								.text(res.message || 'Upload thất bại!').show();
+						}
+					},
+					error: function () {
+						$('#uploadStatus').removeClass().addClass('alert alert-danger')
+							.text('Có lỗi xảy ra khi upload.').show();
+					}
+				});
+			});
 
-            // Test get file URL
-            $('#btnGetUrl').on('click', function () {
-                var fileId = $('#fileIdInput').val();
-                if (!fileId) {
-                    alert('Vui lòng nhập FileId');
-                    return;
-                }
+			// Test get file URL
+			$('#btnGetUrl').on('click', function () {
+				var fileId = $('#fileIdInput').val();
+				if (!fileId) {
+					alert('Vui lòng nhập FileId');
+					return;
+				}
 
-                $.get('/filestorage/get-file-url?fileId=' + encodeURIComponent(fileId), function (res) {
-                    console.log("res", res);
+				$.get('/filestorage/get-file-url?fileId=' + encodeURIComponent(fileId), function (res) {
+					console.log("res", res);
 
-                    if (res.data) {
-                        $('#fileUrlResult').html(
-                            `<p><strong>File URL:</strong> <a href="${res.data}" target="_blank">${res.data}</a></p>`
-                        );
-                    } else {
-                        $('#fileUrlResult').html(`<p class="text-danger">Không tìm thấy URL</p>`);
-                    }
-                }).fail(function () {
-                    $('#fileUrlResult').html(`<p class="text-danger">Có lỗi xảy ra</p>`);
-                });
-            });
-        });
-    </script>
+					if (res.data) {
+						$('#fileUrlResult').html(
+							`<p><strong>File URL:</strong> <a href="${res.data}" target="_blank">${res.data}</a></p>`
+						);
+					} else {
+						$('#fileUrlResult').html(`<p class="text-danger">Không tìm thấy URL</p>`);
+					}
+				}).fail(function () {
+					$('#fileUrlResult').html(`<p class="text-danger">Có lỗi xảy ra</p>`);
+				});
+			});
+		});
+	</script>
+
+	<script>
+		const fileList = $('.file-list');
+		const fileBrowseButton = $('.file-browse-button');
+		const fileBrowseInput = $('.file-browse-input');
+		const fileUploadBox = $('.file-upload-box');
+
+		fileUploadBox.on("drop", (e) => {
+		  e.preventDefault();
+		  handleSelectedFiles(e.originalEvent.dataTransfer.files)
+		  fileUploadBox.addClass('active');
+		  fileUploadBox.find('.file-instruction').text('Release to upload or');
+		});
+
+		fileUploadBox.on("dragover", (e) => {
+		  e.preventDefault();
+		  fileUploadBox.addClass('active');
+		  fileUploadBox.find('.file-instruction').text('Release to upload or');
+		});
+
+		fileUploadBox.on("dragleave", (e) => {
+		  e.preventDefault();
+		  fileUploadBox.removeClass('active');
+		  fileUploadBox.find('.file-instruction').text('Drag files here or');
+		});
+
+		fileBrowseInput.on('change', (e) => handleSelectedFiles(e.target.files));
+
+		fileBrowseButton.on('click', () => fileBrowseInput.click());
+
+		function handleSelectedFiles([...files]) {
+			if (files.length === 0) return;
+
+			files.forEach((file, index) => {
+				const $item = $(createFileItemHtml(file));
+				fileList.append($item);
+
+				const formData = new FormData();
+				formData.append('file', file);
+
+				ajaxService.upload('/filestorage/upload', formData, {
+					onProgress: (percent) => {
+						$item.find('.file-progress').css('width', percent + '%');
+						$item.find('.file-status').text(`Uploading... ${percent}%`);
+					},
+					onSuccess: (res) => {
+						$item.find('.file-status').text('Completed');
+						$item.find('.file-progress').css('width', '100%');
+					},
+					onError: (err) => {
+						$item.find('.file-status').text('Failed');
+						$item.find('.file-progress').css('background', 'red');
+					}
+				});
+			});
+		}
+
+		function createFileItemHtml(file, index) {
+		  const { name, size } = file;
+		  const extention = name.split(".").pop();
+
+		  return `
+			<li class="file-item">
+			  <div class="file-extension">${extention}</div>
+			  <div class="file-content-wrapper">
+				<div class="file-content">
+				  <div class="file-details">
+					<h5 class="file-name">${name}</h5>
+					<div class="file-info">
+					  <small class="file-size">4 MB / ${size}</small>
+					  <small class="file-divider">-</i></small>
+					  <small class="file-status">Uploading...</small>
+					</div>
+				  </div>
+				  <button class="cancel-button">
+					<i class="fa-solid fa-xmark"></i>
+				  </button>
+				</div>
+				<div class="file-progress-bar">
+				  <div class="file-progress">
+				  </div>
+				</div>
+			  </div>
+			</li>
+		  `;
+		}
+	</script>
 }
