@@ -1,7 +1,7 @@
 ﻿namespace ManageLife.Base
 {
     //TODO: Chuyển thành Extention Method
-    public static class CollectionHelper
+    public static class CollectionExtention
     {
         public static bool IsEmpty<T>(this ICollection<T> collection)
         {

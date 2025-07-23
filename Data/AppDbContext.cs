@@ -13,11 +13,12 @@ namespace ManageLife.Data
         }
 
         #region DbSet<>
-        public DbSet<UserEntity> Users { get; set; }
-        public DbSet<RoleEntity> Roles { get; set; }
-        public DbSet<WalletEntity> Wallets { get; set; }
-        public DbSet<TransactionEntity> Transactions { get; set; }
-        public DbSet<TransactionCategoryEntity> TransactionCategories { get; set; }
+        public DbSet<FileEntity> Files { get; set; } = default!;
+        public DbSet<UserEntity> Users { get; set; } = default!;
+        public DbSet<RoleEntity> Roles { get; set; } = default!;
+        public DbSet<WalletEntity> Wallets { get; set; } = default!;
+        public DbSet<TransactionEntity> Transactions { get; set; } = default!;
+        public DbSet<TransactionCategoryEntity> TransactionCategories { get; set; } = default!;
         #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)

@@ -34,7 +34,7 @@ namespace ManageLife.Services
                 if (existedEntity != null)
                 {
                     msg = "Tên đăng nhập đã tồn tại";
-                    return Result.Error(Result.DATA_EXIST.Code, msg);
+                    return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
                 if (model.Password != model.ConfirmPassword)

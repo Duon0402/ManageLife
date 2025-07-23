@@ -1,0 +1,85 @@
+﻿@{
+    ViewData["Title"] = "File Storage Test";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Upload File to Telegram</h2>
+
+    <!-- Form upload -->
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div class="input-group mb-3">
+            <input type="file" name="file" id="fileInput" class="form-control" />
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+    </form>
+
+    <div id="uploadStatus" class="alert" style="display:none;"></div>
+
+    <hr />
+
+    <!-- Test lấy URL trực tiếp -->
+    <h3 class="mt-4">Test Get File URL</h3>
+    <div class="input-group mb-3">
+        <input type="text" id="fileIdInput" class="form-control" placeholder="Nhập FileId từ DB" />
+        <button id="btnGetUrl" class="btn btn-info">Get URL</button>
+    </div>
+    <div id="fileUrlResult" class="mt-3"></div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Submit form upload
+            $('#uploadForm').on('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                $('#uploadStatus').hide();
+
+                $.ajax({
+                    url: '/filestorage/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        if (res.isSuccess || res.success) {
+                            $('#uploadStatus').removeClass().addClass('alert alert-success')
+                                .text(res.message || 'Upload thành công!').show();
+                        } else {
+                            $('#uploadStatus').removeClass().addClass('alert alert-danger')
+                                .text(res.message || 'Upload thất bại!').show();
+                        }
+                    },
+                    error: function () {
+                        $('#uploadStatus').removeClass().addClass('alert alert-danger')
+                            .text('Có lỗi xảy ra khi upload.').show();
+                    }
+                });
+            });
+
+            // Test get file URL
+            $('#btnGetUrl').on('click', function () {
+                var fileId = $('#fileIdInput').val();
+                if (!fileId) {
+                    alert('Vui lòng nhập FileId');
+                    return;
+                }
+
+                $.get('/filestorage/get-file-url?fileId=' + encodeURIComponent(fileId), function (res) {
+                    console.log("res", res);
+
+                    if (res.data) {
+                        $('#fileUrlResult').html(
+                            `<p><strong>File URL:</strong> <a href="${res.data}" target="_blank">${res.data}</a></p>`
+                        );
+                    } else {
+                        $('#fileUrlResult').html(`<p class="text-danger">Không tìm thấy URL</p>`);
+                    }
+                }).fail(function () {
+                    $('#fileUrlResult').html(`<p class="text-danger">Có lỗi xảy ra</p>`);
+                });
+            });
+        });
+    </script>
+}

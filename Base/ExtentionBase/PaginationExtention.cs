@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base.ExtentionBase
 {
-    public static class PaginationHelper
+    public static class PaginationExtention
     {
         public static PageList<T> ToPageList<T>(this IQueryable<T> source, int pageIndex, int pageSize)
             => new PageList<T>(source, pageIndex, pageSize);

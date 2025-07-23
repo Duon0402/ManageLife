@@ -11,7 +11,6 @@ namespace ManageLife.Services
 
         public TelegramService(IConfiguration config)
         {
-
             _config = config;
             var botToken = _config["TelegramSettings:BotToken"] ?? "";
             _chatId = _config["TelegramSettings:ChatId"];
@@ -28,7 +27,14 @@ namespace ManageLife.Services
                     msg = "Vui lòng nhập tin nhắn cần gửi";
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
-                await _botClient.SendTextMessageAsync(_chatId, message);
+
+                if (_chatId == null)
+                {
+                    msg = "Không lấy được ChatId";
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                await _botClient.SendMessage(_chatId, message);
                 return Result.Ok();
             }
             catch (Exception ex)

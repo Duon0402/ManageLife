@@ -118,7 +118,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = "Ví đã bị xóa hoặc không tồn tại";
-                    return Result.Error(Result.DATA_NOT_EXIST.Code, msg);
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
                 entity = model.MapTo<WalletEntity>();
@@ -160,7 +160,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = "Ví đã bị xóa hoặc không tồn tại";
-                    return Result.Error(Result.DATA_NOT_EXIST.Code, msg);
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
                 entity.DeletedTime = DateTime.Now;
