@@ -296,6 +296,8 @@
 				formData.append('file', file);
 
 				ajaxService.upload('/filestorage/upload', formData, {
+					showLoading: false,
+					hideLoading: false,
 					onProgress: (percent) => {
 						$item.find('.file-progress').css('width', percent + '%');
 						$item.find('.file-status').text(`Uploading... ${percent}%`);
