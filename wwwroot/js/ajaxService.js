@@ -5,7 +5,6 @@
             dataType: 'json',
             processData: true,
             showLoading: true,
-            hideLoading: true,
             headers: {},
             beforeSend: null,
             onProgress: null,
@@ -51,8 +50,6 @@
                     return xhr;
                 },
                 success: function (response) {
-                    if (settings.hideLoading) hideLoading();
-
                     response.isOk = () => response.code === '00';
                     response.isException = () => response.code === '99';
                     response.isError = () => !response.isOk() && !response.isException();
@@ -66,11 +63,10 @@
                     resolve(response);
                 },
                 error: function (jqXHR) {
-                    if (settings.hideLoading) hideLoading();
+                    const errorMessage = jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra.';
                     if (typeof settings.onError === 'function') {
                         settings.onError(jqXHR);
                     } else {
-                        const errorMessage = jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra.';
                         showToast(errorMessage, 'Lỗi');
                     }
                     reject(jqXHR);
@@ -81,6 +77,8 @@
                     }
                 }
             });
+        }).finally(() => {
+            if (settings.showLoading) hideLoading();
         });
     },
 
