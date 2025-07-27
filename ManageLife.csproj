@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Commons\Enum\" />
     <Folder Include="Interfaces\" />
     <Folder Include="Views\Admin\" />
   </ItemGroup>

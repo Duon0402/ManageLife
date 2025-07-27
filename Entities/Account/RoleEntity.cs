@@ -6,6 +6,9 @@ namespace ManageLife.Entities
     {
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
+
+        public ICollection<UserRoleEntity> UserRoles { get; set; } = new List<UserRoleEntity>();
+
         public string CreatedUser { get; set; } = null!;
         public DateTime CreatedTime { get; set; }
         public string? UpdatedUser { get; set; }
