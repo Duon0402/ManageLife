@@ -2,24 +2,43 @@
 
 namespace ManageLife.Base
 {
-    public static class MapperBase
-    {
-        private static IMapper _mapper;
-        public static void Configure(IMapper mapper)
-        {
-            _mapper = mapper;
-        }
+	public static class MapperBase
+	{
+		private static IMapper? _mapper;
 
-        public static TDestination MapTo<TDestination>(this object source)
-        {
-            if (source == null) return default;
-            return _mapper.Map<TDestination>(source);
-        }
+		public static void Configure(IMapper mapper)
+		{
+			_mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+		}
 
-        public static List<TDestination> MapToList<TDestination>(this IEnumerable<object> source)
-        {
-            if (source == null) return null;
-            return _mapper.Map<List<TDestination>>(source);
-        }
-    }
+		private static void EnsureConfigured()
+		{
+			if (_mapper == null)
+				throw new InvalidOperationException("MapperBase is not configured. Call MapperBase.Configure() first.");
+		}
+
+		public static TDestination MapTo<TDestination>(this object source)
+		{
+			EnsureConfigured();
+			return source == null ? default! : _mapper!.Map<TDestination>(source);
+		}
+
+		public static TDestination MapTo<TSource, TDestination>(this TSource source)
+		{
+			EnsureConfigured();
+			return source == null ? default! : _mapper!.Map<TSource, TDestination>(source);
+		}
+
+		public static List<TDestination> MapToList<TDestination>(this IEnumerable<object> source)
+		{
+			EnsureConfigured();
+			return source == null ? new List<TDestination>() : _mapper!.Map<List<TDestination>>(source);
+		}
+
+		public static List<TDestination> MapToList<TSource, TDestination>(this IEnumerable<TSource> source)
+		{
+			EnsureConfigured();
+			return source == null ? new List<TDestination>() : _mapper!.Map<List<TDestination>>(source);
+		}
+	}
 }

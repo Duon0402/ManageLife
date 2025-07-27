@@ -4,7 +4,7 @@ using ManageLife.Entities;
 
 namespace ManageLife.Repositories
 {
-    public class WalletRepository : RepositoryBase<WalletEntity>, IReposiotyBase<WalletEntity>
+	public class WalletRepository : RepositoryBase<WalletEntity>, IReposiotyBase<WalletEntity>
     {
         public WalletRepository(AppDbContext context) : base(context)
         {

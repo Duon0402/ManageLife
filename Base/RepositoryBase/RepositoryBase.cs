@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace ManageLife.Base
 {
-    public class RepositoryBase<T> : IReposiotyBase<T> where T : class, IEntityBase, new()
+	public class RepositoryBase<T> : IReposiotyBase<T> where T : class, IEntityBase, new()
     {
         protected readonly AppDbContext _context;
 
@@ -34,13 +34,13 @@ namespace ManageLife.Base
             return await query.ToListAsync();
         }
 
-        public async Task<T> GetAsync(string key)
-        {
-            var entity = await _context.Set<T>().FirstOrDefaultAsync(x => x.Id == key);
+		public async Task<T?> GetAsync(string key)
+		{
+			var entity = await _context.Set<T>().FirstOrDefaultAsync(x => x.Id == key);
             return entity;
-        }
+		}
 
-        public async Task<T> GetAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
+		public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
         {
             IQueryable<T> query = _context.Set<T>();
 
