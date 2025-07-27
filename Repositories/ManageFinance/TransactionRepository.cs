@@ -4,10 +4,10 @@ using ManageLife.Entities;
 
 namespace ManageLife.Repositories
 {
-    public class TransactionRepository : RepositoryBase<TransactionEntity>
-    {
-        public TransactionRepository(AppDbContext context) : base(context)
-        {
-        }
-    }
+	public class TransactionRepository : RepositoryBase<TransactionEntity>
+	{
+		public TransactionRepository(AppDbContext context) : base(context)
+		{
+		}
+	}
 }

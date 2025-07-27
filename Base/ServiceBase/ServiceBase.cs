@@ -2,11 +2,11 @@
 
 namespace ManageLife.Base
 {
-    public class ServiceBase
-    {
-        public ServiceBase(AppDbContext context)
-        {
+	public class ServiceBase
+	{
+		public ServiceBase(AppDbContext context)
+		{
 
-        }
-    }
+		}
+	}
 }

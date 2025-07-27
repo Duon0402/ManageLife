@@ -2,13 +2,13 @@
 
 namespace ManageLife.Models
 {
-    public class TransactionViewModel
-    {
-        public TransactionViewModel()
-        {
-            ListTransactionTypes = new List<SelectListItem>();
-        }
+	public class TransactionViewModel
+	{
+		public TransactionViewModel()
+		{
+			ListTransactionTypes = new List<SelectListItem>();
+		}
 
-        public List<SelectListItem> ListTransactionTypes { get; set; }
-    }
+		public List<SelectListItem> ListTransactionTypes { get; set; }
+	}
 }

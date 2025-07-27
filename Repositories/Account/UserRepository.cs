@@ -4,10 +4,10 @@ using ManageLife.Entities;
 
 namespace ManageLife.Repositories
 {
-    public class UserRepository : RepositoryBase<UserEntity>
-    {
-        public UserRepository(AppDbContext context) : base(context)
-        {
-        }
-    }
+	public class UserRepository : RepositoryBase<UserEntity>
+	{
+		public UserRepository(AppDbContext context) : base(context)
+		{
+		}
+	}
 }

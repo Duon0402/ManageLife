@@ -4,21 +4,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ManageLife.Helpers
 {
-    public static class FormHelper
-    {
-        public static IHtmlContent Form<T>(this IHtmlHelper htmlHelper, FormOptions? options = null)
-        {
-            var formContainer = new TagBuilder("div");
-            formContainer.AddCssClass("form-container");
+	public static class FormHelper
+	{
+		public static IHtmlContent Form<T>(this IHtmlHelper htmlHelper, FormOptions? options = null)
+		{
+			var formContainer = new TagBuilder("div");
+			formContainer.AddCssClass("form-container");
 
-            if (string.IsNullOrWhiteSpace(options?.Id))
-            {
-                formContainer.Attributes.Add("id", options?.Id);
-            }
+			if (string.IsNullOrWhiteSpace(options?.Id))
+			{
+				formContainer.Attributes.Add("id", options?.Id);
+			}
 
-            var formBuilder = new TagBuilder("form");
+			var formBuilder = new TagBuilder("form");
 
-            return formContainer;
-        }
-    }
+			return formContainer;
+		}
+	}
 }
