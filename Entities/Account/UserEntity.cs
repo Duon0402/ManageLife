@@ -12,10 +12,6 @@ namespace ManageLife.Entities
 
         public ICollection<UserRoleEntity> UserRoles { get; set; } = new List<UserRoleEntity>();
 
-
-        public string? RefreshToken { get; set; }
-        public DateTime? RefreshTokenExpiryTime { get; set; }
-
         public string CreatedUser { get; set; } = null!;
         public DateTime CreatedTime { get; set; }
         string? ICanUpdate.UpdatedUser { get; set; }
