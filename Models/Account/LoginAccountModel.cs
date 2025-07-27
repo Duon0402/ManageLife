@@ -1,8 +1,13 @@
-﻿namespace ManageLife.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ManageLife.Models
 {
 	public class LoginAccountModel
 	{
-		public string UserName { get; set; } = string.Empty;
-		public string Password { get; set; } = string.Empty;
+		[Required]
+		public string UserName { get; set; } = null!;
+
+		[Required]
+		public string Password { get; set; } = null!;
 	}
 }
