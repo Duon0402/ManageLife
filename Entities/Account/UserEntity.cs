@@ -2,10 +2,10 @@
 
 namespace ManageLife.Entities
 {
-	public class UserEntity : EntityBase
-	{
-		public string UserName { get; set; }
-		public string HashPassword { get; set; }
-		public string RoleId { get; set; }
-	}
+    public class UserEntity : EntityBase
+    {
+        public string UserName { get; set; } = string.Empty;
+        public string HashPassword { get; set; } = string.Empty;
+        public string RoleId { get; set; } = string.Empty;
+    }
 }
