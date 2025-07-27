@@ -56,7 +56,7 @@ namespace ManageLife.Base
 
 		public async Task<bool> InsertAsync(T entity)
 		{
-			if (entity is CanCreate canCreate)
+			if (entity is ICanCreate canCreate)
 			{
 				canCreate.CreatedTime = DateTimeHelper.Now();
 				canCreate.CreatedUser = "System"; // Replace with actual user

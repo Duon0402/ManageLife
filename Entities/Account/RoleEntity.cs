@@ -2,7 +2,7 @@
 
 namespace ManageLife.Entities
 {
-	public class RoleEntity : EntityBase, CanCreate, ICanUpdate, ISoftDelete
+	public class RoleEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
 	{
 		public string Name { get; set; }
 		public string? Description { get; set; }

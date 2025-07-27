@@ -25,7 +25,7 @@ namespace ManageLife.Services
 			_repo = new FileRepository(context);
 		}
 
-		public async Task<Result<FileModel>> UploadFileAsync(IFormFile file)
+		public async Task<Result<FileModel>> UploadFileAsync(IFormFile file, string? caption = null)
 		{
 			string msg;
 			bool b;
@@ -45,7 +45,7 @@ namespace ManageLife.Services
 				}
 
 				var inputFile = new InputFileStream(stream, file.FileName);
-				var message = await _botClient.SendDocument(_chatId, inputFile);
+				var message = await _botClient.SendDocument(_chatId, inputFile, caption);
 
 				if (message == null || message.Document == null)
 				{
