@@ -1,4 +1,5 @@
 ﻿using ManageLife.Base;
+using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Helpers;
@@ -30,7 +31,7 @@ namespace ManageLife.Services
 
         public async Task<Result<AuthTokenModel>> RegisterAsync(RegisterAccountModel model)
         {
-            using var uow = new UnitOfWork(_context);
+            using var uow = await UnitOfWork.CreateAsync(_context);
             string msg;
             bool b;
             try
@@ -70,8 +71,10 @@ namespace ManageLife.Services
 
                 var userEntity = new UserEntity
                 {
+                    Id = IdHeper.NewId(),
                     UserName = model.UserName,
                     HashPassword = PasswordHelper.HashPassword(model.Password),
+                    CreatedUser = SystemUsers.System
                 };
                 b = await _userRepo.InsertAsync(userEntity, uow);
                 if (!b)
@@ -97,6 +100,7 @@ namespace ManageLife.Services
                 var refreshToken = _tokenService.GenerateRefreshToken();
                 var refreshEntity = new UserRefreshTokenEntity
                 {
+                    Id = IdHeper.NewId(),
                     UserId = userEntity.Id,
                     RefreshToken = refreshToken,
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
@@ -164,9 +168,10 @@ namespace ManageLife.Services
 
                 var refreshEntity = new UserRefreshTokenEntity
                 {
+                    Id = IdHeper.NewId(),
                     UserId = userEntity.Id,
                     RefreshToken = refreshToken,
-                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
+                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(7),
                 };
 
                 b = await _refreshRepo.InsertAsync(refreshEntity);
@@ -199,7 +204,7 @@ namespace ManageLife.Services
 
         public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string refreshToken)
         {
-            using var uow = new UnitOfWork(_context);
+            using var uow = await UnitOfWork.CreateAsync(_context);
             string msg;
             bool b;
             try

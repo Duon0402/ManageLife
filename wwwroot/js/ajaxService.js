@@ -16,6 +16,12 @@
         const settings = { ...defaultOptions, ...options };
         const isFormData = (data instanceof FormData);
 
+        // Tự động gắn token vào request nếu chưa có
+        const token = localStorage.getItem('accessToken');
+        if (token && !settings.headers['Authorization']) {
+            settings.headers['Authorization'] = 'Bearer ' + token;
+        }
+
         if (isFormData) {
             settings.contentType = false;
             settings.processData = false;
@@ -23,7 +29,7 @@
 
         if (settings.showLoading) showLoading();
 
-        return new Promise((resolve, reject) => {
+        const doRequest = () => new Promise((resolve, reject) => {
             $.ajax({
                 url: url,
                 method: method,
@@ -62,12 +68,31 @@
 
                     resolve(response);
                 },
-                error: function (jqXHR) {
+                error: async function (jqXHR) {
                     const errorMessage = jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra.';
+
+                    // Nếu token hết hạn (401 Unauthorized)
+                    if (jqXHR.status === 401) {
+                        try {
+                            const refreshed = await ajaxService.refreshToken();
+                            if (refreshed) {
+                                // Gọi lại request gốc với token mới
+                                const retryResult = await ajaxService.request(url, method, data, options);
+                                return resolve(retryResult);
+                            }
+                            // Nếu refresh thất bại, về trang login
+                            ajaxService.redirectToLogin();
+                            return;
+                        } catch (err) {
+                            ajaxService.redirectToLogin();
+                            return;
+                        }
+                    }
+
                     if (typeof settings.onError === 'function') {
                         settings.onError(jqXHR);
                     } else {
-                        showToast(errorMessage, 'Lỗi');
+                        showToast(errorMessage, 'Thông báo', 'error');
                     }
                     reject(jqXHR);
                 },
@@ -77,11 +102,14 @@
                     }
                 }
             });
-        }).finally(() => {
+        });
+
+        return doRequest().finally(() => {
             if (settings.showLoading) hideLoading();
         });
     },
 
+    // Các method tiện dụng
     get: async function (url, params = {}, options = {}) {
         const queryString = $.param(params);
         return await this.request(`${url}?${queryString}`, 'GET', null, options);
@@ -101,5 +129,30 @@
 
     upload: async function (url, formData, options = {}) {
         return await this.request(url, 'POST', formData, options);
+    },
+
+    // Refresh token API
+    refreshToken: async function () {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) return false;
+
+        try {
+            const res = await this.post('/Auth/RefreshToken', { refreshToken }, { showLoading: false });
+            if (res.isOk()) {
+                localStorage.setItem('accessToken', res.data.accessToken);
+                localStorage.setItem('refreshToken', res.data.refreshToken);
+                return true;
+            }
+            return false;
+        } catch {
+            return false;
+        }
+    },
+
+    // Chuyển sang login khi không thể refresh token
+    redirectToLogin: function () {
+        const currentUrl = window.location.href;
+        sessionStorage.setItem('returnUrl', currentUrl);
+        window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent(currentUrl);
     }
 };

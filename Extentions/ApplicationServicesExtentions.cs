@@ -59,7 +59,9 @@ namespace ManageLife.Extentions
 
                 options.UseMySql(connectionString, serverVersion, mysqlOptions =>
                 {
-                    mysqlOptions.EnableRetryOnFailure();
+                    //NOTE: Tắt retry tự động tránh xung đột với UnitOfWork custom
+                    //TODO: Có thể cải tiến sau
+                    mysqlOptions.EnableRetryOnFailure(0);
                 });
             });
             #endregion

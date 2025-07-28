@@ -4,7 +4,7 @@ namespace ManageLife.Entities
 {
     public class UserEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
     {
-        public string UserName { get; set; } = IdHeper.NewId();
+        public string UserName { get; set; } = null!;
         public string? Email { get; set; }
         public string HashPassword { get; set; } = null!;
         public string? FullName { get; set; }

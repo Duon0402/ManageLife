@@ -62,8 +62,10 @@ namespace ManageLife.Base
         {
             if (entity is ICanCreate canCreate)
             {
-                canCreate.CreatedTime = DateTimeHelper.UtcNow();
-                canCreate.CreatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+                if (canCreate.CreatedTime == default)
+                    canCreate.CreatedTime = DateTimeHelper.UtcNow();
+                if (string.IsNullOrEmpty(canCreate.CreatedUser))
+                    canCreate.CreatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
             }
 
             await _context.Set<T>().AddAsync(entity);
@@ -80,8 +82,10 @@ namespace ManageLife.Base
         {
             if (entity is ICanUpdate canUpdate)
             {
-                canUpdate.UpdatedTime = DateTimeHelper.UtcNow();
-                canUpdate.UpdatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+                if (canUpdate.UpdatedTime == default)
+                    canUpdate.UpdatedTime = DateTimeHelper.UtcNow();
+                if (string.IsNullOrEmpty(canUpdate.UpdatedUser))
+                    canUpdate.UpdatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
             }
 
             _context.Entry(entity).State = EntityState.Modified;
@@ -103,8 +107,11 @@ namespace ManageLife.Base
             if (entity is ISoftDelete softDelete)
             {
                 softDelete.IsDeleted = true;
-                softDelete.DeletedTime = DateTimeHelper.UtcNow();
-                softDelete.DeletedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+                if (softDelete.DeletedTime == default)
+                    softDelete.DeletedTime = DateTimeHelper.UtcNow();
+
+                if (string.IsNullOrEmpty(softDelete.DeletedUser))
+                    softDelete.DeletedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
                 _context.Entry(entity).State = EntityState.Modified;
             }
             else

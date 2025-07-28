@@ -4,7 +4,7 @@ namespace ManageLife.Entities
 {
     public class RoleEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
     {
-        public string Name { get; set; } = IdHeper.NewId();
+        public string Name { get; set; } = null!;
         public string? Description { get; set; }
         public string CreatedUser { get; set; } = null!;
         public DateTime CreatedTime { get; set; }

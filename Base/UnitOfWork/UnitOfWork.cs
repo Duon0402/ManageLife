@@ -10,22 +10,18 @@ namespace ManageLife.Base
         private IDbContextTransaction? _transaction;
         private readonly IExecutionStrategy _strategy;
 
-        public bool AutoProcess { get; }
-
-
-        public UnitOfWork(AppDbContext context, bool autoProcess = true)
+        public UnitOfWork(AppDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _strategy = _context.Database.CreateExecutionStrategy();
+        }
 
-            if (autoProcess)
-            {
-                _strategy.Execute(() =>
-                {
-                    _transaction = _context.Database.BeginTransaction();
-                    return true;
-                });
-            }
+        public static async Task<UnitOfWork> CreateAsync(AppDbContext context, bool autoStartTransaction = true)
+        {
+            var uow = new UnitOfWork(context);
+            if (autoStartTransaction)
+                await uow.BeginTransactionAsync();
+            return uow;
         }
 
         public async Task BeginTransactionAsync()
