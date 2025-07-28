@@ -2,7 +2,7 @@
 
 namespace ManageLife.Entities
 {
-    public class FileEntity : EntityBase
+    public class FileEntity : EntityBase, ICanCreate
     {
         //TODO: Chỉnh sửa code Thêm createInfo, extention
 
@@ -10,5 +10,8 @@ namespace ManageLife.Entities
         public string FileId { get; set; } = null!; // Unique identifier for the file in storage
         public string FileType { get; set; } = null!;
         public long FileSize { get; set; }
+        public string Extension { get; set; } = null!;
+        public string CreatedUser { get; set; } = null!;
+        public DateTime CreatedTime { get; set; }
     }
 }

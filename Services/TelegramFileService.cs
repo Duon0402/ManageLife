@@ -54,6 +54,7 @@ namespace ManageLife.Services
                 }
 
                 var document = message.Document;
+                var extension = Path.GetExtension(document.FileName ?? file.FileName) ?? string.Empty;
 
                 var model = new FileModel
                 {
@@ -62,6 +63,7 @@ namespace ManageLife.Services
                     FileName = document.FileName ?? file.FileName,
                     FileType = document.MimeType ?? file.ContentType,
                     FileSize = document.FileSize ?? file.Length,
+                    Extension = extension,
                 };
 
                 var entity = model.MapTo<FileEntity>();
