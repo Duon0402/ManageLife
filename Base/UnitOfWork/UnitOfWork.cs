@@ -1,4 +1,5 @@
 ﻿using ManageLife.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ManageLife.Base
@@ -7,16 +8,23 @@ namespace ManageLife.Base
     {
         private readonly AppDbContext _context;
         private IDbContextTransaction? _transaction;
+        private readonly IExecutionStrategy _strategy;
+
         public bool AutoProcess { get; }
+
 
         public UnitOfWork(AppDbContext context, bool autoProcess = true)
         {
-            _context = context;
-            AutoProcess = autoProcess;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _strategy = _context.Database.CreateExecutionStrategy();
 
-            if (AutoProcess)
+            if (autoProcess)
             {
-                BeginTransactionAsync().GetAwaiter().GetResult();
+                _strategy.Execute(() =>
+                {
+                    _transaction = _context.Database.BeginTransaction();
+                    return true;
+                });
             }
         }
 
@@ -24,7 +32,10 @@ namespace ManageLife.Base
         {
             if (_transaction == null)
             {
-                _transaction = await _context.Database.BeginTransactionAsync();
+                await _strategy.ExecuteAsync(async () =>
+                {
+                    _transaction = await _context.Database.BeginTransactionAsync();
+                });
             }
         }
 

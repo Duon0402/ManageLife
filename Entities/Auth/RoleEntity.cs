@@ -4,11 +4,8 @@ namespace ManageLife.Entities
 {
     public class RoleEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
     {
-        public string Name { get; set; } = null!;
+        public string Name { get; set; } = IdHeper.NewId();
         public string? Description { get; set; }
-
-        public ICollection<UserRoleEntity> UserRoles { get; set; } = new List<UserRoleEntity>();
-
         public string CreatedUser { get; set; } = null!;
         public DateTime CreatedTime { get; set; }
         public string? UpdatedUser { get; set; }
@@ -16,5 +13,6 @@ namespace ManageLife.Entities
         public string? DeletedUser { get; set; }
         public DateTime? DeletedTime { get; set; }
         public bool IsDeleted { get; set; }
+        public ICollection<UserRoleEntity> UserRoles { get; set; } = new List<UserRoleEntity>();
     }
 }

@@ -8,12 +8,10 @@ namespace ManageLife.Services
     public class TokenService
     {
         private readonly IConfiguration _config;
-        private readonly UserService _userService;
 
-        public TokenService(IConfiguration config, UserService userService)
+        public TokenService(IConfiguration config)
         {
             _config = config;
-            _userService = userService;
         }
 
         public string GenerateAccessToken(string userId, string username, IEnumerable<string> roles)

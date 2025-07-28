@@ -1,4 +1,6 @@
-﻿namespace ManageLife.Entities
+﻿using ManageLife.Base;
+
+namespace ManageLife.Entities
 {
     public class UserRoleEntity
     {

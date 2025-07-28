@@ -2,11 +2,10 @@
 
 namespace ManageLife.Base
 {
-    public interface IReposiotyBase<T> where T : class, IEntityBase
+    public interface IReposiotyBase<T> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
-        Task<T?> GetAsync(string key);
         Task<T?> GetAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
         Task<bool> InsertAsync(T entity, IUnitOfWork? uow = null);
         Task<bool> UpdateAsync(T entity, IUnitOfWork? uow = null);

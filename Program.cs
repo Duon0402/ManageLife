@@ -2,6 +2,7 @@
 using ManageLife.Base;
 using ManageLife.Data;
 using ManageLife.Extentions;
+using ManageLife.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
-
+GlobalHttpContext.Configure(app.Services.GetRequiredService<IHttpContextAccessor>());
 // ======= SEED DATA =========
 using (var scope = app.Services.CreateScope())
 {
@@ -37,6 +38,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

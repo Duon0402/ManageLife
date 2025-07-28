@@ -1,16 +1,27 @@
-﻿using ManageLife.Data;
+﻿using ManageLife.Commons;
+using ManageLife.Data;
+using ManageLife.Helpers;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace ManageLife.Base
 {
-    public class RepositoryBase<T> : IReposiotyBase<T> where T : class, IEntityBase, new()
+    public class RepositoryBase<T> : IReposiotyBase<T> where T : class
     {
         protected readonly AppDbContext _context;
 
         public RepositoryBase(AppDbContext context)
         {
             _context = context;
+        }
+
+        /// <summary>
+        /// Trả về <see cref="IQueryable{T}"/> cho phép truy vấn LINQ trực tiếp trên bảng tương ứng.
+        /// </summary>
+        /// 
+        public IQueryable<T> Query(bool asNoTracking = false)
+        {
+            return asNoTracking ? _context.Set<T>().AsNoTracking() : _context.Set<T>();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
@@ -33,12 +44,6 @@ namespace ManageLife.Base
             return await query.ToListAsync();
         }
 
-        public async Task<T?> GetAsync(string key)
-        {
-            var entity = await _context.Set<T>().FirstOrDefaultAsync(x => x.Id == key);
-            return entity;
-        }
-
         public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
         {
             IQueryable<T> query = _context.Set<T>();
@@ -53,13 +58,12 @@ namespace ManageLife.Base
             return await query.FirstOrDefaultAsync();
         }
 
-        //TODO: Lấy thông tin user thực tế
         public async Task<bool> InsertAsync(T entity, IUnitOfWork? uow = null)
         {
             if (entity is ICanCreate canCreate)
             {
-                canCreate.CreatedTime = DateTimeHelper.Now();
-                canCreate.CreatedUser = "System"; // Lấy từ context user thực tế
+                canCreate.CreatedTime = DateTimeHelper.UtcNow();
+                canCreate.CreatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
             }
 
             await _context.Set<T>().AddAsync(entity);
@@ -76,8 +80,8 @@ namespace ManageLife.Base
         {
             if (entity is ICanUpdate canUpdate)
             {
-                canUpdate.UpdatedTime = DateTimeHelper.Now();
-                canUpdate.UpdatedUser = "System";
+                canUpdate.UpdatedTime = DateTimeHelper.UtcNow();
+                canUpdate.UpdatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
             }
 
             _context.Entry(entity).State = EntityState.Modified;
@@ -92,15 +96,15 @@ namespace ManageLife.Base
 
         public async Task<bool> DeleteAsync(string key, IUnitOfWork? uow = null)
         {
-            var entity = await _context.Set<T>().FirstOrDefaultAsync(n => n.Id == key);
+            var entity = await _context.Set<T>().FindAsync(key);
             if (entity == null)
                 return false;
 
             if (entity is ISoftDelete softDelete)
             {
                 softDelete.IsDeleted = true;
-                softDelete.DeletedTime = DateTimeHelper.Now();
-                softDelete.DeletedUser = "System";
+                softDelete.DeletedTime = DateTimeHelper.UtcNow();
+                softDelete.DeletedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
                 _context.Entry(entity).State = EntityState.Modified;
             }
             else

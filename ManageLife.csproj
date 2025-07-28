@@ -11,6 +11,7 @@
     <PackageReference Include="bootstrap" Version="5.3.3" />
     <PackageReference Include="Hangfire.MySqlStorage" Version="2.0.3" />
     <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="6.1.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.36" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.36" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.36">
       <PrivateAssets>all</PrivateAssets>
@@ -28,6 +29,7 @@
   <ItemGroup>
     <Folder Include="Commons\Enum\" />
     <Folder Include="Interfaces\" />
+    <Folder Include="Migrations\" />
     <Folder Include="Views\Admin\" />
   </ItemGroup>
 

@@ -17,6 +17,7 @@ namespace ManageLife.Data
         public DbSet<UserEntity> Users { get; set; } = default!;
         public DbSet<RoleEntity> Roles { get; set; } = default!;
         public DbSet<UserRoleEntity> UserRoles { get; set; } = default!;
+        public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; } = default!;
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
