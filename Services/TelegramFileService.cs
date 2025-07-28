@@ -52,7 +52,7 @@ namespace ManageLife.Services
                     msg = "Không nhận được thông tin File từ Telegram";
                     return Result.Error<FileModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
-
+                // TODO: Xử lý phần này đang không lấy thông tin khi là Video, ...
                 var document = message.Document;
                 var extension = Path.GetExtension(document.FileName ?? file.FileName) ?? string.Empty;
 
