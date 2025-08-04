@@ -1,4 +1,6 @@
 ﻿const ajaxService = {
+    _refreshingTokenPromise: null, // Lock refresh
+
     request: async function (url, method, data = null, options = {}) {
         const defaultOptions = {
             contentType: 'application/json',
@@ -16,7 +18,7 @@
         const settings = { ...defaultOptions, ...options };
         const isFormData = (data instanceof FormData);
 
-        // Tự động gắn token vào request nếu chưa có
+        // Gắn token nếu chưa có
         const token = localStorage.getItem('accessToken');
         if (token && !settings.headers['Authorization']) {
             settings.headers['Authorization'] = 'Bearer ' + token;
@@ -68,22 +70,23 @@
 
                     resolve(response);
                 },
-                error: async function (jqXHR) {
+                error: async (jqXHR) => {
                     const errorMessage = jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra.';
 
-                    // Nếu token hết hạn (401 Unauthorized)
+                    // Nếu lỗi 401 thì xử lý refresh token
                     if (jqXHR.status === 401) {
                         try {
-                            const refreshed = await ajaxService.refreshToken();
+                            const refreshed = await ajaxService._handle401();
                             if (refreshed) {
-                                // Gọi lại request gốc với token mới
+                                // Lấy token mới và retry
+                                const newToken = localStorage.getItem('accessToken');
+                                settings.headers['Authorization'] = 'Bearer ' + newToken;
                                 const retryResult = await ajaxService.request(url, method, data, options);
                                 return resolve(retryResult);
                             }
-                            // Nếu refresh thất bại, về trang login
                             ajaxService.redirectToLogin();
                             return;
-                        } catch (err) {
+                        } catch {
                             ajaxService.redirectToLogin();
                             return;
                         }
@@ -131,14 +134,39 @@
         return await this.request(url, 'POST', formData, options);
     },
 
-    // Refresh token API
-    refreshToken: async function () {
+    // Hàm xử lý refresh token có lock
+    _handle401: async function () {
+        // Nếu đang refresh, chờ kết quả
+        if (this._refreshingTokenPromise) {
+            return await this._refreshingTokenPromise;
+        }
+
+        // Tạo promise refresh mới
+        this._refreshingTokenPromise = new Promise(async (resolve) => {
+            const success = await this._refreshToken();
+            this._refreshingTokenPromise = null; // Reset lock
+            resolve(success);
+        });
+
+        return await this._refreshingTokenPromise;
+    },
+
+    // Refresh token bằng fetch để tránh vòng lặp
+    _refreshToken: async function () {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) return false;
 
         try {
-            const res = await this.post('/Auth/RefreshToken', { refreshToken }, { showLoading: false });
-            if (res.isOk()) {
+            const response = await fetch('/Auth/RefreshToken', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken })
+            });
+
+            if (!response.ok) return false;
+
+            const res = await response.json();
+            if (res.code === '00') {
                 localStorage.setItem('accessToken', res.data.accessToken);
                 localStorage.setItem('refreshToken', res.data.refreshToken);
                 return true;

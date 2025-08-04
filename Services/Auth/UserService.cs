@@ -233,6 +233,7 @@ namespace ManageLife.Services
                 var newRefreshToken = _tokenService.GenerateRefreshToken();
                 var newRefreshEntity = new UserRefreshTokenEntity
                 {
+                    Id = IdHeper.NewId(),
                     UserId = tokenEntity.UserId,
                     RefreshToken = newRefreshToken,
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)

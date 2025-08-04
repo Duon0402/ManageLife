@@ -38,5 +38,12 @@ namespace ManageLife.Controllers
             var rs = await _service.LoginAsync(model);
             return Json(rs);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest model)
+        {
+            var rs = await _service.RefreshTokenAsync(model.RefreshToken);
+            return Json(rs);
+        }
     }
 }
