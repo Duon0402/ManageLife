@@ -1,6 +1,8 @@
 ﻿using ManageLife.Base;
+using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Helpers;
 using ManageLife.Models;
 using ManageLife.Repositories;
 using Telegram.Bot;
@@ -37,35 +39,30 @@ namespace ManageLife.Services
                     return Result.Error<FileModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                using var stream = file.OpenReadStream();
                 if (_chatId == null)
                 {
                     msg = "Không lấy được ChatId";
                     return Result.Error<FileModel>(Result.DATA_INVALID.Code, msg);
                 }
 
+                using var stream = file.OpenReadStream();
                 var inputFile = new InputFileStream(stream, file.FileName);
-                var message = await _botClient.SendDocument(_chatId, inputFile, caption);
+                var fileType = TelegramFileTypeHelper.Detect(file);
 
-                if (message == null || message.Document == null)
+                var message = await SendFileToTelegramAsync(fileType, inputFile, caption);
+                if (message == null)
+                {
+                    msg = "Không nhận được thông tin Message từ Telegram";
+                    return Result.Error<FileModel>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+                var fileInfo = ExtractTelegramFileInfo(message);
+                if (fileInfo == null)
                 {
                     msg = "Không nhận được thông tin File từ Telegram";
                     return Result.Error<FileModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
-                // TODO: Xử lý phần này đang không lấy thông tin khi là Video, ...
-                var document = message.Document;
-                var extension = Path.GetExtension(document.FileName ?? file.FileName) ?? string.Empty;
 
-                var model = new FileModel
-                {
-                    Id = IdHeper.NewId(),
-                    FileId = document.FileId,
-                    FileName = document.FileName ?? file.FileName,
-                    FileType = document.MimeType ?? file.ContentType,
-                    FileSize = document.FileSize ?? file.Length,
-                    Extension = extension,
-                };
-
+                var model = GetFileModelFormTelegramMessage(file, fileInfo);
                 var entity = model.MapTo<FileEntity>();
 
                 b = await _repo.InsertAsync(entity);
@@ -107,5 +104,49 @@ namespace ManageLife.Services
                 return Result.Exception<string>(msg, ex);
             }
         }
+
+        #region Private Method
+        private async Task<Message> SendFileToTelegramAsync(TelegramFileType fileType, InputFileStream inputFile, string? caption)
+        {
+            return fileType switch
+            {
+                TelegramFileType.Photo => await _botClient.SendPhoto(_chatId!, inputFile, caption),
+                TelegramFileType.Video => await _botClient.SendVideo(_chatId!, inputFile, caption),
+                TelegramFileType.Audio => await _botClient.SendAudio(_chatId!, inputFile, caption),
+                TelegramFileType.Animation => await _botClient.SendAnimation(_chatId!, inputFile, caption),
+                _ => await _botClient.SendDocument(_chatId!, inputFile, caption)
+            };
+        }
+
+        private FileModel GetFileModelFormTelegramMessage(IFormFile file, object fileInfo)
+        {
+            var fileId = fileInfo.GetType().GetProperty("FileId")?.GetValue(fileInfo)?.ToString() ?? string.Empty;
+            var fileName = fileInfo.GetType().GetProperty("FileName")?.GetValue(fileInfo)?.ToString() ?? file.FileName;
+            var mime = fileInfo.GetType().GetProperty("MimeType")?.GetValue(fileInfo)?.ToString() ?? file.ContentType;
+            var size = (long?)fileInfo.GetType().GetProperty("FileSize")?.GetValue(fileInfo) ?? file.Length;
+            var extension = Path.GetExtension(file.FileName) ?? string.Empty;
+
+            var model = new FileModel
+            {
+                Id = IdHeper.NewId(),
+                FileId = fileId,
+                FileName = fileName,
+                FileType = mime,
+                FileSize = size,
+                Extension = extension
+            };
+
+            return model;
+        }
+
+        private object? ExtractTelegramFileInfo(Message message)
+        {
+            return (object?)message.Document
+                ?? (object?)message.Photo?.LastOrDefault()
+                ?? (object?)message.Video
+                ?? (object?)message.Audio
+                ?? (object?)message.Animation;
+        }
+        #endregion
     }
 }

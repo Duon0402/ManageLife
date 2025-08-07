@@ -43,6 +43,8 @@
 		public static readonly Result DATA_NOT_EXISTED = new Result("05", "Dữ liệu không tồn tại");
 		public static readonly Result DATA_VALID = new Result("06", "Dữ liệu hợp lệ");
 		public static readonly Result DATA_INVALID = new Result("07", "Dữ liệu không hợp lệ");
+
+		// TODO: Bổ sung các common
 	}
 
 	public class Result<T> : Result

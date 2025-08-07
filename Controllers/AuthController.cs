@@ -26,24 +26,24 @@ namespace ManageLife.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register([FromBody] RegisterAccountModel model)
+        public async Task<Result> Register([FromBody] RegisterAccountModel model)
         {
             var rs = await _service.RegisterAsync(model);
-            return Json(rs);
+            return rs;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody] LoginAccountModel model)
+        public async Task<Result> Login([FromBody] LoginAccountModel model)
         {
             var rs = await _service.LoginAsync(model);
-            return Json(rs);
+            return rs;
         }
 
         [HttpPost]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest model)
+        public async Task<Result> RefreshToken([FromBody] RefreshTokenRequest model)
         {
             var rs = await _service.RefreshTokenAsync(model.RefreshToken);
-            return Json(rs);
+            return rs;
         }
     }
 }

@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Commons\Enum\" />
     <Folder Include="Interfaces\" />
     <Folder Include="Migrations\" />
     <Folder Include="Views\Admin\" />
