@@ -38,6 +38,18 @@
 @Html.Popup(popupOptions)
 <button type="button" class="btn btn-primary mt-3" onclick="openPopup('myPopup')">Mở Popup</button>
 
+@{
+    var uploaderOptions = new FileUploaderOptions
+    {
+        UploadMode = UploadMode.OnButtonClick,
+        AllowRemove = true,
+        AllowMultiFileUpload = true,
+        Accept = ".pdf,.docx,.xlsx"
+    };
+}
+
+@Html.FileUploader(uploaderOptions)
+
 <script>
     function openPopup(popupId) {
         $('#' + popupId).modal('show');
