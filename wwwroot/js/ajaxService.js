@@ -7,6 +7,8 @@
             dataType: 'json',
             processData: true,
             showLoading: true,
+            showToast: true,
+            isRetry: false,
             headers: {},
             beforeSend: null,
             onProgress: null,
@@ -64,8 +66,8 @@
 
                     if (typeof settings.onSuccess === 'function') {
                         settings.onSuccess(response);
-                    } else if (response.message) {
-                        showToast(response.message, 'Thông báo', response.code === '00' ? 'success' : 'error');
+                    } else if (!settings.isRetry && settings.showToast && response.message) {
+                        showToast(response.message, 'Thông báo', response.isOk() ? 'success' : 'error');
                     }
 
                     resolve(response);
@@ -78,10 +80,15 @@
                         try {
                             const refreshed = await ajaxService._handle401();
                             if (refreshed) {
-                                // Lấy token mới và retry
+                                // Retry nhưng không show loading/toast lại
                                 const newToken = localStorage.getItem('accessToken');
                                 settings.headers['Authorization'] = 'Bearer ' + newToken;
-                                const retryResult = await ajaxService.request(url, method, data, options);
+                                const retryResult = await ajaxService.request(url, method, data, {
+                                    ...options,
+                                    isRetry: true,
+                                    showLoading: false,
+                                    showToast: false
+                                });
                                 return resolve(retryResult);
                             }
                             ajaxService.redirectToLogin();
@@ -94,7 +101,7 @@
 
                     if (typeof settings.onError === 'function') {
                         settings.onError(jqXHR);
-                    } else {
+                    } else if (!settings.isRetry) {
                         showToast(errorMessage, 'Thông báo', 'error');
                     }
                     reject(jqXHR);
@@ -107,15 +114,18 @@
             });
         });
 
-        return doRequest().finally(() => {
+        try {
+            return await doRequest();
+        } finally {
             if (settings.showLoading) hideLoading();
-        });
+        }
     },
 
     // Các method tiện dụng
     get: async function (url, params = {}, options = {}) {
         const queryString = $.param(params);
-        return await this.request(`${url}?${queryString}`, 'GET', null, options);
+        const finalUrl = queryString ? `${url}?${queryString}` : url;
+        return await this.request(finalUrl, 'GET', null, options);
     },
 
     post: async function (url, data, options = {}) {
@@ -131,6 +141,9 @@
     },
 
     upload: async function (url, formData, options = {}) {
+        if (!(formData instanceof FormData)) {
+            throw new Error("upload() expects FormData");
+        }
         return await this.request(url, 'POST', formData, options);
     },
 
