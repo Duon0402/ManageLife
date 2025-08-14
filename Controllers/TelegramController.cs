@@ -20,15 +20,5 @@ namespace ManageLife.Controllers
 			return View();
 		}
 
-		[HttpPost]
-		[Route("api/telegram/update")]
-		public async Task<IActionResult> Update(Update update)
-		{
-			if (update == null)
-			{
-				await _service.SendMessageAsync("Đã có lỗi xảy ra. Xin vui lòng thử lại sau.");
-			}
-			return Ok();
-		}
 	}
 }

@@ -22,7 +22,7 @@ namespace ManageLife.Services
         {
             _config = config;
             _botToken = _config["TelegramSettings:BotToken"] ?? string.Empty;
-            _chatId = _config["TelegramSettings:ChatId"];
+            _chatId = _config["TelegramSettings:ChatIdFileStorage"];
             _botClient = new TelegramBotClient(_botToken);
             _repo = new FileRepository(context);
         }
