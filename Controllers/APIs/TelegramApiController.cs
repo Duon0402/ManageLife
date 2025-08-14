@@ -15,17 +15,16 @@ namespace ManageLife.Controllers
         }
 
         [HttpGet("notify")]
-        public async Task<Result<string>> SendNotification()
+        public async Task<IActionResult> SendNotification()
         {
-            try
+
+            var rs = await _service.SendMessageAsync("Thông báo hàng ngày");
+            if (rs.IsOk())
             {
-                await _service.SendMessageAsync("Thông báo hàng ngày");
-                return Result.Ok("Đã gửi tin nhắn Telegram");
+                return Ok();
             }
-            catch (Exception ex)
-            {
-                return Result.Exception<string>("Gửi tin nhắn thất bại", ex);
-            }
+
+            return BadRequest(rs.Message);
         }
     }
 }
