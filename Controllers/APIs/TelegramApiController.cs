@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers
 {
-    public class TelegramAPIController : ApiControllerBase
+    public class TelegramApiController : ApiControllerBase
     {
         private readonly TelegramService _service;
 
-        public TelegramAPIController(AppDbContext context, IConfiguration config, ILogger? logger = null) : base(context, logger)
+        public TelegramApiController(AppDbContext context, IConfiguration config, ILogger? logger = null) : base(context, logger)
         {
             _service = new TelegramService(config);
         }

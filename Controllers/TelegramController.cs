@@ -2,7 +2,6 @@
 using ManageLife.Data;
 using ManageLife.Services;
 using Microsoft.AspNetCore.Mvc;
-using Telegram.Bot.Types;
 
 namespace ManageLife.Controllers
 {
