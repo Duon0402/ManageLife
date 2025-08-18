@@ -29,7 +29,6 @@
   <ItemGroup>
     <Folder Include="Interfaces\" />
     <Folder Include="Migrations\" />
-    <Folder Include="Views\Admin\" />
   </ItemGroup>
 
 </Project>
