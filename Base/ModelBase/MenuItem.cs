@@ -1,4 +1,7 @@
-﻿namespace ManageLife.Base
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
+
+namespace ManageLife.Base
 {
     public class MenuItem
     {
@@ -16,5 +19,24 @@
         public List<MenuItem> SubItems { get; set; }
 
         public bool HasChildren => SubItems.Any();
+    }
+
+    public class MenuItem<TController> : MenuItem where TController : Controller
+    {
+        public MenuItem(string title, Expression<Action<TController>> action, string? icon = null, List<MenuItem>? subItems = null)
+            : base(title, GetUrl(action), icon, subItems)
+        {
+        }
+
+        private static string GetUrl(Expression<Action<TController>> action)
+        {
+            if (action.Body is MethodCallExpression methodCall)
+            {
+                var actionName = methodCall.Method.Name;
+                var controllerName = typeof(TController).Name.Replace("Controller", "");
+                return $"/Admin/{controllerName}/{actionName}".ToLower();
+            }
+            return "#";
+        }
     }
 }

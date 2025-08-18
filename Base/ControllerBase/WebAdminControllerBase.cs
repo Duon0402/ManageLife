@@ -4,24 +4,36 @@ using Microsoft.AspNetCore.Mvc;
 namespace ManageLife.Base
 {
     [Route("Admin/[controller]")]
-    public class WebAdminControllerBase : Controller
+    public class WebAdminControllerBase : WebControllerBase
     {
-        protected readonly AppDbContext _context;
-        protected readonly ILogger? _logger;
-
-        public WebAdminControllerBase(AppDbContext context, ILogger? logger = null)
+        public WebAdminControllerBase(AppDbContext context, ILogger? logger = null) : base(context, logger)
         {
-            _context = context;
-            _logger = logger;
         }
 
-        protected new ViewResult View(string? viewName = null, object? model = null)
-        {
-            var controllerName = ControllerContext.RouteData.Values["controller"]?.ToString();
-            viewName ??= "Index";
+        [NonAction]
+        public override ViewResult View() => base.View(GetAdminViewPath());
 
-            var fullPath = $"~/Views/Admin/{controllerName}/{viewName}.cshtml";
-            return base.View(fullPath, model);
+        [NonAction]
+        public override ViewResult View(string? viewName) => base.View(GetAdminViewPath(viewName));
+
+        [NonAction]
+        public override ViewResult View(object? viewModel) => base.View(GetAdminViewPath(), viewModel);
+
+        [NonAction]
+        public override ViewResult View(string? viewName, object? viewModel)
+        {
+            if (!string.IsNullOrEmpty(viewName) && viewName.StartsWith("~/Views/Admin"))
+                return base.View(viewName, viewModel);
+
+            return base.View(GetAdminViewPath(viewName), viewModel);
+        }
+
+        [NonAction]
+        private string GetAdminViewPath(string? viewName = null)
+        {
+            var controllerName = GetType().Name.Replace("Controller", "");
+            if (string.IsNullOrEmpty(viewName)) viewName = "Index";
+            return $"~/Views/Admin/{controllerName}/{viewName}.cshtml";
         }
     }
 }
