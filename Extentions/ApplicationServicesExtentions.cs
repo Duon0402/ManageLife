@@ -1,5 +1,6 @@
 ﻿using ManageLife.Data;
 using ManageLife.Helpers;
+using ManageLife.Interfaces;
 using ManageLife.Repositories;
 using ManageLife.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +15,9 @@ namespace ManageLife.Extentions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
             #region DependencyInjection
+            services.AddScoped<ICronJobService, CronJobService>();
+            services.AddScoped<TelegramService>();
+            services.AddScoped<TelegramFileService>();
             services.AddScoped<UserService>();
             services.AddScoped<UserRepository>();
             services.AddScoped<RoleRepository>();
@@ -21,6 +25,8 @@ namespace ManageLife.Extentions
             services.AddScoped<UserRefreshTokenRepository>();
             services.AddScoped<IMenuRegister, MenuRegister>();
             #endregion
+
+            services.AddHttpClient();
 
             #region JWT Authentication
             var key = Encoding.UTF8.GetBytes(config["Jwt:Key"]!);

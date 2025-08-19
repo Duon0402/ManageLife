@@ -3,11 +3,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Base
 {
-    [Route("Admin/[controller]")]
-    public class WebAdminControllerBase : WebControllerBase
+    [Route("Admin/[controller]/[action]")]
+    public abstract class WebAdminControllerBase : WebControllerBase
     {
-        public WebAdminControllerBase(AppDbContext context, ILogger? logger = null) : base(context, logger)
+        public WebAdminControllerBase(AppDbContext context, ILogger? logger = null)
+            : base(context, logger) { }
+
+        // TODO: Sửa lại cách lấy route sau
+        [HttpGet("/Admin/[controller]")]
+        [HttpGet("Index")]
+        public virtual IActionResult Index()
         {
+            return View();
         }
 
         [NonAction]

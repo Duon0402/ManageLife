@@ -1,0 +1,56 @@
+﻿@{
+    Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
+    ViewData["Title"] = "Cron Job";
+}
+
+<table id="cronJobsTable" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Job ID</th>
+            <th>Tiêu đề</th>
+            <th>Trạng thái</th>
+            <th>URL</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+    </tbody>
+</table>
+
+
+<script>
+    async function loadCronJobs() {
+        try {
+            const response = await ajaxService.get('/admin/cronjob/list');
+
+            if (response.isOk()) {
+                console.log('Danh sách cron jobs:', response.data);
+
+                // Render vào bảng HTML
+                const tableBody = document.querySelector('#cronJobsTable tbody');
+                tableBody.innerHTML = '';
+
+                response.data.forEach(job => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${job.jobId}</td>
+                        <td>${job.title}</td>
+                        <td>${job.enabled ? 'Hoạt động' : 'Tắt'}</td>
+                        <td>${job.url}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            } else {
+                showToast(response.message, 'Thông báo', 'error');
+            }
+        } catch (err) {
+            console.error('Lỗi khi lấy cron jobs:', err);
+            showToast('Không thể lấy danh sách cron jobs.', 'Thông báo', 'error');
+        }
+    }
+
+    // Gọi khi load trang
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCronJobs();
+    });
+</script>
