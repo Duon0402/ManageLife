@@ -63,7 +63,7 @@
         $('#sendMessageForm').on('submit', function (e) {
             e.preventDefault();
             var message = $('#message').val();
-            ajaxService.post('@Url.Action("SendMessage", "Home")', message, {
+            ajaxService.post('/Home/SendMessage', message, {
                 onSuccess: function (response) {
                     if (response.isOk()) {
                         showToast('Gửi tin nhắn thành công', 'Thông báo', 'success', 10000);

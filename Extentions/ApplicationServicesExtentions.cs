@@ -14,18 +14,21 @@ namespace ManageLife.Extentions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
-            #region DependencyInjection
+            #region DependencyInjection Services
             services.AddScoped<ICronJobService, CronJobService>();
             services.AddScoped<TelegramService>();
             services.AddScoped<TelegramFileService>();
             services.AddScoped<UserService>();
+            #endregion
+
+            #region DependencyInjection Repositories
             services.AddScoped<UserRepository>();
             services.AddScoped<RoleRepository>();
             services.AddScoped<UserRoleRepository>();
             services.AddScoped<UserRefreshTokenRepository>();
-            services.AddScoped<IMenuRegister, MenuRegister>();
             #endregion
 
+            services.AddScoped<IMenuRegister, MenuRegister>();
             services.AddHttpClient();
 
             #region JWT Authentication
