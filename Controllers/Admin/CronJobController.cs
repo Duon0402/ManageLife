@@ -14,11 +14,12 @@ namespace ManageLife.Controllers
             _service = service;
         }
 
-        public override IActionResult Index()
+        public IActionResult Index()
         {
-            return base.Index();
+            return View();
         }
 
+        [HttpGet]
         public async Task<Result> GetListCronJobs()
         {
             var rs = await _service.GetListCronJobsAsync();

@@ -10,9 +10,9 @@ namespace ManageLife.Controllers
         {
         }
 
-        public override IActionResult Index()
+        public IActionResult Index()
         {
-            return base.Index();
+            return View();
         }
     }
 }

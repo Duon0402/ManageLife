@@ -11,8 +11,8 @@
         public bool SaveResponses { get; set; }
         public int LastStatus { get; set; }
         public int LastDuration { get; set; }
-        public DateTimeOffset? LastExecution { get; set; }
-        public DateTimeOffset? NextExecution { get; set; }
+        public int? LastExecution { get; set; }
+        public int? NextExecution { get; set; }
         public string? Timezone { get; set; }
     }
 }

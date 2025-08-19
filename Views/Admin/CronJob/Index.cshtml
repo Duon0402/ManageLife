@@ -19,38 +19,37 @@
 
 
 <script>
-    async function loadCronJobs() {
-        try {
-            const response = await ajaxService.get('/admin/cronjob/list');
-
-            if (response.isOk()) {
-                console.log('Danh sách cron jobs:', response.data);
-
-                // Render vào bảng HTML
-                const tableBody = document.querySelector('#cronJobsTable tbody');
-                tableBody.innerHTML = '';
-
-                response.data.forEach(job => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${job.jobId}</td>
-                        <td>${job.title}</td>
-                        <td>${job.enabled ? 'Hoạt động' : 'Tắt'}</td>
-                        <td>${job.url}</td>
-                    `;
-                    tableBody.appendChild(tr);
-                });
-            } else {
-                showToast(response.message, 'Thông báo', 'error');
-            }
-        } catch (err) {
-            console.error('Lỗi khi lấy cron jobs:', err);
-            showToast('Không thể lấy danh sách cron jobs.', 'Thông báo', 'error');
-        }
-    }
-
-    // Gọi khi load trang
-    document.addEventListener('DOMContentLoaded', () => {
+    $(document).ready(function () {
         loadCronJobs();
     });
+
+    function loadCronJobs() {
+        ajaxService.get('/Admin/CronJob/GetListCronJobs', null, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    const tbody = $('#cronJobsTable tbody');
+                    tbody.empty();
+
+                    response.data.forEach(job => {
+                        const statusText = job.enabled ? 'Hoạt động' : 'Tạm dừng';
+                        const row = `
+                            <tr>
+                                <td>${job.jobId}</td>
+                                <td>${job.title}</td>
+                                <td>${statusText}</td>
+                                <td>${job.url}</td>
+                            </tr>
+                        `;
+                        tbody.append(row);
+                    });
+                } else {
+                    showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
+                }
+            },
+            onError: function (jqXHR) {
+                showToast('Lỗi server khi lấy danh sách cron jobs', 'Thông báo', 'error');
+            }
+        });
+    }
+
 </script>

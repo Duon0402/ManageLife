@@ -17,8 +17,8 @@ GlobalHttpContext.Configure(app.Services.GetRequiredService<IHttpContextAccessor
 // ======= SEED DATA =========
 using (var scope = app.Services.CreateScope())
 {
-	var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-	await Seed.SeedData(context);
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await Seed.SeedData(context);
 }
 
 // Gán IMapper từ DI vào MapperBase
@@ -28,9 +28,9 @@ MapperBase.Configure(mapper);
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-	app.UseExceptionHandler("/Home/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-	app.UseHsts();
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -42,7 +42,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
-	name: "default",
-	pattern: "{controller=Home}/{action=Index}/{id?}");
+    name: "admin_default",
+    pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}",
+    defaults: new { area = "Admin" }
+);
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();

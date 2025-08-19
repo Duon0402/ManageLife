@@ -2,6 +2,7 @@
 using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.Models.CronJob;
 
 namespace ManageLife.Services
 {
@@ -35,12 +36,8 @@ namespace ManageLife.Services
                     return Result.Error<List<CronJobModel>>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var models = await res.Content.ReadFromJsonAsync<List<CronJobModel>>() ?? new List<CronJobModel>();
-
-                if (models.IsEmpty())
-                {
-                    return Result.Ok(new List<CronJobModel>());
-                }
+                var json = await res.Content.ReadFromJsonAsync<CronJobResponse>();
+                var models = json?.Jobs ?? new List<CronJobModel>();
 
                 return Result.Ok(models);
             }
