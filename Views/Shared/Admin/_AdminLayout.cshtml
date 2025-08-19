@@ -31,21 +31,6 @@
 	<script src="~/js/toast.js"></script>
 	<script src="~/js/loading.js"></script>
 	<script src="~/js/site.js" asp-append-version="true"></script>
-	<script>
-		$(function () {
-			$(document).on("show.bs.collapse", ".sub-menu", function () {
-				$(this).prev(".menu-link").addClass("active");
-			});
-
-			$(document).on("hide.bs.collapse", ".sub-menu", function () {
-				$(this).prev(".menu-link").removeClass("active");
-			});
-
-			$(".sub-menu.show").each(function () {
-				$(this).prev(".menu-link").addClass("active");
-			});
-		});
-	</script>
 	@RenderSection("Scripts", required: false)
 </body>
 </html>

@@ -46,3 +46,28 @@
 		</ul>
 	</nav>
 </aside>
+<script>
+	var currentUrl = window.location.pathname.toLowerCase();
+
+	$(".sub-menu").each(function () {
+		var $submenu = $(this);
+		$submenu.find(".sub-link").each(function () {
+			var $link = $(this);
+			if ($link.attr("href").toLowerCase() === currentUrl) {
+				$link.addClass("active");
+				$link.closest(".sub-item").addClass("active");
+				$submenu.addClass("show");
+				$submenu.prev(".menu-link").removeClass("collapsed").addClass("active");
+				$submenu.closest(".menu-item").addClass("active");
+			}
+		});
+	});
+
+	$(".menu-item > .menu-link").each(function () {
+		var $link = $(this);
+		if ($link.attr("href") && $link.attr("href").toLowerCase() === currentUrl) {
+			$link.addClass("active");
+			$link.closest(".menu-item").addClass("active");
+		}
+	});
+</script>
