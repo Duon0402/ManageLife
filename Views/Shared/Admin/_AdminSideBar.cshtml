@@ -49,6 +49,15 @@
 <script>
 	var currentUrl = window.location.pathname.toLowerCase();
 
+	var defaultMap = {
+		"/admin": "/admin/dashboard",
+		"/admin/": "/admin/dashboard"
+	};
+
+	if (defaultMap[currentUrl]) {
+		currentUrl = defaultMap[currentUrl];
+	}
+
 	$(".sub-menu").each(function () {
 		var $submenu = $(this);
 		$submenu.find(".sub-link").each(function () {

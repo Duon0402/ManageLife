@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ManageLife.Base
 {
@@ -34,7 +35,16 @@ namespace ManageLife.Base
             {
                 var actionName = methodCall.Method.Name;
                 var controllerName = typeof(TController).Name.Replace("Controller", "");
-                return $"/Admin/{controllerName}/{actionName}".ToLower();
+
+                var areaAttr = typeof(TController).GetCustomAttribute<AreaAttribute>();
+                var area = areaAttr?.RouteValue ?? "Admin";
+
+                if (actionName.Equals("Index", StringComparison.OrdinalIgnoreCase))
+                {
+                    return $"/{area}/{controllerName}".ToLower();
+                }
+
+                return $"/{area}/{controllerName}/{actionName}".ToLower();
             }
             return "#";
         }
