@@ -46,9 +46,6 @@
                     showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
                 }
             },
-            onError: function (jqXHR) {
-                showToast('Lỗi server khi lấy danh sách cron jobs', 'Thông báo', 'error');
-            }
         });
     }
 
