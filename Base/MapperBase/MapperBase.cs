@@ -29,7 +29,14 @@ namespace ManageLife.Base
 			return source == null ? default! : _mapper!.Map<TSource, TDestination>(source);
 		}
 
-		public static List<TDestination> MapToList<TDestination>(this IEnumerable<object> source)
+        public static void MapTo<TSource, TDestination>(this TSource source, TDestination destination)
+        {
+            EnsureConfigured();
+            if (source != null && destination != null)
+                _mapper!.Map(source, destination);
+        }
+
+        public static List<TDestination> MapToList<TDestination>(this IEnumerable<object> source)
 		{
 			EnsureConfigured();
 			return source == null ? new List<TDestination>() : _mapper!.Map<List<TDestination>>(source);

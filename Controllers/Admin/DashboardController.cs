@@ -2,7 +2,7 @@
 using ManageLife.Data;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.Admin
 {
     public class DashboardController : WebAdminControllerBase
     {

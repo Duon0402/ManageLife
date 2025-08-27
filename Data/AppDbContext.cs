@@ -13,6 +13,8 @@ namespace ManageLife.Data
         }
 
         #region DbSet<>
+        public DbSet<TranslationEntity> Translations { get; set; } = default!;
+        public DbSet<LanguageEntity> Languages { get; set; } = default!;
         public DbSet<FileEntity> Files { get; set; } = default!;
         public DbSet<UserEntity> Users { get; set; } = default!;
         public DbSet<RoleEntity> Roles { get; set; } = default!;
@@ -23,6 +25,21 @@ namespace ManageLife.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            //TODO: Tạo ra config/register riêng cho từng entity để tránh viết chung vào khó kiểm soát
+
+            modelBuilder.Entity<LanguageEntity>()
+                .HasIndex(x => x.Code)
+                .IsUnique();
+
+            modelBuilder.Entity<TranslationEntity>()
+                .HasIndex(x => new { x.Key, x.LanguageId })
+                .IsUnique();
+
+            modelBuilder.Entity<TranslationEntity>()
+                .HasOne(t => t.Language)
+                .WithMany(l => l.Translations)
+                .HasForeignKey(t => t.LanguageId);
 
             modelBuilder.Entity<UserRoleEntity>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });

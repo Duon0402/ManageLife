@@ -1,5 +1,5 @@
 ﻿using ManageLife.Base;
-using ManageLife.Controllers;
+using ManageLife.Controllers.Admin;
 
 namespace ManageLife.Helpers
 {
@@ -11,6 +11,7 @@ namespace ManageLife.Helpers
             {
                 new MenuItem<DashboardController>("Dashboard", x => x.Index(), "fa-solid fa-house"),
                 new MenuItem<CronJobController>("Cron Job", x => x.Index(), "fa-solid fa-calendar-days"),
+                new MenuItem<LanguageController>("Language", x => x.Index(), "fa-solid fa-language"),
             };
 
             return listMenuItems;

@@ -60,6 +60,12 @@ namespace ManageLife.Base
 
         public async Task<bool> InsertAsync(T entity, IUnitOfWork? uow = null)
         {
+            if (entity is IEntityBase entityBase)
+            {
+                if (entityBase.Id.IsEmpty())
+                    entityBase.Id = IdHeper.NewId();
+            }
+
             if (entity is ICanCreate canCreate)
             {
                 if (canCreate.CreatedTime == default)

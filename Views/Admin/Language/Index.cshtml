@@ -1,0 +1,89 @@
+﻿@{
+    Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
+    ViewData["Title"] = "Language";
+}
+
+<h2>Quản lý Ngôn ngữ</h2>
+
+<div class="mb-3">
+    <button class="btn btn-primary" id="btnLoad">Load danh sách</button>
+</div>
+
+<div class="card mb-3 p-3">
+    <h5>Thêm ngôn ngữ</h5>
+    <div class="row g-2">
+        <div class="col-md-3">
+            <input type="text" class="form-control" id="txtCode" placeholder="Code (VD: en-US)" />
+        </div>
+        <div class="col-md-5">
+            <input type="text" class="form-control" id="txtName" placeholder="Tên ngôn ngữ" />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-success w-100" id="btnCreate">Thêm mới</button>
+        </div>
+    </div>
+</div>
+
+<table class="table table-bordered" id="tblLanguages">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Tên</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+@section Scripts {
+    <script>
+        function loadLanguages() {
+            ajaxService.get('/Admin/Language/GetListLanguages', null, {
+                onSuccess: function (response) {
+                    if (response.isOk()) {
+                        const tbody = $('#tblLanguages tbody');
+                        tbody.empty();
+
+                        response.data.forEach(l => {
+                            const row = `
+                                <tr>
+                                    <td>${l.code}</td>
+                                    <td>${l.name}</td>
+                                </tr>
+                            `;
+                            tbody.append(row);
+                        });
+                    } else {
+                        showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
+                    }
+                }
+            });
+        }
+
+        function createLanguage() {
+            const req = {
+                code: $("#txtCode").val(),
+                name: $("#txtName").val()
+            };
+
+            ajaxService.post('/Admin/Language/CreateLanguage', req, {
+                onSuccess: function(response) {
+                    if (response.isOk()) {
+                        showToast("Thêm thành công", "Thông báo", "success");
+                        loadLanguages();
+                        $("#txtCode").val('');
+                        $("#txtName").val('');
+                    } else {
+                        showToast(response.message || 'Thêm thất bại', 'Thông báo', 'error');
+                    }
+                }
+            });
+        }
+
+        $(function () {
+            $("#btnLoad").click(loadLanguages);
+            $("#btnCreate").click(createLanguage);
+
+            loadLanguages();
+        });
+    </script>
+}

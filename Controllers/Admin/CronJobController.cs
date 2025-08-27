@@ -3,7 +3,7 @@ using ManageLife.Data;
 using ManageLife.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.Admin
 {
     public class CronJobController : WebAdminControllerBase
     {
