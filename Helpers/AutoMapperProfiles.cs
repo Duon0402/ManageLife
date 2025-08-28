@@ -8,6 +8,11 @@ namespace ManageLife.Helpers
     {
         public AutoMapperProfiles()
         {
+            // Translation
+            CreateMap<TranslationEntity, TranslationModel>().ReverseMap();
+            CreateMap<TranslationEntity, CreateTranslationRequest>().ReverseMap();
+            CreateMap<TranslationEntity, UpdateLanguageRequest>().ReverseMap();
+
             // Langugage
             CreateMap<LanguageEntity, LanguageModel>().ReverseMap();
             CreateMap<LanguageEntity, CreateLanguageRequest>().ReverseMap();

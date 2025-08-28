@@ -1,4 +1,4 @@
-﻿namespace ManageLife.Commons.Translation
+﻿namespace ManageLife.Commons
 {
     public partial class TranslationKey
     {

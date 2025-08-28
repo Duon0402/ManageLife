@@ -29,7 +29,12 @@ namespace ManageLife.Base
         {
         }
 
-        private static string GetUrl(Expression<Action<TController>> action)
+        public MenuItem(string title, Expression<Func<TController, Task<IActionResult>>> action, string? icon = null, List<MenuItem>? subItems = null)
+            : base(title, GetUrl(action), icon, subItems)
+        {
+        }
+
+        private static string GetUrl(LambdaExpression action)
         {
             if (action.Body is MethodCallExpression methodCall)
             {

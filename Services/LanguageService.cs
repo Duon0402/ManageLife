@@ -1,5 +1,5 @@
 ﻿using ManageLife.Base;
-using ManageLife.Commons.Translation;
+using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Interfaces;

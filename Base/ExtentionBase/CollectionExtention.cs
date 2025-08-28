@@ -2,28 +2,12 @@
 
 namespace ManageLife.Base
 {
-    public static class CollectionExtention
+    public static class CollectionExtension
     {
-        public static bool IsEmpty<T>(this ICollection<T>? collection)
-        {
-            return collection == null || collection.Count == 0;
-        }
+        public static bool IsEmpty<T>([NotNullWhen(false)] this IEnumerable<T>? collection)
+            => collection == null || !collection.Any();
 
-        public static bool IsNotEmpty<T>(
-            [NotNullWhen(true)] this ICollection<T>? collection)
-        {
-            return collection != null && collection.Count > 0;
-        }
-
-        public static bool IsEmpty<T>(this IEnumerable<T>? collection)
-        {
-            return collection == null || !collection.Any();
-        }
-
-        public static bool IsNotEmpty<T>(
-            [NotNullWhen(true)] this IEnumerable<T>? collection)
-        {
-            return collection != null && collection.Any();
-        }
+        public static bool IsNotEmpty<T>([NotNullWhen(true)] this IEnumerable<T>? collection)
+            => collection != null && collection.Any();
     }
 }
