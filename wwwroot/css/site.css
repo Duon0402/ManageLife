@@ -46,7 +46,6 @@ body {
     animation: fadeIn 0.5s, fadeOut 0.5s 3s forwards;
 }
 
-
 /* file-uploader */
 .file-uploader {
     min-width: 325px;
