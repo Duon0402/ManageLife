@@ -57,11 +57,11 @@
 			&copy; 2024 - ManageLife - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
 		</div>
 	</footer>
-	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="~/js/ajaxService.js"></script>
-	<script src="~/js/toast.js"></script>
-	<script src="~/js/loading.js"></script>
-	<script src="~/js/site.js" asp-append-version="true"></script>
+	<script src="@Url.Content("~/lib/bootstrap/dist/js/bootstrap.bundle.min.js")"></script>
+	<script src="@Url.Content("~/js/ajaxService.js")?v=1.0.0"></script>
+	<script src="@Url.Content("~/js/toast.js")?v=1.0.0"></script>
+	<script src="@Url.Content("~/js/loading.js")?v=1.0.0"></script>
+	<script src="@Url.Content("~/js/site.js")?v=1.0.0"></script>
 	@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

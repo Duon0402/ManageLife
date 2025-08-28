@@ -11,8 +11,12 @@ namespace ManageLife.Helpers
             {
                 new MenuItem<DashboardController>("Dashboard", x => x.Index(), "fa-solid fa-house"),
                 new MenuItem<CronJobController>("Cron Job", x => x.Index(), "fa-solid fa-calendar-days"),
-                new MenuItem<LanguageController>("Language", x => x.Index(), "fa-solid fa-language"),
-                new MenuItem<TranslationController>("Translation", x => x.Index(), "fa-solid fa-language"),
+                new MenuItem("Language", null, "fa-solid fa-language", new List<MenuItem>
+                {
+                    new MenuItem<LanguageController>("Language", x => x.Index(), "fa-regular fa-circle fa-2xs"),
+                    new MenuItem<TranslationController>("Translation", x => x.Index(), "fa-regular fa-circle fa-2xs"),
+                }),
+
             };
 
             return listMenuItems;
