@@ -1,4 +1,4 @@
-﻿namespace ManageLife.Base.AuthorizeBase
+﻿namespace ManageLife.Base
 {
 	public class AccessPagePermissionAttribute : AuthorizeCustomAttribute
 	{
