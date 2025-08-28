@@ -3,6 +3,7 @@ using ManageLife.Base;
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Extentions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -25,9 +26,10 @@ namespace ManageLife.Services
             bool b;
             try
             {
-                if (request == null || request.Key == null || request.Value == null || request.LanguageId == null)
+                var validation = request.Validate();
+                if (!validation.IsValid)
                 {
-                    msg = TranslationKey.Common.Message.InvalidData;
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
