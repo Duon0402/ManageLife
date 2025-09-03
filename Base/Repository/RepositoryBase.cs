@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace ManageLife.Base
 {
-    public class RepositoryBase<T> : IReposiotyBase<T> where T : class
+    public class RepositoryBase<T> : IReposityBase<T> where T : class
     {
         protected readonly AppDbContext _context;
 

@@ -2,7 +2,7 @@
 
 namespace ManageLife.Base
 {
-    public interface IReposiotyBase<T> where T : class
+    public interface IReposityBase<T> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
