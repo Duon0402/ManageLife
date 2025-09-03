@@ -2,7 +2,7 @@
 {
 	public class ViewPermissionAttribute : AuthorizeCustomAttribute
 	{
-		public ViewPermissionAttribute() : base(PermissionType.View)
+		public ViewPermissionAttribute() : base(PermissionConst.View)
 		{
 		}
 	}

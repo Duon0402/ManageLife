@@ -60,19 +60,10 @@ namespace ManageLife.Base
 
         public async Task<bool> InsertAsync(T entity, IUnitOfWork? uow = null)
         {
-            if (entity is IEntityBase entityBase)
-            {
-                if (entityBase.Id.IsEmpty())
-                    entityBase.Id = IdHeper.NewId();
-            }
+            if (entity == null)
+                return false;
 
-            if (entity is ICanCreate canCreate)
-            {
-                if (canCreate.CreatedTime == default)
-                    canCreate.CreatedTime = DateTimeHelper.UtcNow();
-                if (string.IsNullOrEmpty(canCreate.CreatedUser))
-                    canCreate.CreatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
-            }
+            PrepareEntityForInsert(entity);
 
             await _context.Set<T>().AddAsync(entity);
 
@@ -86,15 +77,10 @@ namespace ManageLife.Base
 
         public async Task<bool> UpdateAsync(T entity, IUnitOfWork? uow = null)
         {
-            if (entity is ICanUpdate canUpdate)
-            {
-                if (canUpdate.UpdatedTime == default)
-                    canUpdate.UpdatedTime = DateTimeHelper.UtcNow();
-                if (string.IsNullOrEmpty(canUpdate.UpdatedUser))
-                    canUpdate.UpdatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
-            }
+            if (entity == null)
+                return false;
 
-            _context.Entry(entity).State = EntityState.Modified;
+            PrepareEntityForUpdate(entity);
 
             if (uow == null)
             {
@@ -104,25 +90,69 @@ namespace ManageLife.Base
             return true;
         }
 
-        public async Task<bool> DeleteAsync(string key, IUnitOfWork? uow = null)
+        public async Task<bool> DeleteAsync(T entity, IUnitOfWork? uow = null)
         {
-            var entity = await _context.Set<T>().FindAsync(key);
             if (entity == null)
                 return false;
 
-            if (entity is ISoftDelete softDelete)
-            {
-                softDelete.IsDeleted = true;
-                if (softDelete.DeletedTime == default)
-                    softDelete.DeletedTime = DateTimeHelper.UtcNow();
+            PrepareEntityForDelete(entity);
 
-                if (string.IsNullOrEmpty(softDelete.DeletedUser))
-                    softDelete.DeletedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
-                _context.Entry(entity).State = EntityState.Modified;
-            }
-            else
+            if (uow == null)
             {
-                _context.Entry(entity).State = EntityState.Deleted;
+                return await _context.SaveChangesAsync() > 0;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> BulkInsertAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
+        {
+            if (entities.IsEmpty())
+                return false;
+
+            foreach (var entity in entities)
+            {
+                PrepareEntityForInsert(entity);
+            }
+
+            await _context.Set<T>().AddRangeAsync(entities);
+
+            if (uow == null)
+            {
+                return await _context.SaveChangesAsync() > 0;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> BulkUpdateAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
+        {
+            if (entities.IsEmpty())
+                return false;
+
+            foreach (var entity in entities)
+            {
+                PrepareEntityForUpdate(entity);
+            }
+
+            _context.Set<T>().UpdateRange(entities);
+
+            if (uow == null)
+            {
+                return await _context.SaveChangesAsync() > 0;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> BulkDeleteAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
+        {
+            if (entities.IsEmpty())
+                return false;
+
+            foreach (var entity in entities)
+            {
+                PrepareEntityForDelete(entity);
             }
 
             if (uow == null)
@@ -131,6 +161,54 @@ namespace ManageLife.Base
             }
 
             return true;
+        }
+
+        private void PrepareEntityForInsert(T entity)
+        {
+            if (entity is IEntityBase entityBase && entityBase.Id.IsEmpty())
+            {
+                entityBase.Id = IdHeper.NewId();
+            }
+
+            if (entity is ICanCreate canCreate)
+            {
+                if (canCreate.CreatedTime == default)
+                    canCreate.CreatedTime = DateTimeHelper.UtcNow();
+                if (canCreate.CreatedUser.IsEmpty())
+                    canCreate.CreatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+            }
+        }
+
+        private void PrepareEntityForUpdate(T entity)
+        {
+            if (entity is ICanUpdate canUpdate)
+            {
+                if (canUpdate.UpdatedTime == default)
+                    canUpdate.UpdatedTime = DateTimeHelper.UtcNow();
+                if (string.IsNullOrEmpty(canUpdate.UpdatedUser))
+                    canUpdate.UpdatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+            }
+
+            _context.Entry(entity).State = EntityState.Modified;
+        }
+
+        private void PrepareEntityForDelete(T entity)
+        {
+            if (entity is ISoftDelete softDelete)
+            {
+                softDelete.IsDeleted = true;
+                if (softDelete.DeletedTime == default)
+                    softDelete.DeletedTime = DateTimeHelper.UtcNow();
+
+                if (string.IsNullOrEmpty(softDelete.DeletedUser))
+                    softDelete.DeletedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+
+                _context.Entry(entity).State = EntityState.Modified;
+            }
+            else
+            {
+                _context.Entry(entity).State = EntityState.Deleted;
+            }
         }
     }
 }

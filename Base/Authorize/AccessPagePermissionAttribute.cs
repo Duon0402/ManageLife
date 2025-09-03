@@ -2,7 +2,7 @@
 {
 	public class AccessPagePermissionAttribute : AuthorizeCustomAttribute
 	{
-		public AccessPagePermissionAttribute() : base(PermissionType.AccessPage)
+		public AccessPagePermissionAttribute() : base(PermissionConst.AccessPage)
 		{
 		}
 	}

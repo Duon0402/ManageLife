@@ -2,7 +2,7 @@
 {
 	public class DeletePermissionAttribute : AuthorizeCustomAttribute
 	{
-		public DeletePermissionAttribute() : base(PermissionType.Delete)
+		public DeletePermissionAttribute() : base(PermissionConst.Delete)
 		{
 		}
 	}

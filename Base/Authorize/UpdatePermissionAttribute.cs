@@ -2,7 +2,7 @@
 {
 	public class UpdatePermissionAttribute : AuthorizeCustomAttribute
 	{
-		public UpdatePermissionAttribute() : base(PermissionType.Update)
+		public UpdatePermissionAttribute() : base(PermissionConst.Update)
 		{
 		}
 	}

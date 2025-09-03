@@ -2,7 +2,7 @@
 {
 	public class InsertPermissionAttribute : AuthorizeCustomAttribute
 	{
-		public InsertPermissionAttribute() : base(PermissionType.Insert)
+		public InsertPermissionAttribute() : base(PermissionConst.Insert)
 		{
 		}
 	}

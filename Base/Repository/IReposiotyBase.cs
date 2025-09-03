@@ -9,6 +9,9 @@ namespace ManageLife.Base
         Task<T?> GetAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
         Task<bool> InsertAsync(T entity, IUnitOfWork? uow = null);
         Task<bool> UpdateAsync(T entity, IUnitOfWork? uow = null);
-        Task<bool> DeleteAsync(string key, IUnitOfWork? uow = null);
+        Task<bool> DeleteAsync(T entity, IUnitOfWork? uow = null);
+        Task<bool> BulkInsertAsync(IEnumerable<T> entities, IUnitOfWork? uow = null);
+        Task<bool> BulkUpdateAsync(IEnumerable<T> entities, IUnitOfWork? uow = null);
+        Task<bool> BulkDeleteAsync(IEnumerable<T> entities, IUnitOfWork? uow = null);
     }
 }

@@ -74,7 +74,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                b = await _repo.DeleteAsync(request.Id);
+                b = await _repo.DeleteAsync(entity);
 
                 if (!b)
                 {
