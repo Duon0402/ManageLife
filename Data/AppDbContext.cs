@@ -18,7 +18,10 @@ namespace ManageLife.Data
         public DbSet<FileEntity> Files { get; set; } = default!;
         public DbSet<UserEntity> Users { get; set; } = default!;
         public DbSet<RoleEntity> Roles { get; set; } = default!;
+        public DbSet<PermissionEntity> Permissions { get; set; } = default!;
         public DbSet<UserRoleEntity> UserRoles { get; set; } = default!;
+        public DbSet<RolePermissionEntity> RolePermissions { get; set; } = default!;
+        public DbSet<UserPermissionEntity> UserPermissions { get; set; } = default!;
         public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; } = default!;
         #endregion
 
@@ -26,8 +29,7 @@ namespace ManageLife.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            //TODO: Tạo ra config/register riêng cho từng entity để tránh viết chung vào khó kiểm soát
-
+            #region Language & Translation
             modelBuilder.Entity<LanguageEntity>()
                 .HasIndex(x => x.Code)
                 .IsUnique();
@@ -40,7 +42,9 @@ namespace ManageLife.Data
                 .HasOne(t => t.Language)
                 .WithMany(l => l.Translations)
                 .HasForeignKey(t => t.LanguageId);
+            #endregion
 
+            #region UserRole
             modelBuilder.Entity<UserRoleEntity>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });
 
@@ -53,6 +57,37 @@ namespace ManageLife.Data
                 .HasOne(ur => ur.Role)
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId);
+            #endregion
+
+            #region RolePermission
+            modelBuilder.Entity<RolePermissionEntity>()
+                .HasKey(rp => new { rp.RoleId, rp.PermissionId });
+
+            modelBuilder.Entity<RolePermissionEntity>()
+                .HasOne(rp => rp.Role)
+                .WithMany(r => r.RolePermissions)
+                .HasForeignKey(rp => rp.RoleId);
+
+            modelBuilder.Entity<RolePermissionEntity>()
+                .HasOne(rp => rp.Permission)
+                .WithMany(p => p.RolePermissions)
+                .HasForeignKey(rp => rp.PermissionId);
+            #endregion
+
+            #region UserPermission
+            modelBuilder.Entity<UserPermissionEntity>()
+                .HasKey(up => new { up.UserId, up.PermissionId });
+
+            modelBuilder.Entity<UserPermissionEntity>()
+                .HasOne(up => up.User)
+                .WithMany(u => u.UserPermissions)
+                .HasForeignKey(up => up.UserId);
+
+            modelBuilder.Entity<UserPermissionEntity>()
+                .HasOne(up => up.Permission)
+                .WithMany(p => p.UserPermissions)
+                .HasForeignKey(up => up.PermissionId);
+            #endregion
         }
     }
 }

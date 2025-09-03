@@ -9,6 +9,7 @@ namespace ManageLife.Entities
         public string HashPassword { get; set; } = null!;
         public string? FullName { get; set; }
         public bool IsActive { get; set; } = true;
+
         public string CreatedUser { get; set; } = null!;
         public DateTime CreatedTime { get; set; }
         string? ICanUpdate.UpdatedUser { get; set; }
@@ -16,6 +17,8 @@ namespace ManageLife.Entities
         public string? DeletedUser { get; set; }
         public DateTime? DeletedTime { get; set; }
         public bool IsDeleted { get; set; }
+
         public ICollection<UserRoleEntity> UserRoles { get; set; } = new List<UserRoleEntity>();
+        public ICollection<UserPermissionEntity> UserPermissions { get; set; } = new List<UserPermissionEntity>();
     }
 }
