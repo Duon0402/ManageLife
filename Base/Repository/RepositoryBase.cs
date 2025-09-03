@@ -15,10 +15,6 @@ namespace ManageLife.Base
             _context = context;
         }
 
-        /// <summary>
-        /// Trả về <see cref="IQueryable{T}"/> cho phép truy vấn LINQ trực tiếp trên bảng tương ứng.
-        /// </summary>
-        /// 
         public IQueryable<T> Query(bool asNoTracking = false)
         {
             return asNoTracking ? _context.Set<T>().AsNoTracking() : _context.Set<T>();
@@ -26,142 +22,139 @@ namespace ManageLife.Base
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            var entities = await _context.Set<T>().ToListAsync();
-            return entities;
+            return await _context.Set<T>().ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate,
+            params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _context.Set<T>();
-
-            if (includeProperties != null && includeProperties.Any())
+            if (includes?.Any() == true)
             {
-                query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+                query = includes.Aggregate(query, (current, include) => current.Include(include));
             }
 
-            query = query.Where(predicate);
-
-            return await query.ToListAsync();
+            return await query.Where(predicate).ToListAsync();
         }
 
-        public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includeProperties)
+        public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate,
+            params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _context.Set<T>();
-
-            if (includeProperties != null && includeProperties.Any())
+            if (includes?.Any() == true)
             {
-                query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+                query = includes.Aggregate(query, (current, include) => current.Include(include));
             }
 
-            query = query.Where(predicate);
-
-            return await query.FirstOrDefaultAsync();
+            return await query.FirstOrDefaultAsync(predicate);
         }
+
+        #region CRUD
 
         public async Task<bool> InsertAsync(T entity, IUnitOfWork? uow = null)
         {
-            if (entity == null)
-                return false;
+            if (entity == null) return false;
 
             PrepareEntityForInsert(entity);
 
             await _context.Set<T>().AddAsync(entity);
 
             if (uow == null)
-            {
                 return await _context.SaveChangesAsync() > 0;
-            }
 
             return true;
         }
 
         public async Task<bool> UpdateAsync(T entity, IUnitOfWork? uow = null)
         {
-            if (entity == null)
-                return false;
+            if (entity == null) return false;
 
             PrepareEntityForUpdate(entity);
 
+            _context.Set<T>().Update(entity);
+
             if (uow == null)
-            {
                 return await _context.SaveChangesAsync() > 0;
-            }
 
             return true;
         }
 
         public async Task<bool> DeleteAsync(T entity, IUnitOfWork? uow = null)
         {
-            if (entity == null)
-                return false;
+            if (entity == null) return false;
 
-            PrepareEntityForDelete(entity);
+            if (entity is ISoftDelete)
+            {
+                PrepareEntityForDelete(entity); // soft delete
+                _context.Set<T>().Update(entity);
+            }
+            else
+            {
+                _context.Set<T>().Remove(entity); // hard delete
+            }
 
             if (uow == null)
-            {
                 return await _context.SaveChangesAsync() > 0;
-            }
 
             return true;
         }
 
+        #endregion
+
+        #region BULK
+
         public async Task<bool> BulkInsertAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
         {
-            if (entities.IsEmpty())
-                return false;
+            if (entities.IsEmpty()) return false;
 
             foreach (var entity in entities)
-            {
                 PrepareEntityForInsert(entity);
-            }
 
             await _context.Set<T>().AddRangeAsync(entities);
 
             if (uow == null)
-            {
                 return await _context.SaveChangesAsync() > 0;
-            }
 
             return true;
         }
 
         public async Task<bool> BulkUpdateAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
         {
-            if (entities.IsEmpty())
-                return false;
+            if (entities.IsEmpty()) return false;
 
             foreach (var entity in entities)
-            {
                 PrepareEntityForUpdate(entity);
-            }
 
             _context.Set<T>().UpdateRange(entities);
 
             if (uow == null)
-            {
                 return await _context.SaveChangesAsync() > 0;
-            }
 
             return true;
         }
 
         public async Task<bool> BulkDeleteAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
         {
-            if (entities.IsEmpty())
-                return false;
+            if (entities.IsEmpty()) return false;
 
             foreach (var entity in entities)
-            {
                 PrepareEntityForDelete(entity);
-            }
+
+            // Soft delete thì UpdateRange, hard delete thì RemoveRange
+            if (typeof(ISoftDelete).IsAssignableFrom(typeof(T)))
+                _context.Set<T>().UpdateRange(entities);
+            else
+                _context.Set<T>().RemoveRange(entities);
 
             if (uow == null)
-            {
                 return await _context.SaveChangesAsync() > 0;
-            }
 
             return true;
         }
+
+        #endregion
+
+        #region Helpers
 
         private void PrepareEntityForInsert(T entity)
         {
@@ -183,13 +176,10 @@ namespace ManageLife.Base
         {
             if (entity is ICanUpdate canUpdate)
             {
-                if (canUpdate.UpdatedTime == default)
-                    canUpdate.UpdatedTime = DateTimeHelper.UtcNow();
-                if (string.IsNullOrEmpty(canUpdate.UpdatedUser))
+                canUpdate.UpdatedTime = DateTimeHelper.UtcNow();
+                if (canUpdate.UpdatedUser.IsEmpty())
                     canUpdate.UpdatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
             }
-
-            _context.Entry(entity).State = EntityState.Modified;
         }
 
         private void PrepareEntityForDelete(T entity)
@@ -197,18 +187,12 @@ namespace ManageLife.Base
             if (entity is ISoftDelete softDelete)
             {
                 softDelete.IsDeleted = true;
-                if (softDelete.DeletedTime == default)
-                    softDelete.DeletedTime = DateTimeHelper.UtcNow();
-
-                if (string.IsNullOrEmpty(softDelete.DeletedUser))
+                softDelete.DeletedTime = DateTimeHelper.UtcNow();
+                if (softDelete.DeletedUser.IsEmpty())
                     softDelete.DeletedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
-
-                _context.Entry(entity).State = EntityState.Modified;
-            }
-            else
-            {
-                _context.Entry(entity).State = EntityState.Deleted;
             }
         }
+
+        #endregion
     }
 }
