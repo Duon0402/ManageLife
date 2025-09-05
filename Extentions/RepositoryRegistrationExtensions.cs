@@ -1,4 +1,5 @@
 ﻿using ManageLife.Repositories;
+using ManageLife.Services;
 
 namespace ManageLife.Extentions
 {
@@ -6,6 +7,7 @@ namespace ManageLife.Extentions
     {
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
+            services.AddScoped<PermissionService>();
             services.AddScoped<TranslationRepository>();
             services.AddScoped<LanguageRespository>();
             services.AddScoped<UserRepository>();

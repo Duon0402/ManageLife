@@ -8,15 +8,13 @@ namespace ManageLife.Extentions
     {
         public static IServiceCollection AddApplicationCustomServices(this IServiceCollection services)
         {
+            services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<ITranslationService, TranslationService>();
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ICronJobService, CronJobService>();
             services.AddScoped<TelegramService>();
             services.AddScoped<TelegramFileService>();
             services.AddScoped<UserService>();
-
-            services.AddScoped<IMenuRegister, MenuRegister>();
-
             return services;
         }
     }

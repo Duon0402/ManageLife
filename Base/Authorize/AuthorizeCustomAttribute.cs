@@ -23,14 +23,21 @@ namespace ManageLife.Base
 
             var controller = controllerObj!.ToString();
             var permissionCode = $"{area}.{controller}.{_permission}";
-
             var userId = context.HttpContext.User.GetUserId();
+            var isAjax = context.HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             if (string.IsNullOrEmpty(userId))
             {
-                context.Result = new JsonResult(new { code = "401", message = "Unauthorized" })
+                if (isAjax)
                 {
-                    StatusCode = StatusCodes.Status401Unauthorized
-                };
+                    context.Result = new JsonResult(new { code = "401", message = "Unauthorized" })
+                    { StatusCode = StatusCodes.Status401Unauthorized };
+                }
+                else
+                {
+                    var returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString;
+                    context.Result = new RedirectResult($"/Auth/Login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+                }
                 return;
             }
 
@@ -43,10 +50,15 @@ namespace ManageLife.Base
 
             if (result.IsError() || result.Data?.Any(p => p.Code == permissionCode) != true)
             {
-                context.Result = new JsonResult(new { code = "403", message = "Forbidden: You don't have permission" })
+                if (isAjax)
                 {
-                    StatusCode = StatusCodes.Status403Forbidden
-                };
+                    context.Result = new JsonResult(new { code = "403", message = "Forbidden: You don't have permission" })
+                    { StatusCode = StatusCodes.Status403Forbidden };
+                }
+                else
+                {
+                    context.Result = new RedirectResult("/Auth/AccessDenied");
+                }
                 return;
             }
 
