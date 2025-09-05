@@ -25,7 +25,7 @@ namespace ManageLife.Services
             {
                 if (request?.Code == null || request?.Name == null)
                 {
-                    msg = TranslationKey.Common.Message.InvalidData;
+                    msg = TranslationKey.Common.Message.DataInvalid;
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -62,7 +62,7 @@ namespace ManageLife.Services
             {
                 if (request == null)
                 {
-                    msg = TranslationKey.Common.Message.InvalidData;
+                    msg = TranslationKey.Common.Message.DataInvalid;
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -98,7 +98,7 @@ namespace ManageLife.Services
             {
                 if (request == null)
                 {
-                    msg = TranslationKey.Common.Message.InvalidData;
+                    msg = TranslationKey.Common.Message.DataInvalid;
                     return Result.Error<LanguageModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -128,7 +128,7 @@ namespace ManageLife.Services
             {
                 if (request == null)
                 {
-                    msg = TranslationKey.Common.Message.InvalidData;
+                    msg = TranslationKey.Common.Message.DataInvalid;
                     return Result.Error<LanguageModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -180,7 +180,7 @@ namespace ManageLife.Services
             {
                 if (request == null)
                 {
-                    msg = TranslationKey.Common.Message.InvalidData;
+                    msg = TranslationKey.Common.Message.DataInvalid;
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 

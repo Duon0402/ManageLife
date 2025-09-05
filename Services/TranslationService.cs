@@ -67,22 +67,19 @@ namespace ManageLife.Services
             {
                 if (request?.Id == null)
                 {
-                    msg = TranslationKey.Common.Message.InvalidData;
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                    return Result.DATA_INVALID;
                 }
 
                 var entity = await _repo.GetAsync(x => x.Id == request.Id && x.IsDeleted == false);
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
-                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
+                    return Result.DATA_NOT_EXISTED;
                 }
 
                 b = await _repo.DeleteAsync(entity);
                 if (!b)
                 {
-                    msg = TranslationKey.Common.Message.DeleteError;
-                    return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                    return Result.DATA_NOT_DELETE;
                 }
 
                 return Result.Ok();

@@ -12,7 +12,6 @@ namespace ManageLife.Services
 {
     public class UserService : ServiceBase
     {
-        private readonly AppDbContext _context;
         private readonly UserRepository _userRepo;
         private readonly RoleRepository _roleRepo;
         private readonly UserRoleRepository _userRoleRepo;
@@ -21,7 +20,6 @@ namespace ManageLife.Services
 
         public UserService(AppDbContext context, IConfiguration config) : base(context)
         {
-            _context = context;
             _userRepo = new UserRepository(_context);
             _roleRepo = new RoleRepository(_context);
             _userRoleRepo = new UserRoleRepository(_context);

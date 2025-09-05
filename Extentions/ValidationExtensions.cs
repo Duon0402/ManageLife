@@ -11,7 +11,7 @@ namespace ManageLife.Extentions
         {
             if (instance == null)
             {
-                return ValidationResultModel.Fail(new[] { TranslationKey.Common.Message.InvalidData });
+                return ValidationResultModel.Fail(new[] { TranslationKey.Common.Message.DataInvalid });
             }
 
             var context = new ValidationContext(instance, null, null);

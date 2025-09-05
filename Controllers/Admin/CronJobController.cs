@@ -14,11 +14,13 @@ namespace ManageLife.Controllers.Admin
             _service = service;
         }
 
+        [AccessPagePermission]
         public IActionResult Index()
         {
             return View();
         }
 
+        [ViewPermission]
         [HttpGet]
         public async Task<Result> GetListCronJobs()
         {

@@ -20,7 +20,9 @@
                 public const string DataNotExisted = "TranslationKey.Common.Message.DataNotExisted";
                 public const string DataExisted = "TranslationKey.Common.Message.DataExisted";
 
-                public const string InvalidData = "TranslationKey.Common.Message.InvalidData";
+                public const string DataValid = "TranslationKey.Common.Message.DataValid";
+                public const string DataInvalid = "TranslationKey.Common.Message.DataInvalid";
+
                 public const string SystemError = "TranslationKey.Common.Message.SystemError";
             }
         }
