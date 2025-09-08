@@ -8,6 +8,9 @@ namespace ManageLife.Helpers
     {
         public AutoMapperProfiles()
         {
+            // Permission
+            CreateMap<PermissionEntity, PermissionModel>().ReverseMap();
+
             // Translation
             CreateMap<TranslationEntity, TranslationModel>().ReverseMap();
             CreateMap<TranslationEntity, CreateTranslationRequest>().ReverseMap();

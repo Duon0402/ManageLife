@@ -1,6 +1,7 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
 using ManageLife.Data;
+using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -15,6 +16,7 @@ namespace ManageLife.Services
         private readonly PermissionRepository _repoPermission;
         private readonly UserPermissionRepository _repoUserPermission;
         private readonly UserRoleRepository _repoUserRole;
+        private readonly RoleRepository _repoRole;
         private readonly RolePermissionRepository _repoRolePermission;
         private const string CacheKeyPrefix = "user_permissions_";
 
@@ -25,6 +27,7 @@ namespace ManageLife.Services
             _repoUserPermission = new UserPermissionRepository(context);
             _repoRolePermission = new RolePermissionRepository(context);
             _repoUserRole = new UserRoleRepository(context);
+            _repoRole = new RoleRepository(context);
         }
 
         public async Task<Result<List<PermissionModel>>> GetListPermissionsAsync()
@@ -99,30 +102,87 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> BulkInsertPermissionsAsync(BulkInsertPermissionsRequest request)
+        public async Task<Result> SyncPermissionsAsync(List<string> permissionCodes)
         {
-            string msg;
-            bool b;
+            using var unitOfWork = new UnitOfWork(_context);
             try
             {
-                if (request == null || request.Permissions.IsEmpty())
+                var dbPermissions = await _repoPermission.GetAllAsync();
+                var dbPermissionCodes = dbPermissions.Select(p => p.Code).ToList();
+
+                var toInsertCodes = permissionCodes.Except(dbPermissionCodes).ToList();
+                var toDelete = dbPermissions.Where(p => !permissionCodes.Contains(p.Code)).ToList();
+
+                var insertPermissions = toInsertCodes.Select(code => new PermissionEntity
                 {
-                    return Result.DATA_INVALID;
+                    Id = IdHeper.NewId(),
+                    Code = code,
+                    Name = code
+                }).ToList();
+
+                if (insertPermissions.Any())
+                {
+                    if (!await _repoPermission.BulkInsertAsync(insertPermissions, unitOfWork))
+                    {
+                        await unitOfWork.RollbackAsync();
+                        return Result.DATA_NOT_CREATE;
+                    }
                 }
 
-                b = await _repoPermission.BulkInsertAsync(request.Permissions);
-
-                if (!b)
+                if (toDelete.Any())
                 {
-                    return Result.DATA_NOT_CREATE;
+                    if (!await _repoPermission.BulkDeleteAsync(toDelete, unitOfWork))
+                    {
+                        await unitOfWork.RollbackAsync();
+                        return Result.DATA_NOT_DELETE;
+                    }
                 }
 
+                var adminRole = await _repoRole.Query()
+                    .FirstOrDefaultAsync(x => x.Name == RoleConst.Admin);
+
+                if (adminRole != null)
+                {
+                    if (toDelete.Any())
+                    {
+                        var toDeleteIds = toDelete.Select(p => p.Id).ToList();
+                        var adminMappingsToDelete = await _repoRolePermission.Query()
+                            .Where(rp => rp.RoleId == adminRole.Id && toDeleteIds.Contains(rp.PermissionId))
+                            .ToListAsync();
+
+                        if (adminMappingsToDelete.Any())
+                        {
+                            if (!await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete, unitOfWork))
+                            {
+                                await unitOfWork.RollbackAsync();
+                                return Result.DATA_NOT_DELETE;
+                            }
+                        }
+                    }
+
+                    if (insertPermissions.Any())
+                    {
+                        var rolePermissions = insertPermissions.Select(p => new RolePermissionEntity
+                        {
+                            RoleId = adminRole.Id,
+                            PermissionId = p.Id
+                        }).ToList();
+
+                        if (!await _repoRolePermission.BulkInsertAsync(rolePermissions, unitOfWork))
+                        {
+                            await unitOfWork.RollbackAsync();
+                            return Result.DATA_NOT_CREATE;
+                        }
+                    }
+                }
+
+                await unitOfWork.CommitAsync();
                 return Result.Ok();
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
-                return Result.Exception(msg, ex);
+                await unitOfWork.RollbackAsync();
+                return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
             }
         }
     }

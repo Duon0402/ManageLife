@@ -15,7 +15,7 @@ namespace ManageLife.Data
                 var adminRole = new RoleEntity()
                 {
                     Id = IdHeper.NewId(),
-                    Name = "Admin",
+                    Name = RoleConst.Admin,
                     Description = "Quản trị viên",
                     CreatedUser = SystemUsers.System,
                     CreatedTime = DateTimeHelper.Now(),
@@ -23,7 +23,7 @@ namespace ManageLife.Data
                 var userRole = new RoleEntity()
                 {
                     Id = IdHeper.NewId(),
-                    Name = "User",
+                    Name = RoleConst.User,
                     Description = "Người dùng",
                     CreatedUser = SystemUsers.System,
                     CreatedTime = DateTimeHelper.Now(),

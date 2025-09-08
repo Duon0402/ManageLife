@@ -1,4 +1,5 @@
 ﻿using ManageLife.Base;
+using ManageLife.Entities;
 using ManageLife.Models;
 
 namespace ManageLife.Interfaces
@@ -7,6 +8,6 @@ namespace ManageLife.Interfaces
     {
         Task<Result<List<PermissionModel>>> GetListPermissionsAsync();
         Task<Result<List<PermissionModel>>> GetListPermissionsByUserIdAsync(GetListPermissionsByUserIdRequest request);
-        Task<Result> BulkInsertPermissionsAsync(BulkInsertPermissionsRequest request);
+        Task<Result> SyncPermissionsAsync(List<string> permissionCodes);
     }
 }

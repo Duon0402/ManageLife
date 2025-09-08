@@ -19,6 +19,10 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await Seed.SeedData(context);
+
+    // ======= REGISTER PERMISSIONS =========
+    var services = scope.ServiceProvider;
+    await services.RegisterPermissionsAsync();
 }
 
 // Gán IMapper từ DI vào MapperBase
