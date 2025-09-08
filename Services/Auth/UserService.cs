@@ -117,13 +117,10 @@ namespace ManageLife.Services
                 await uow.CommitAsync();
 
                 var roles = new List<string> { roleEntity.Name };
-                var token = new AuthTokenModel
-                {
-                    AccessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, roles),
-                    RefreshToken = refreshToken
-                };
 
-                return Result.Ok(token);
+                _tokenService.SetTokensCookie(userEntity.Id, userEntity.UserName, roles, refreshToken);
+
+                return Result.Ok();
             }
             catch (Exception ex)
             {
@@ -187,13 +184,9 @@ namespace ManageLife.Services
                     .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
                     .ToListAsync();
 
-                var token = new AuthTokenModel
-                {
-                    AccessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, roles),
-                    RefreshToken = refreshToken
-                };
+                _tokenService.SetTokensCookie(userEntity.Id, userEntity.UserName, roles, refreshToken);
 
-                return Result.Ok(token);
+                return Result.Ok();
             }
             catch (Exception ex)
             {
@@ -202,13 +195,19 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> RefreshTokenAsync(string refreshToken)
+        public async Task<Result> RefreshTokenAsync(string? refreshToken)
         {
             using var uow = await UnitOfWork.CreateAsync(_context);
             string msg;
             bool b;
             try
             {
+                if (refreshToken.IsEmpty())
+                {
+                    msg = "Refresh Token không hợp lệ";
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
                 var tokenEntity = await _refreshRepo.Query()
                     .Include(r => r.User)
                     .FirstOrDefaultAsync(r => r.RefreshToken == refreshToken &&
@@ -253,13 +252,9 @@ namespace ManageLife.Services
                     .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
                     .ToListAsync();
 
-                var token = new AuthTokenModel
-                {
-                    AccessToken = _tokenService.GenerateAccessToken(tokenEntity.UserId, tokenEntity.User.UserName, roles),
-                    RefreshToken = newRefreshToken
-                };
+                _tokenService.SetTokensCookie(tokenEntity.UserId, tokenEntity.User.UserName, roles, newRefreshToken);
 
-                return Result.Ok(token);
+                return Result.Ok();
             }
             catch (Exception ex)
             {
@@ -289,6 +284,8 @@ namespace ManageLife.Services
                     msg = "Không thể đăng xuất";
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
+
+                _tokenService.ClearTokensCookie();
 
                 return Result.Ok();
             }

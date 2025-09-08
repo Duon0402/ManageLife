@@ -26,26 +26,27 @@
 		event.preventDefault();
 
 		const formData = {
-			username: $("#username").val(),
-			password: $("#password").val(),
+			userName: $("#username").val(),
+			password: $("#password").val()
 		};
 
-		ajaxService.post('/Auth/Login', formData, {
+		ajaxService.post('/auth/login', formData, {
 			onSuccess: function (response) {
 				if (response.isOk()) {
-					const tokenData = response.data;
-					localStorage.setItem('accessToken', tokenData.accessToken);
-					localStorage.setItem('refreshToken', tokenData.refreshToken);
 
-					const returnUrl = sessionStorage.getItem('returnUrl') || '/';
-					sessionStorage.removeItem('returnUrl');
+					const params = new URLSearchParams(window.location.search);
+					let returnUrl = params.get("returnUrl");
+
+					if (!returnUrl) {
+						returnUrl = sessionStorage.getItem("returnUrl") || "/";
+					}
+					sessionStorage.removeItem("returnUrl");
 
 					window.location.href = returnUrl;
-				}
-				else {
+				} else {
 					showToast(response.message, 'Thông báo', 'error');
 				}
-			},
+			}
 		});
 	});
 </script>

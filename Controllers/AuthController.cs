@@ -10,9 +10,9 @@ namespace ManageLife.Controllers
     {
         private readonly UserService _service;
 
-        public AuthController(AppDbContext context, IConfiguration config, ILogger? logger = null) : base(context, logger)
+        public AuthController(AppDbContext context, IConfiguration config, IHttpContextAccessor httpContextAccessor, ILogger? logger = null) : base(context, logger)
         {
-            _service = new UserService(context, config);
+            _service = new UserService(context, config, httpContextAccessor);
         }
 
         public IActionResult Login()
@@ -45,9 +45,10 @@ namespace ManageLife.Controllers
         }
 
         [HttpPost]
-        public async Task<Result> RefreshToken([FromBody] RefreshTokenRequest model)
+        public async Task<Result> RefreshToken()
         {
-            var rs = await _service.RefreshTokenAsync(model.RefreshToken);
+            var refreshToken = Request.Cookies["refreshToken"];
+            var rs = await _service.RefreshTokenAsync(refreshToken);
             return rs;
         }
     }
