@@ -43,6 +43,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+app.UseMiddleware<JwtAutoRefreshMiddleware>();
 app.UseAuthorization();
 
 app.MapControllerRoute(

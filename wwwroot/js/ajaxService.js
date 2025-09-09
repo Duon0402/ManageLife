@@ -1,28 +1,23 @@
 ﻿const ajaxService = {
-    _refreshingTokenPromise: null, // Lock refresh
+    _refreshingTokenPromise: null,
 
     request: async function (url, method, data = null, options = {}) {
-        const defaultOptions = {
+        const settings = {
             contentType: 'application/json',
             dataType: 'json',
             processData: true,
             showLoading: true,
             showToast: true,
-            isRetry: false,
             beforeSend: null,
             onProgress: null,
             onSuccess: null,
             onError: null,
-            onComplete: null
+            onComplete: null,
+            ...options
         };
-        const settings = { ...defaultOptions, ...options };
+
         const isFormData = data instanceof FormData;
-
-        if (isFormData) {
-            settings.contentType = false;
-            settings.processData = false;
-        }
-
+        if (isFormData) { settings.contentType = false; settings.processData = false; }
         if (settings.showLoading) showLoading();
 
         const doRequest = () => new Promise((resolve, reject) => {
@@ -33,53 +28,43 @@
                 contentType: settings.contentType,
                 processData: settings.processData,
                 dataType: settings.dataType,
-                xhrFields: { withCredentials: true }, // gửi cookie JWT
+                xhrFields: { withCredentials: true },
                 beforeSend: settings.beforeSend,
                 xhr: function () {
                     const xhr = new window.XMLHttpRequest();
-                    if (xhr.upload && settings.onProgress) {
+                    if (xhr.upload && settings.onProgress)
                         xhr.upload.addEventListener('progress', e => {
-                            if (e.lengthComputable) {
-                                settings.onProgress(Math.round((e.loaded / e.total) * 100), e);
-                            }
+                            if (e.lengthComputable)
+                                settings.onProgress(Math.round(e.loaded / e.total * 100), e);
                         });
-                    }
                     return xhr;
                 },
                 success: function (res) {
                     res.isOk = () => res.code === '00';
                     res.isException = () => res.code === '99';
                     res.isError = () => !res.isOk() && !res.isException();
-
-                    settings.onSuccess ? settings.onSuccess(res) :
-                        (!settings.isRetry && settings.showToast && res.message && showToast(res.message, 'Thông báo', res.isOk() ? 'success' : 'error'));
-
+                    if (settings.onSuccess) settings.onSuccess(res);
+                    else if (settings.showToast && res.message) showToast(res.message, 'Thông báo', res.isOk() ? 'success' : 'error');
                     resolve(res);
                 },
                 error: async function (jqXHR) {
                     if (jqXHR.status === 401) {
                         const refreshed = await ajaxService._handle401();
-                        if (refreshed) {
-                            return resolve(await ajaxService.request(url, method, data, { ...options, isRetry: true, showLoading: false, showToast: false }));
-                        }
+                        if (refreshed)
+                            return resolve(await ajaxService.request(url, method, data, options));
                         ajaxService.redirectToLogin();
                         return;
                     }
-
-                    settings.onError ? settings.onError(jqXHR) :
-                        (!settings.isRetry && showToast(jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra.', 'Thông báo', 'error'));
-
+                    if (settings.onError) settings.onError(jqXHR);
+                    else if (settings.showToast) showToast(jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra', 'Thông báo', 'error');
                     reject(jqXHR);
                 },
                 complete: settings.onComplete
             });
         });
 
-        try {
-            return await doRequest();
-        } finally {
-            if (settings.showLoading) hideLoading();
-        }
+        try { return await doRequest(); }
+        finally { if (settings.showLoading) hideLoading(); }
     },
 
     get: (url, params = {}, options = {}) => ajaxService.request(params ? `${url}?${$.param(params)}` : url, 'GET', null, options),
@@ -94,22 +79,15 @@
     _handle401: async function () {
         if (this._refreshingTokenPromise) return await this._refreshingTokenPromise;
         this._refreshingTokenPromise = (async () => {
-            const success = await this._refreshToken();
-            this._refreshingTokenPromise = null;
-            return success;
+            try {
+                const res = await fetch('/Auth/RefreshToken', { method: 'POST', credentials: 'include' });
+                if (!res.ok) return false;
+                const data = await res.json();
+                return data.code === '00';
+            } catch { return false; }
+            finally { this._refreshingTokenPromise = null; }
         })();
         return await this._refreshingTokenPromise;
-    },
-
-    _refreshToken: async function () {
-        try {
-            const res = await fetch('/Auth/RefreshToken', { method: 'POST', credentials: 'include' });
-            if (!res.ok) return false;
-            const data = await res.json();
-            return data.code === '00';
-        } catch {
-            return false;
-        }
     },
 
     redirectToLogin: function () {

@@ -3,6 +3,7 @@ using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Helpers;
+using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -10,23 +11,21 @@ using System.Data;
 
 namespace ManageLife.Services
 {
-    public class UserService : ServiceBase
+    public class UserService : ServiceBase, IUserService
     {
         private readonly UserRepository _userRepo;
         private readonly RoleRepository _roleRepo;
         private readonly UserRoleRepository _userRoleRepo;
         private readonly UserRefreshTokenRepository _refreshRepo;
-        private readonly TokenService _tokenService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITokenService _tokenService;
 
-        public UserService(AppDbContext context, IConfiguration config, IHttpContextAccessor httpContextAccessor) : base(context)
+        public UserService(AppDbContext context, IConfiguration config, ITokenService tokenService) : base(context)
         {
             _userRepo = new UserRepository(_context);
             _roleRepo = new RoleRepository(_context);
             _userRoleRepo = new UserRoleRepository(_context);
             _refreshRepo = new UserRefreshTokenRepository(_context);
-            _tokenService = new TokenService(config, httpContextAccessor);
-            _httpContextAccessor = httpContextAccessor;
+            _tokenService = tokenService;
         }
 
         public async Task<Result> RegisterAsync(RegisterAccountModel model)
@@ -191,75 +190,6 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = "Đã có lỗi xảy ra khi đăng nhập tài khoản";
-                return Result.Exception(msg, ex);
-            }
-        }
-
-        public async Task<Result> RefreshTokenAsync(string? refreshToken)
-        {
-            using var uow = await UnitOfWork.CreateAsync(_context);
-            string msg;
-            bool b;
-            try
-            {
-                if (refreshToken.IsEmpty())
-                {
-                    msg = "Refresh Token không hợp lệ";
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
-
-                var tokenEntity = await _refreshRepo.Query()
-                    .Include(r => r.User)
-                    .FirstOrDefaultAsync(r => r.RefreshToken == refreshToken &&
-                                              r.ExpiryTime > DateTimeHelper.UtcNow() &&
-                                              !r.IsRevoked);
-
-                if (tokenEntity == null || tokenEntity.User == null || tokenEntity.User.IsDeleted || !tokenEntity.User.IsActive)
-                {
-                    msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
-
-                tokenEntity.IsRevoked = true;
-                b = await _refreshRepo.UpdateAsync(tokenEntity, uow);
-                if (!b)
-                {
-                    await uow.RollbackAsync();
-                    msg = "Không thể tạo phiên đăng nhập mới";
-                    return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
-                }
-
-                var newRefreshToken = _tokenService.GenerateRefreshToken();
-                var newRefreshEntity = new UserRefreshTokenEntity
-                {
-                    Id = IdHeper.NewId(),
-                    UserId = tokenEntity.UserId,
-                    RefreshToken = newRefreshToken,
-                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
-                };
-                b = await _refreshRepo.InsertAsync(newRefreshEntity, uow);
-                if (!b)
-                {
-                    await uow.RollbackAsync();
-                    msg = "Không thể tạo phiên đăng nhập mới";
-                    return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
-                }
-
-                await uow.CommitAsync();
-
-                var roles = await _userRepo.Query()
-                    .Where(u => u.Id == tokenEntity.UserId)
-                    .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
-                    .ToListAsync();
-
-                _tokenService.SetTokensCookie(tokenEntity.UserId, tokenEntity.User.UserName, roles, newRefreshToken);
-
-                return Result.Ok();
-            }
-            catch (Exception ex)
-            {
-                await uow.RollbackAsync();
-                msg = "Đã có lỗi xảy ra khi làm mới phiên đăng nhập";
                 return Result.Exception(msg, ex);
             }
         }

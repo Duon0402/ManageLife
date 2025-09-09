@@ -1,18 +1,20 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
+using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers
 {
     public class AuthController : WebControllerBase
     {
-        private readonly UserService _service;
+        private readonly IUserService _userService;
+        private readonly ITokenService _tokenService;
 
-        public AuthController(AppDbContext context, IConfiguration config, IHttpContextAccessor httpContextAccessor, ILogger? logger = null) : base(context, logger)
+        public AuthController(AppDbContext context, IUserService userService, ITokenService tokenService, ILogger? logger = null) : base(context, logger)
         {
-            _service = new UserService(context, config, httpContextAccessor);
+            _userService = userService;
+            _tokenService = tokenService;
         }
 
         public IActionResult Login()
@@ -33,14 +35,14 @@ namespace ManageLife.Controllers
         [HttpPost]
         public async Task<Result> Register([FromBody] RegisterAccountModel model)
         {
-            var rs = await _service.RegisterAsync(model);
+            var rs = await _userService.RegisterAsync(model);
             return rs;
         }
 
         [HttpPost]
         public async Task<Result> Login([FromBody] LoginAccountModel model)
         {
-            var rs = await _service.LoginAsync(model);
+            var rs = await _userService.LoginAsync(model);
             return rs;
         }
 
@@ -48,7 +50,7 @@ namespace ManageLife.Controllers
         public async Task<Result> RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var rs = await _service.RefreshTokenAsync(refreshToken);
+            var rs = await _tokenService.RefreshTokenAsync(refreshToken);
             return rs;
         }
     }

@@ -2,6 +2,7 @@
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Extentions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -23,9 +24,10 @@ namespace ManageLife.Services
             bool b;
             try
             {
-                if (request?.Code == null || request?.Name == null)
+                var validation = request.Validate();
+                if (!validation.IsValid)
                 {
-                    msg = TranslationKey.Common.Message.DataInvalid;
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 

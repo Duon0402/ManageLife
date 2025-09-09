@@ -3,10 +3,13 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Caching.Memory;
 
 public class PermissionAttribute : ActionFilterAttribute
 {
     public string Permission { get; }
+
+    private static readonly MemoryCache _permissionCache = new(new MemoryCacheOptions());
 
     public PermissionAttribute(string permission) => Permission = permission;
 
@@ -22,15 +25,17 @@ public class PermissionAttribute : ActionFilterAttribute
         }
 
         var permissionCode = BuildPermissionCode(context.RouteData, Permission);
+        var cacheKey = $"permissions_{userId}";
 
-        var permissionService = context.HttpContext.RequestServices.GetService<IPermissionService>()
-            ?? throw new InvalidOperationException("IPermissionService is not registered in DI.");
+        var permissions = _permissionCache.GetOrCreate(cacheKey, entry =>
+        {
+            entry.SlidingExpiration = TimeSpan.FromMinutes(10);
+            var service = context.HttpContext.RequestServices.GetRequiredService<IPermissionService>();
+            var result = service.GetListPermissionsByUserIdAsync(new GetListPermissionsByUserIdRequest { UserId = userId }).Result;
+            return result.IsOk() ? result.Data?.Select(p => p.Code).ToHashSet() ?? new HashSet<string>() : new HashSet<string>();
+        });
 
-        var result = await permissionService.GetListPermissionsByUserIdAsync(
-            new GetListPermissionsByUserIdRequest { UserId = userId }
-        );
-
-        if (result.IsError() || result.Data?.Any(p => p.Code == permissionCode) != true)
+        if (!permissions.Contains(permissionCode))
         {
             HandleForbidden(context, isAjax);
             return;
@@ -41,43 +46,24 @@ public class PermissionAttribute : ActionFilterAttribute
 
     private static string BuildPermissionCode(RouteData routeData, string permission)
     {
-        var values = routeData.Values;
-
-        var area = values.TryGetValue("area", out var areaObj) && !string.IsNullOrEmpty(areaObj?.ToString())
-            ? areaObj!.ToString()
-            : "Default";
-
-        if (!values.TryGetValue("controller", out var controllerObj) || string.IsNullOrEmpty(controllerObj?.ToString()))
-            throw new InvalidOperationException("RouteData does not contain a valid 'controller'.");
-
-        var controller = controllerObj!.ToString();
+        var area = routeData.Values.TryGetValue("area", out var a) ? a?.ToString() : "Default";
+        var controller = routeData.Values.TryGetValue("controller", out var c) ? c?.ToString() : throw new InvalidOperationException("Controller missing in RouteData");
         return $"{area}.{controller}.{permission}";
     }
 
     private static void HandleUnauthorized(ActionExecutingContext context, bool isAjax)
     {
         if (isAjax)
-        {
-            context.Result = new JsonResult(new { code = "401", message = "Unauthorized" })
-            { StatusCode = StatusCodes.Status401Unauthorized };
-        }
+            context.Result = new JsonResult(new { code = "401", message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
         else
-        {
-            var returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString;
-            context.Result = new RedirectResult($"/Auth/Login?returnUrl={Uri.EscapeDataString(returnUrl)}");
-        }
+            context.Result = new RedirectResult($"/Auth/Login?returnUrl={Uri.EscapeDataString(context.HttpContext.Request.Path + context.HttpContext.Request.QueryString)}");
     }
 
     private static void HandleForbidden(ActionExecutingContext context, bool isAjax)
     {
         if (isAjax)
-        {
-            context.Result = new JsonResult(new { code = "403", message = "Forbidden: You don't have permission" })
-            { StatusCode = StatusCodes.Status403Forbidden };
-        }
+            context.Result = new JsonResult(new { code = "403", message = "Forbidden" }) { StatusCode = StatusCodes.Status403Forbidden };
         else
-        {
             context.Result = new RedirectResult("/Auth/AccessDenied");
-        }
     }
 }

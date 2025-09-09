@@ -28,6 +28,7 @@ namespace ManageLife.Controllers.Admin
             return rs;
         }
 
+        [InsertPermission]
         [HttpPost]
         public async Task<Result> CreateLanguage([FromBody] CreateLanguageRequest request)
         {
