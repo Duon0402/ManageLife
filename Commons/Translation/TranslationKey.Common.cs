@@ -13,7 +13,7 @@
 
             public class Message
             {
-                public const string CreateError = "TranslationKey.Common.Message.CreateError"; // Thêm mới {0} không thành công
+                public const string CreateError = "TranslationKey.Common.Message.CreateError";
                 public const string UpdateError = "TranslationKey.Common.Message.UpdateError";
                 public const string DeleteError = "TranslationKey.Common.Message.DeleteError";
 

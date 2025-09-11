@@ -1,6 +1,7 @@
 ﻿using ManageLife.Data;
 using ManageLife.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -71,6 +72,13 @@ namespace ManageLife.Extentions
             #endregion
 
             services.AddHttpContextAccessor();
+
+            #region File Upload Limits
+            services.Configure<FormOptions>(o =>
+            {
+                o.MultipartBodyLengthLimit = long.MaxValue;
+            });
+            #endregion
 
             return services;
         }

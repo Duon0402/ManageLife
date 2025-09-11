@@ -12,6 +12,12 @@ builder.Services.AddControllersWithViews();
 // Add application services
 builder.Services.AddApplicationServices(builder.Configuration);
 
+// Cấu hình Kestrel (request body limit)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = long.MaxValue;
+});
+
 var app = builder.Build();
 GlobalHttpContext.Configure(app.Services.GetRequiredService<IHttpContextAccessor>());
 // ======= SEED DATA =========
