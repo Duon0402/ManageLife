@@ -53,7 +53,7 @@
                         if (refreshed)
                             return resolve(await ajaxService.request(url, method, data, options));
                         ajaxService.redirectToLogin();
-                        return;
+                        return reject(new Error("Unauthorized"));
                     }
                     if (settings.onError) settings.onError(jqXHR);
                     else if (settings.showToast) showToast(jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra', 'Thông báo', 'error');

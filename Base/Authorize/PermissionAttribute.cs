@@ -8,7 +8,6 @@ using Microsoft.Extensions.Caching.Memory;
 public class PermissionAttribute : ActionFilterAttribute
 {
     public string Permission { get; }
-
     private static readonly MemoryCache _permissionCache = new(new MemoryCacheOptions());
 
     public PermissionAttribute(string permission) => Permission = permission;
@@ -27,11 +26,11 @@ public class PermissionAttribute : ActionFilterAttribute
         var permissionCode = BuildPermissionCode(context.RouteData, Permission);
         var cacheKey = $"permissions_{userId}";
 
-        var permissions = _permissionCache.GetOrCreate(cacheKey, entry =>
+        var permissions = await _permissionCache.GetOrCreateAsync(cacheKey, async entry =>
         {
             entry.SlidingExpiration = TimeSpan.FromMinutes(10);
             var service = context.HttpContext.RequestServices.GetRequiredService<IPermissionService>();
-            var result = service.GetListPermissionsByUserIdAsync(new GetListPermissionsByUserIdRequest { UserId = userId }).Result;
+            var result = await service.GetListPermissionsByUserIdAsync(new GetListPermissionsByUserIdRequest { UserId = userId });
             return result.IsOk() ? result.Data?.Select(p => p.Code).ToHashSet() ?? new HashSet<string>() : new HashSet<string>();
         });
 

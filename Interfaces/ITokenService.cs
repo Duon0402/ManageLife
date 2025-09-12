@@ -1,4 +1,5 @@
 ﻿using ManageLife.Base;
+using ManageLife.Models;
 using System.Security.Claims;
 
 namespace ManageLife.Interfaces
@@ -8,8 +9,8 @@ namespace ManageLife.Interfaces
         public string GenerateAccessToken(string userId, string username, IEnumerable<string> roles);
         public string GenerateRefreshToken();
         public ClaimsPrincipal? ValidateAccessToken(string? token);
-        public void SetTokensCookie(string userId, string username, IEnumerable<string> roles, string refreshToken);
+        public void SetTokensCookie(string accessToken, string refreshToken);
         public void ClearTokensCookie();
-        public Task<Result> RefreshTokenAsync(string? refreshToken);
+        public Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken);
     }
 }

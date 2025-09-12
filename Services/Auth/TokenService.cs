@@ -1,11 +1,13 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
 using ManageLife.Interfaces;
+using ManageLife.Models;
 using ManageLife.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ManageLife.Services
@@ -32,10 +34,10 @@ namespace ManageLife.Services
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
-            {
-                new(JwtRegisteredClaimNames.Sub, userId),
-                new(JwtRegisteredClaimNames.UniqueName, username)
-            };
+    {
+        new(ClaimTypes.NameIdentifier, userId),
+        new(ClaimTypes.Name, username)
+    };
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var token = new JwtSecurityToken(
@@ -49,12 +51,11 @@ namespace ManageLife.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+
         public ClaimsPrincipal? ValidateAccessToken(string? token)
         {
             if (token.IsEmpty())
-            {
                 return null;
-            }
 
             var handler = new JwtSecurityTokenHandler();
             var parameters = new TokenValidationParameters
@@ -83,15 +84,16 @@ namespace ManageLife.Services
         #region Refresh Token
         public string GenerateRefreshToken()
         {
-            return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            var randomBytes = RandomNumberGenerator.GetBytes(64);
+            return Convert.ToBase64String(randomBytes);
         }
 
-        public async Task<Result> RefreshTokenAsync(string? refreshToken)
+        public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken)
         {
             using var uow = await UnitOfWork.CreateAsync(_context);
 
             if (string.IsNullOrEmpty(refreshToken))
-                return Result.Error(Result.DATA_INVALID.Code, "Refresh Token không hợp lệ");
+                return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Refresh Token không hợp lệ");
 
             var tokenEntity = await _refreshRepo.Query()
                 .Include(r => r.User)
@@ -100,17 +102,17 @@ namespace ManageLife.Services
                                           !r.IsRevoked);
 
             if (tokenEntity?.User == null || tokenEntity.User.IsDeleted || !tokenEntity.User.IsActive)
-                return Result.Error(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
+                return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
 
-            // Revoke old token
+            // revoke old token
             tokenEntity.IsRevoked = true;
             if (!await _refreshRepo.UpdateAsync(tokenEntity, uow))
             {
                 await uow.RollbackAsync();
-                return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể tạo phiên đăng nhập mới");
+                return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, "Không thể tạo phiên đăng nhập mới");
             }
 
-            // Insert new refresh token
+            // insert new refresh token
             var newRefreshToken = GenerateRefreshToken();
             var newRefreshEntity = new UserRefreshTokenEntity
             {
@@ -123,7 +125,7 @@ namespace ManageLife.Services
             if (!await _refreshRepo.InsertAsync(newRefreshEntity, uow))
             {
                 await uow.RollbackAsync();
-                return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể tạo phiên đăng nhập mới");
+                return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, "Không thể tạo phiên đăng nhập mới");
             }
 
             await uow.CommitAsync();
@@ -133,29 +135,40 @@ namespace ManageLife.Services
                 .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
                 .ToListAsync();
 
-            // Set cookies
-            SetTokensCookie(tokenEntity.UserId, tokenEntity.User.UserName, roles, newRefreshToken);
+            var newAccessToken = GenerateAccessToken(tokenEntity.UserId, tokenEntity.User.UserName, roles);
 
-            return Result.Ok();
+            SetTokensCookie(newAccessToken, newRefreshToken);
+
+            var authToken = new AuthTokenModel
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+
+            return Result.Ok(authToken);
         }
         #endregion
 
         #region Cookie Management
-        public void SetTokensCookie(string userId, string username, IEnumerable<string> roles, string refreshToken)
+        public void SetTokensCookie(string accessToken, string refreshToken)
         {
-            var accessToken = GenerateAccessToken(userId, username, roles);
+            var context = _httpContextAccessor.HttpContext!;
 
-            var cookieOptions = new CookieOptions
+            context.Response.Cookies.Append("accessToken", accessToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTime.UtcNow.AddDays(7)
-            };
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddMinutes(30)
+            });
 
-            var context = _httpContextAccessor.HttpContext!;
-            context.Response.Cookies.Append("accessToken", accessToken, cookieOptions);
-            context.Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+            context.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
         }
 
         public void ClearTokensCookie()
