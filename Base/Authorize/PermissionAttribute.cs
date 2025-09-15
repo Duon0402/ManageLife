@@ -58,7 +58,7 @@ public class PermissionAttribute : ActionFilterAttribute
     {
         if (isAjax)
         {
-            context.Result = new JsonResult(new { code = "403", message = $"Forbidden: {permissionCode}" })
+            context.Result = new JsonResult(new { code = "403", message = "Forbidden" })
             {
                 StatusCode = StatusCodes.Status403Forbidden
             };
