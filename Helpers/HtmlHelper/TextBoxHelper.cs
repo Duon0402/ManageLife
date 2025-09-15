@@ -6,7 +6,7 @@ namespace ManageLife.Helpers
 {
 	public static class TextBoxHelper
 	{
-		public static IHtmlContent TextBox(this IHtmlHelper htmlHelper, TextBoxOptions options)
+		public static IHtmlContent TextBox(this IHtmlHelper htmlHelper, TextBoxViewOptions options)
 		{
 			var textBoxBuilder = new TagBuilder("div");
 

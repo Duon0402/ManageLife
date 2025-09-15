@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-	public class FormOptions
+	public class FormViewOptions
 	{
 		public string? Id { get; set; }
 	}

@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-	public class DataGridOptions
+	public class DataGridViewOptions
 	{
 		public bool AllowInsert { get; set; } = false;
 		public bool AllowUpdate { get; set; } = false;

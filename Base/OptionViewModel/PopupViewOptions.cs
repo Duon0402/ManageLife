@@ -2,7 +2,7 @@
 
 namespace ManageLife.Base
 {
-	public class PopupOptions
+	public class PopupViewOptions
 	{
 		public string Id { get; set; } = "popup_id";
 

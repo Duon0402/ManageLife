@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-    public class FileUploaderOptions
+    public class FileUploaderViewOptions
     {
         public string? Id { get; set; }
         public string Title { get; set; } = "File Uploader";

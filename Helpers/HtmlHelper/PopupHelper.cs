@@ -6,7 +6,7 @@ namespace ManageLife.Helpers
 {
 	public static class PopupHelper
 	{
-		public static IHtmlContent Popup(this IHtmlHelper htmlHelper, PopupOptions options)
+		public static IHtmlContent Popup(this IHtmlHelper htmlHelper, PopupViewOptions options)
 		{
 			var modalContainer = new TagBuilder("div");
 			modalContainer.AddCssClass("modal fade");

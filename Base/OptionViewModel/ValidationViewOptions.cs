@@ -1,14 +1,14 @@
 ﻿namespace ManageLife.Base.OptionModelBase
 {
-	public class ValidationOptions
+	public class ValidationViewOptions
 	{
-		public ValidationOptions(ValidationRuleType type, string msg)
+		public ValidationViewOptions(ValidationRuleType type, string msg)
 		{
 			RuleType = type;
 			ErrorMessage = msg;
 		}
 
-		public ValidationOptions(string msg, string regexPattern)
+		public ValidationViewOptions(string msg, string regexPattern)
 		{
 			RuleType = ValidationRuleType.Regex;
 			ErrorMessage = msg;

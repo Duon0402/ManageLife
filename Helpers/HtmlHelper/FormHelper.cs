@@ -6,7 +6,7 @@ namespace ManageLife.Helpers
 {
 	public static class FormHelper
 	{
-		public static IHtmlContent Form<T>(this IHtmlHelper htmlHelper, FormOptions? options = null)
+		public static IHtmlContent Form<T>(this IHtmlHelper htmlHelper, FormViewOptions? options = null)
 		{
 			var formContainer = new TagBuilder("div");
 			formContainer.AddCssClass("form-container");

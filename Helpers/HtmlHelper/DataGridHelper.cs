@@ -6,7 +6,7 @@ namespace ManageLife.Helpers
 {
 	public static class DataGridHelper
 	{
-		public static IHtmlContent DataGrid<T>(this IHtmlHelper htmlHelper, IEnumerable<T> items, IEnumerable<string> columnNames, DataGridOptions? options = null)
+		public static IHtmlContent DataGrid<T>(this IHtmlHelper htmlHelper, IEnumerable<T> items, IEnumerable<string> columnNames, DataGridViewOptions? options = null)
 		{
 			var gridBuilder = new TagBuilder("div");
 			gridBuilder.AddCssClass("data-grid-container");

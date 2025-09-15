@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-	public class TextBoxOptions
+	public class TextBoxViewOptions
 	{
 		public string Name { get; set; }
 		public string? Id { get; set; }
@@ -10,7 +10,7 @@
 
 		public string? Lable { get; set; }
 
-		public TextBoxOptions()
+		public TextBoxViewOptions()
 		{
 			Name = string.Empty;
 			Id = string.Empty;
@@ -18,12 +18,12 @@
 			Value = string.Empty;
 		}
 
-		public TextBoxOptions(string name)
+		public TextBoxViewOptions(string name)
 		{
 			Name = name;
 		}
 
-		public TextBoxOptions(string name, string? id)
+		public TextBoxViewOptions(string name, string? id)
 		{
 			Name = name;
 			if (string.IsNullOrEmpty(id))
@@ -32,7 +32,7 @@
 			}
 		}
 
-		public TextBoxOptions(string name, string id, string? value)
+		public TextBoxViewOptions(string name, string id, string? value)
 		{
 			Name = name;
 			Id = id;

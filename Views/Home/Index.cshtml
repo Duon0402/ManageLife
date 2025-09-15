@@ -8,7 +8,7 @@
 
     <form id="sendMessageForm">
         @{
-            var textBoxOptions = new TextBoxOptions()
+            var textBoxOptions = new TextBoxViewOptions()
             {
                 Id = "message",
                 Placeholder = "Enter your message",
@@ -21,7 +21,7 @@
 </div>
 
 @{
-    var popupOptions = new PopupOptions
+    var popupOptions = new PopupViewOptions
     {
         Id = "myPopup",
         Title = "Thông Báo",
@@ -39,7 +39,7 @@
 <button type="button" class="btn btn-primary mt-3" onclick="openPopup('myPopup')">Mở Popup</button>
 
 @{
-    var uploaderOptions = new FileUploaderOptions
+    var uploaderOptions = new FileUploaderViewOptions
     {
         UploadMode = UploadMode.OnButtonClick,
         AllowRemove = true,

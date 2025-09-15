@@ -7,7 +7,7 @@ namespace ManageLife.Helpers
 {
     public static class FileUploaderHelper
     {
-        public static IHtmlContent FileUploader(this IHtmlHelper htmlHelper, FileUploaderOptions options)
+        public static IHtmlContent FileUploader(this IHtmlHelper htmlHelper, FileUploaderViewOptions options)
         {
             if (options.Id.IsEmpty())
                 options.Id = IdHeper.NewId();
@@ -27,7 +27,7 @@ namespace ManageLife.Helpers
 
         #region HTML Render
 
-        private static TagBuilder CreateContainer(FileUploaderOptions options)
+        private static TagBuilder CreateContainer(FileUploaderViewOptions options)
         {
             var container = new TagBuilder("div");
             container.AddCssClass("file-uploader");
@@ -42,7 +42,7 @@ namespace ManageLife.Helpers
             return container;
         }
 
-        private static TagBuilder CreateHeader(FileUploaderOptions options)
+        private static TagBuilder CreateHeader(FileUploaderViewOptions options)
         {
             var header = new TagBuilder("div");
             header.AddCssClass("uploader-header");
@@ -59,7 +59,7 @@ namespace ManageLife.Helpers
             return header;
         }
 
-        private static TagBuilder CreateToolbar(FileUploaderOptions options)
+        private static TagBuilder CreateToolbar(FileUploaderViewOptions options)
         {
             var toolbar = new TagBuilder("div");
             toolbar.AddCssClass("uploader-toolbar");
@@ -93,7 +93,7 @@ namespace ManageLife.Helpers
             return fileList;
         }
 
-        private static TagBuilder CreateUploadBox(FileUploaderOptions options)
+        private static TagBuilder CreateUploadBox(FileUploaderViewOptions options)
         {
             var fileUploadBox = new TagBuilder("div");
             fileUploadBox.AddCssClass("file-upload-box");
@@ -131,7 +131,7 @@ namespace ManageLife.Helpers
 
         #region Script Render
 
-        private static TagBuilder CreateScript(FileUploaderOptions options)
+        private static TagBuilder CreateScript(FileUploaderViewOptions options)
         {
             var script = new TagBuilder("script");
             script.Attributes["type"] = "text/javascript";
