@@ -26,21 +26,14 @@ public class PermissionAttribute : ActionFilterAttribute
 
         var isAjax = httpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
         var permissionCode = BuildPermissionCode(context.RouteData, Permission);
-        var cacheKey = $"permissions:{userId}";
 
-        var permissions = await _cache.GetOrCreateAsync(cacheKey, async entry =>
-        {
-            entry.SlidingExpiration = TimeSpan.FromMinutes(10);
+        var service = httpContext.RequestServices.GetRequiredService<IPermissionService>();
+        var result = await service.GetListPermissionsByUserIdAsync(new GetListPermissionsByUserIdRequest { UserId = userId });
 
-            var service = httpContext.RequestServices.GetRequiredService<IPermissionService>();
-            var result = await service.GetListPermissionsByUserIdAsync(
-                new GetListPermissionsByUserIdRequest { UserId = userId });
-
-            return result.IsOk()
-                ? result.Data?.Select(p => p.Code).ToHashSet(StringComparer.OrdinalIgnoreCase)
-                  ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        });
+        var permissions = result.IsOk()
+            ? result.Data?.Select(p => p.Code).ToHashSet(StringComparer.OrdinalIgnoreCase)
+              ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         if (!permissions.Contains(permissionCode))
         {

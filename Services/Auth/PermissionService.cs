@@ -6,21 +6,19 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace ManageLife.Services
 {
     public class PermissionService : ServiceBase, IPermissionService
     {
-        private readonly IMemoryCache _cache;
+        private readonly ICacheService _cache;
         private readonly PermissionRepository _repoPermission;
         private readonly UserPermissionRepository _repoUserPermission;
         private readonly UserRoleRepository _repoUserRole;
         private readonly RoleRepository _repoRole;
         private readonly RolePermissionRepository _repoRolePermission;
-        private const string CacheKeyPrefix = "user_permissions_";
 
-        public PermissionService(AppDbContext context, IMemoryCache cache) : base(context)
+        public PermissionService(AppDbContext context, ICacheService cache) : base(context)
         {
             _cache = cache;
             _repoPermission = new PermissionRepository(context);
@@ -62,10 +60,12 @@ namespace ManageLife.Services
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, TranslationKey.Common.Message.DataInvalid);
                 }
 
-                var cacheKey = $"{CacheKeyPrefix}{request.UserId}";
-                if (_cache.TryGetValue(cacheKey, out List<PermissionModel>? cachedPermissions))
+                var cacheKeyItem = CacheKey.Permissions(request.UserId, TimeSpan.FromMinutes(30));
+
+                var cachedPermissions = await _cache.TryGetValueAsync<List<PermissionModel>>(cacheKeyItem.Key);
+                if (cachedPermissions.IsNotEmpty())
                 {
-                    return Result.Ok(cachedPermissions!);
+                    return Result.Ok(cachedPermissions);
                 }
 
                 var userPermissions = await _repoUserPermission.Query(true)
@@ -92,7 +92,7 @@ namespace ManageLife.Services
                     ? allPermissions!.MapToList<PermissionModel>()
                     : new List<PermissionModel>();
 
-                _cache.Set(cacheKey, models, TimeSpan.FromMinutes(30));
+                await _cache.SetAsync(cacheKeyItem.Key, models, cacheKeyItem.Expiry);
 
                 return Result.Ok(models);
             }

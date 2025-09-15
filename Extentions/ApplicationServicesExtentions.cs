@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using System.Text;
 
 namespace ManageLife.Extentions
@@ -78,6 +79,18 @@ namespace ManageLife.Extentions
             {
                 o.MultipartBodyLengthLimit = long.MaxValue;
             });
+            #endregion
+
+            #region Redis
+            var redisConfig = new ConfigurationOptions
+            {
+                EndPoints = { config["Redis:EndPoints"]! },
+                User = config["Redis:User"] ?? "default",
+                Password = config["Redis:Password"] ?? "",
+            };
+
+            var redis = ConnectionMultiplexer.Connect(redisConfig);
+            services.AddSingleton<IConnectionMultiplexer>(redis);
             #endregion
 
             return services;
