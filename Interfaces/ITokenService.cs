@@ -12,5 +12,6 @@ namespace ManageLife.Interfaces
         public void SetTokensCookie(string accessToken, string refreshToken);
         public void ClearTokensCookie();
         public Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken);
+        Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null);
     }
 }

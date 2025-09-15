@@ -78,7 +78,6 @@ namespace ManageLife.Services
                 b = await _userRepo.InsertAsync(userEntity, uow);
                 if (!b)
                 {
-                    await uow.RollbackAsync();
                     msg = "Không thể đăng ký tài khoản";
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -91,7 +90,6 @@ namespace ManageLife.Services
                 b = await _userRoleRepo.InsertAsync(userRoleEntity, uow);
                 if (!b)
                 {
-                    await uow.RollbackAsync();
                     msg = "Không thể đăng ký tài khoản";
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -108,7 +106,6 @@ namespace ManageLife.Services
                 b = await _refreshRepo.InsertAsync(refreshEntity, uow);
                 if (!b)
                 {
-                    await uow.RollbackAsync();
                     msg = "Không thể tạo phiên đăng nhập";
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -124,7 +121,6 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                await uow.RollbackAsync();
                 msg = "Đã có lỗi xảy ra khi đăng ký tài khoản";
                 return Result.Exception(msg, ex);
             }
@@ -132,6 +128,7 @@ namespace ManageLife.Services
 
         public async Task<Result> LoginAsync(LoginAccountModel model)
         {
+            using var uow = await UnitOfWork.CreateAsync(_context);
             string msg;
             bool b;
             try
@@ -161,8 +158,14 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var refreshToken = _tokenService.GenerateRefreshToken();
+                var cleanupResult = await _tokenService.CleanupRefreshTokensAsync(userEntity.Id, uow);
+                if (!cleanupResult.IsOk())
+                {
+                    msg = "Không thể dọn dẹp token cũ";
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                }
 
+                var refreshToken = _tokenService.GenerateRefreshToken();
                 var refreshEntity = new UserRefreshTokenEntity
                 {
                     Id = IdHeper.NewId(),
@@ -171,13 +174,14 @@ namespace ManageLife.Services
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7),
                 };
 
-                b = await _refreshRepo.InsertAsync(refreshEntity);
-
+                b = await _refreshRepo.InsertAsync(refreshEntity, uow);
                 if (!b)
                 {
                     msg = "Không thể tạo phiên đăng nhập";
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
+
+                await uow.CommitAsync();
 
                 var roles = await _userRepo.Query()
                     .Where(u => u.Id == userEntity.Id)
@@ -251,10 +255,5 @@ namespace ManageLife.Services
 
             return (true, string.Empty);
         }
-
-
-        //TODO: Kiểm tra token reuse (nếu refreshToken đã bị thu hồi, log lại hoặc khóa account)
-
-        //TODO: Dọn dẹp token cũ (hết hạn hoặc bị thu hồi) trước khi tạo token mới
     }
 }

@@ -104,7 +104,7 @@ namespace ManageLife.Services
 
         public async Task<Result> SyncPermissionsAsync(List<string> permissionCodes)
         {
-            using var unitOfWork = new UnitOfWork(_context);
+            using var uow = new UnitOfWork(_context);
             try
             {
                 var dbPermissions = await _repoPermission.GetAllAsync();
@@ -122,18 +122,16 @@ namespace ManageLife.Services
 
                 if (insertPermissions.Any())
                 {
-                    if (!await _repoPermission.BulkInsertAsync(insertPermissions, unitOfWork))
+                    if (!await _repoPermission.BulkInsertAsync(insertPermissions, uow))
                     {
-                        await unitOfWork.RollbackAsync();
                         return Result.DATA_NOT_CREATE;
                     }
                 }
 
                 if (toDelete.Any())
                 {
-                    if (!await _repoPermission.BulkDeleteAsync(toDelete, unitOfWork))
+                    if (!await _repoPermission.BulkDeleteAsync(toDelete, uow))
                     {
-                        await unitOfWork.RollbackAsync();
                         return Result.DATA_NOT_DELETE;
                     }
                 }
@@ -152,9 +150,8 @@ namespace ManageLife.Services
 
                         if (adminMappingsToDelete.Any())
                         {
-                            if (!await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete, unitOfWork))
+                            if (!await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete, uow))
                             {
-                                await unitOfWork.RollbackAsync();
                                 return Result.DATA_NOT_DELETE;
                             }
                         }
@@ -168,20 +165,18 @@ namespace ManageLife.Services
                             PermissionId = p.Id
                         }).ToList();
 
-                        if (!await _repoRolePermission.BulkInsertAsync(rolePermissions, unitOfWork))
+                        if (!await _repoRolePermission.BulkInsertAsync(rolePermissions, uow))
                         {
-                            await unitOfWork.RollbackAsync();
                             return Result.DATA_NOT_CREATE;
                         }
                     }
                 }
 
-                await unitOfWork.CommitAsync();
+                await uow.CommitAsync();
                 return Result.Ok();
             }
             catch (Exception ex)
             {
-                await unitOfWork.RollbackAsync();
                 return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
             }
         }

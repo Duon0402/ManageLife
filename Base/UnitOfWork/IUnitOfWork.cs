@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork : IAsyncDisposable, IDisposable
     {
         Task BeginTransactionAsync();
         Task CommitAsync();

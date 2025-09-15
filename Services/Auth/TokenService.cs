@@ -1,5 +1,8 @@
-﻿using ManageLife.Base;
+﻿using LinqKit;
+using ManageLife.Base;
+using ManageLife.Commons;
 using ManageLife.Data;
+using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -90,6 +93,7 @@ namespace ManageLife.Services
         public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken)
         {
             string msg;
+            bool b;
             try
             {
                 using var uow = await UnitOfWork.CreateAsync(_context);
@@ -115,12 +119,19 @@ namespace ManageLife.Services
                 }
 
                 tokenEntity.IsRevoked = true;
-                if (!await _refreshRepo.UpdateAsync(tokenEntity, uow))
+                b = await _refreshRepo.UpdateAsync(tokenEntity, uow);
+                if (!b)
                 {
                     ClearTokensCookie();
-                    await uow.RollbackAsync();
                     msg = "Không thể tạo phiên đăng nhập mới";
                     return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, msg);
+                }
+
+                var cleanupResult = await CleanupRefreshTokensAsync(tokenEntity.UserId, uow);
+                if (!cleanupResult.IsOk())
+                {
+                    msg = "Không thể dọn dẹp token cũ";
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_DELETE.Code, msg);
                 }
 
                 var newRefreshToken = GenerateRefreshToken();
@@ -132,10 +143,10 @@ namespace ManageLife.Services
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
                 };
 
-                if (!await _refreshRepo.InsertAsync(newRefreshEntity, uow))
+                b = await _refreshRepo.InsertAsync(newRefreshEntity, uow);
+                if (!b)
                 {
                     ClearTokensCookie();
-                    await uow.RollbackAsync();
                     msg = "Không thể tạo phiên đăng nhập mới";
                     return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -195,5 +206,40 @@ namespace ManageLife.Services
             context.Response.Cookies.Delete("refreshToken");
         }
         #endregion
+
+        public async Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null)
+        {
+            string msg;
+            bool b;
+            try
+            {
+                var predicate = PredicateBuilder.New<UserRefreshTokenEntity>(x => x.ExpiryTime <= DateTimeHelper.UtcNow() || x.IsRevoked);
+
+                if (userId.IsNotEmpty())
+                {
+                    predicate = predicate.And(x => x.UserId == userId);
+                }
+
+                var entities = await _refreshRepo.Query().Where(predicate).ToListAsync();
+
+                if (entities.IsNotEmpty())
+                {
+                    b = await _refreshRepo.BulkDeleteAsync(entities, uow);
+
+                    if (!b)
+                    {
+                        msg = TranslationKey.Common.Message.DeleteError;
+                        return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                    }
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception(msg, ex);
+            }
+        }
     }
 }
