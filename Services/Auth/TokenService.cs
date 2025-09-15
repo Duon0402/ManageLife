@@ -34,10 +34,10 @@ namespace ManageLife.Services
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
-    {
-        new(ClaimTypes.NameIdentifier, userId),
-        new(ClaimTypes.Name, username)
-    };
+            {
+                new(ClaimTypes.NameIdentifier, userId),
+                new(ClaimTypes.Name, username)
+            };
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var token = new JwtSecurityToken(
@@ -50,7 +50,6 @@ namespace ManageLife.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
 
         public ClaimsPrincipal? ValidateAccessToken(string? token)
         {
@@ -90,62 +89,80 @@ namespace ManageLife.Services
 
         public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken)
         {
-            using var uow = await UnitOfWork.CreateAsync(_context);
-
-            if (string.IsNullOrEmpty(refreshToken))
-                return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Refresh Token không hợp lệ");
-
-            var tokenEntity = await _refreshRepo.Query()
-                .Include(r => r.User)
-                .FirstOrDefaultAsync(r => r.RefreshToken == refreshToken &&
-                                          r.ExpiryTime > DateTimeHelper.UtcNow() &&
-                                          !r.IsRevoked);
-
-            if (tokenEntity?.User == null || tokenEntity.User.IsDeleted || !tokenEntity.User.IsActive)
-                return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
-
-            // revoke old token
-            tokenEntity.IsRevoked = true;
-            if (!await _refreshRepo.UpdateAsync(tokenEntity, uow))
+            string msg;
+            try
             {
-                await uow.RollbackAsync();
-                return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, "Không thể tạo phiên đăng nhập mới");
+                using var uow = await UnitOfWork.CreateAsync(_context);
+
+                if (refreshToken.IsEmpty())
+                {
+                    ClearTokensCookie();
+                    msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
+                }
+
+                var tokenEntity = await _refreshRepo.Query()
+                    .Include(r => r.User)
+                    .FirstOrDefaultAsync(r => r.RefreshToken == refreshToken &&
+                                              r.ExpiryTime > DateTimeHelper.UtcNow() &&
+                                              r.IsRevoked == false);
+
+                if (tokenEntity?.User == null || tokenEntity.User.IsDeleted || !tokenEntity.User.IsActive)
+                {
+                    ClearTokensCookie();
+                    msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
+                }
+
+                tokenEntity.IsRevoked = true;
+                if (!await _refreshRepo.UpdateAsync(tokenEntity, uow))
+                {
+                    ClearTokensCookie();
+                    await uow.RollbackAsync();
+                    msg = "Không thể tạo phiên đăng nhập mới";
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, msg);
+                }
+
+                var newRefreshToken = GenerateRefreshToken();
+                var newRefreshEntity = new UserRefreshTokenEntity
+                {
+                    Id = IdHeper.NewId(),
+                    UserId = tokenEntity.UserId,
+                    RefreshToken = newRefreshToken,
+                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
+                };
+
+                if (!await _refreshRepo.InsertAsync(newRefreshEntity, uow))
+                {
+                    ClearTokensCookie();
+                    await uow.RollbackAsync();
+                    msg = "Không thể tạo phiên đăng nhập mới";
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, msg);
+                }
+
+                await uow.CommitAsync();
+
+                var roles = await _userRepo.Query()
+                    .Where(u => u.Id == tokenEntity.UserId)
+                    .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
+                    .ToListAsync();
+
+                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, tokenEntity.User.UserName, roles);
+
+                SetTokensCookie(newAccessToken, newRefreshToken);
+
+                var authToken = new AuthTokenModel
+                {
+                    AccessToken = newAccessToken,
+                    RefreshToken = newRefreshToken
+                };
+                return Result.Ok(authToken);
             }
-
-            // insert new refresh token
-            var newRefreshToken = GenerateRefreshToken();
-            var newRefreshEntity = new UserRefreshTokenEntity
+            catch (Exception ex)
             {
-                Id = IdHeper.NewId(),
-                UserId = tokenEntity.UserId,
-                RefreshToken = newRefreshToken,
-                ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
-            };
-
-            if (!await _refreshRepo.InsertAsync(newRefreshEntity, uow))
-            {
-                await uow.RollbackAsync();
-                return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, "Không thể tạo phiên đăng nhập mới");
+                msg = "Đã có lỗi xảy ra khi làm mới phiên đăng nhập";
+                return Result.Exception<AuthTokenModel>(msg, ex);
             }
-
-            await uow.CommitAsync();
-
-            var roles = await _userRepo.Query()
-                .Where(u => u.Id == tokenEntity.UserId)
-                .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
-                .ToListAsync();
-
-            var newAccessToken = GenerateAccessToken(tokenEntity.UserId, tokenEntity.User.UserName, roles);
-
-            SetTokensCookie(newAccessToken, newRefreshToken);
-
-            var authToken = new AuthTokenModel
-            {
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken
-            };
-
-            return Result.Ok(authToken);
         }
         #endregion
 
@@ -159,7 +176,7 @@ namespace ManageLife.Services
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddMinutes(30)
+                Expires = DateTimeHelper.UtcNow().AddMinutes(30)
             });
 
             context.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
@@ -167,7 +184,7 @@ namespace ManageLife.Services
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
+                Expires = DateTimeHelper.UtcNow().AddDays(7)
             });
         }
 

@@ -1,6 +1,4 @@
 ﻿const ajaxService = {
-    _refreshingTokenPromise: null,
-
     request: async function (url, method, data = null, options = {}) {
         const settings = {
             contentType: 'application/json',
@@ -44,19 +42,20 @@
                     res.isException = () => res.code === '99';
                     res.isError = () => !res.isOk() && !res.isException();
                     if (settings.onSuccess) settings.onSuccess(res);
-                    else if (settings.showToast && res.message) showToast(res.message, 'Thông báo', res.isOk() ? 'success' : 'error');
+                    else if (settings.showToast && res.message)
+                        showToast(res.message, 'Thông báo', res.isOk() ? 'success' : 'error');
                     resolve(res);
                 },
                 error: async function (jqXHR) {
                     if (jqXHR.status === 401) {
-                        const refreshed = await ajaxService._handle401();
-                        if (refreshed)
-                            return resolve(await ajaxService.request(url, method, data, options));
-                        ajaxService.redirectToLogin();
-                        return reject(new Error("Unauthorized"));
+                        window.location.href = "/Auth/Login?returnUrl=" +
+                            encodeURIComponent(window.location.pathname + window.location.search);
+                        return;
                     }
+
                     if (settings.onError) settings.onError(jqXHR);
-                    else if (settings.showToast) showToast(jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra', 'Thông báo', 'error');
+                    else if (settings.showToast)
+                        showToast(jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra', 'Thông báo', 'error');
                     reject(jqXHR);
                 },
                 complete: settings.onComplete
@@ -74,24 +73,5 @@
     upload: (url, formData, options = {}) => {
         if (!(formData instanceof FormData)) throw new Error("upload() expects FormData");
         return ajaxService.request(url, 'POST', formData, options);
-    },
-
-    _handle401: async function () {
-        if (this._refreshingTokenPromise) return await this._refreshingTokenPromise;
-        this._refreshingTokenPromise = (async () => {
-            try {
-                const res = await fetch('/Auth/RefreshToken', { method: 'POST', credentials: 'include' });
-                if (!res.ok) return false;
-                const data = await res.json();
-                return data.code === '00';
-            } catch { return false; }
-            finally { this._refreshingTokenPromise = null; }
-        })();
-        return await this._refreshingTokenPromise;
-    },
-
-    redirectToLogin: function () {
-        sessionStorage.setItem('returnUrl', window.location.href);
-        window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent(window.location.href);
     }
 };

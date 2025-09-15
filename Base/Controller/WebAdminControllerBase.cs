@@ -1,9 +1,11 @@
 ﻿using ManageLife.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Base
 {
     [Area("Admin")]
+    [Authorize]
     public abstract class WebAdminControllerBase : WebControllerBase
     {
         public WebAdminControllerBase(AppDbContext context, ILogger? logger = null)

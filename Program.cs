@@ -3,6 +3,7 @@ using ManageLife.Base;
 using ManageLife.Data;
 using ManageLife.Extentions;
 using ManageLife.Helpers;
+using ManageLife.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,7 +50,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseMiddleware<JwtAutoRefreshMiddleware>();
+app.UseMiddleware<JwtAuthenticationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllerRoute(

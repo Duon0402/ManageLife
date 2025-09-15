@@ -1,4 +1,5 @@
-﻿using ManageLife.Extentions;
+﻿using ManageLife.Base;
+using ManageLife.Extentions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -8,35 +9,42 @@ using Microsoft.Extensions.Caching.Memory;
 public class PermissionAttribute : ActionFilterAttribute
 {
     public string Permission { get; }
-    private static readonly MemoryCache _permissionCache = new(new MemoryCacheOptions());
+    private static readonly MemoryCache _cache = new(new MemoryCacheOptions());
 
     public PermissionAttribute(string permission) => Permission = permission;
 
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
-        var userId = context.HttpContext.User.GetUserId();
-        var isAjax = context.HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+        var httpContext = context.HttpContext;
+        var userId = httpContext.User.GetUserId();
 
-        if (string.IsNullOrEmpty(userId))
+        if (userId.IsEmpty())
         {
-            HandleUnauthorized(context, isAjax);
+            await base.OnActionExecutionAsync(context, next);
             return;
         }
 
+        var isAjax = httpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
         var permissionCode = BuildPermissionCode(context.RouteData, Permission);
-        var cacheKey = $"permissions_{userId}";
+        var cacheKey = $"permissions:{userId}";
 
-        var permissions = await _permissionCache.GetOrCreateAsync(cacheKey, async entry =>
+        var permissions = await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
             entry.SlidingExpiration = TimeSpan.FromMinutes(10);
-            var service = context.HttpContext.RequestServices.GetRequiredService<IPermissionService>();
-            var result = await service.GetListPermissionsByUserIdAsync(new GetListPermissionsByUserIdRequest { UserId = userId });
-            return result.IsOk() ? result.Data?.Select(p => p.Code).ToHashSet() ?? new HashSet<string>() : new HashSet<string>();
+
+            var service = httpContext.RequestServices.GetRequiredService<IPermissionService>();
+            var result = await service.GetListPermissionsByUserIdAsync(
+                new GetListPermissionsByUserIdRequest { UserId = userId });
+
+            return result.IsOk()
+                ? result.Data?.Select(p => p.Code).ToHashSet(StringComparer.OrdinalIgnoreCase)
+                  ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         });
 
         if (!permissions.Contains(permissionCode))
         {
-            HandleForbidden(context, isAjax);
+            HandleForbidden(context, isAjax, permissionCode);
             return;
         }
 
@@ -46,23 +54,25 @@ public class PermissionAttribute : ActionFilterAttribute
     private static string BuildPermissionCode(RouteData routeData, string permission)
     {
         var area = routeData.Values.TryGetValue("area", out var a) ? a?.ToString() : "Default";
-        var controller = routeData.Values.TryGetValue("controller", out var c) ? c?.ToString() : throw new InvalidOperationException("Controller missing in RouteData");
+        var controller = routeData.Values.TryGetValue("controller", out var c)
+                         ? c?.ToString()
+                         : throw new InvalidOperationException("Controller missing in RouteData");
+
         return $"{area}.{controller}.{permission}";
     }
 
-    private static void HandleUnauthorized(ActionExecutingContext context, bool isAjax)
+    private static void HandleForbidden(ActionExecutingContext context, bool isAjax, string permissionCode)
     {
         if (isAjax)
-            context.Result = new JsonResult(new { code = "401", message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+        {
+            context.Result = new JsonResult(new { code = "403", message = $"Forbidden: {permissionCode}" })
+            {
+                StatusCode = StatusCodes.Status403Forbidden
+            };
+        }
         else
-            context.Result = new RedirectResult($"/Auth/Login?returnUrl={Uri.EscapeDataString(context.HttpContext.Request.Path + context.HttpContext.Request.QueryString)}");
-    }
-
-    private static void HandleForbidden(ActionExecutingContext context, bool isAjax)
-    {
-        if (isAjax)
-            context.Result = new JsonResult(new { code = "403", message = "Forbidden" }) { StatusCode = StatusCodes.Status403Forbidden };
-        else
+        {
             context.Result = new RedirectResult("/Auth/AccessDenied");
+        }
     }
 }
