@@ -117,7 +117,8 @@ namespace ManageLife.Services
                 {
                     Id = IdHeper.NewId(),
                     Code = code,
-                    Name = code
+                    Name = code,
+                    CreatedUser = SystemUsers.System
                 }).ToList();
 
                 if (insertPermissions.Any())
