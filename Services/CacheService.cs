@@ -39,9 +39,7 @@ public class CacheService : ICacheService
         }
 
         if (_memoryCache.TryGetValue(key, out T cached))
-        {
             return cached;
-        }
 
         return default;
     }
@@ -50,13 +48,14 @@ public class CacheService : ICacheService
     {
         if (value == null) return;
 
+        var memoryExpiry = expiry ?? (_useMemoryOnly ? _defaultMemoryExpiry : null);
+
         if (!_useMemoryOnly)
         {
             try
             {
                 var json = JsonSerializer.Serialize(value);
                 var redisSucceeded = await _redisDb.StringSetAsync(key, json, expiry);
-
                 if (redisSucceeded) return;
             }
             catch
@@ -65,8 +64,10 @@ public class CacheService : ICacheService
             }
         }
 
-        expiry ??= _defaultMemoryExpiry;
-        _memoryCache.Set(key, value, expiry.Value);
+        if (memoryExpiry.HasValue)
+            _memoryCache.Set(key, value, memoryExpiry.Value);
+        else
+            _memoryCache.Set(key, value);
     }
 
     public async Task RemoveAsync(string key)
@@ -79,7 +80,7 @@ public class CacheService : ICacheService
             }
             catch
             {
-                // Redis lỗi -> vẫn xóa memory cache
+                // Redis lỗi -> vẫn xóa MemoryCache
             }
         }
 
