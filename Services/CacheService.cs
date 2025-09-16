@@ -3,21 +3,26 @@ using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 using System.Text.Json;
 
-namespace ManageLife.Services
+public class CacheService : ICacheService
 {
-    public class CacheService : ICacheService
+    private readonly IDatabase _redisDb;
+    private readonly IMemoryCache _memoryCache;
+    private readonly bool _useMemoryOnly;
+    private static readonly TimeSpan _defaultMemoryExpiry = TimeSpan.FromMinutes(30);
+
+    public CacheService(
+        IConnectionMultiplexer redis,
+        IMemoryCache memoryCache,
+        bool useMemoryOnly = false)
     {
-        private readonly IDatabase _redisDb;
-        private readonly IMemoryCache _memoryCache;
-        private static readonly TimeSpan _defaultMemoryExpiry = TimeSpan.FromMinutes(30);
+        _redisDb = redis.GetDatabase();
+        _memoryCache = memoryCache;
+        _useMemoryOnly = useMemoryOnly;
+    }
 
-        public CacheService(IConnectionMultiplexer redis, IMemoryCache memoryCache)
-        {
-            _redisDb = redis.GetDatabase();
-            _memoryCache = memoryCache;
-        }
-
-        public async Task<T?> TryGetValueAsync<T>(string key)
+    public async Task<T?> TryGetValueAsync<T>(string key)
+    {
+        if (!_useMemoryOnly)
         {
             try
             {
@@ -31,39 +36,42 @@ namespace ManageLife.Services
             {
                 // Redis lỗi, fallback MemoryCache
             }
-
-            if (_memoryCache.TryGetValue(key, out T cached))
-            {
-                return cached;
-            }
-
-            return default;
         }
 
-        public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
+        if (_memoryCache.TryGetValue(key, out T cached))
         {
-            if (value == null) return;
+            return cached;
+        }
 
-            var json = JsonSerializer.Serialize(value);
-            var redisSucceeded = false;
+        return default;
+    }
 
+    public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
+    {
+        if (value == null) return;
+
+        if (!_useMemoryOnly)
+        {
             try
             {
-                redisSucceeded = await _redisDb.StringSetAsync(key, json, expiry);
+                var json = JsonSerializer.Serialize(value);
+                var redisSucceeded = await _redisDb.StringSetAsync(key, json, expiry);
+
+                if (redisSucceeded) return;
             }
             catch
             {
                 // Redis lỗi -> fallback MemoryCache
             }
-
-            if (!redisSucceeded)
-            {
-                expiry ??= _defaultMemoryExpiry;
-                _memoryCache.Set(key, value, expiry.Value);
-            }
         }
 
-        public async Task RemoveAsync(string key)
+        expiry ??= _defaultMemoryExpiry;
+        _memoryCache.Set(key, value, expiry.Value);
+    }
+
+    public async Task RemoveAsync(string key)
+    {
+        if (!_useMemoryOnly)
         {
             try
             {
@@ -73,8 +81,8 @@ namespace ManageLife.Services
             {
                 // Redis lỗi -> vẫn xóa memory cache
             }
-
-            _memoryCache.Remove(key);
         }
+
+        _memoryCache.Remove(key);
     }
 }
