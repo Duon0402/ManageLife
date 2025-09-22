@@ -3,6 +3,7 @@ using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extentions;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -13,9 +14,41 @@ namespace ManageLife.Services
     {
         private readonly LanguageRespository _repo;
 
-        public LanguageService(AppDbContext context) : base(context)
+        public LanguageService(AppDbContext context, ICacheService service) : base(context)
         {
             _repo = new LanguageRespository(context);
+        }
+
+        public async Task<Result<string?>> ChangeLanguageAsync(ChangeLanguageRequest request)
+        {
+            string msg;
+            try
+            {
+                var currentLang = LanguageHelper.GetLanguage();
+
+                if (!string.IsNullOrEmpty(currentLang) &&
+                    string.Equals(currentLang, request.LanguageCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Result.Ok(request.ReturnUrl);
+                }
+
+                var entity = await _repo.GetAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
+
+                if (entity == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error<string?>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                LanguageHelper.SetLanguage(entity.Code);
+
+                return Result.Ok(request.ReturnUrl);
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception<string?>(msg, ex);
+            }
         }
 
         public async Task<Result> CreateLanguageAsync(CreateLanguageRequest request)

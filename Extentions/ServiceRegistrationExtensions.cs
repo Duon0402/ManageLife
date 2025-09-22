@@ -7,7 +7,7 @@ namespace ManageLife.Extentions
     {
         public static IServiceCollection AddApplicationCustomServices(this IServiceCollection services)
         {
-            services.AddScoped<ICacheService, CacheService>();
+            services.AddSingleton<ICacheService, CacheService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPermissionService, PermissionService>();
