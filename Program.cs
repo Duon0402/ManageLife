@@ -39,7 +39,7 @@ MapperBase.Configure(mapper);
 
 // Configure LanguageHelper
 var httpContextAccessor = app.Services.GetRequiredService<IHttpContextAccessor>();
-LanguageHelper.Configure(httpContextAccessor);
+LanguageHelper.Configure(httpContextAccessor, app.Services);
 
 // Configure TranslationHelper
 var cacheService = app.Services.GetRequiredService<ICacheService>();

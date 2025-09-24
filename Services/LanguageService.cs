@@ -13,10 +13,12 @@ namespace ManageLife.Services
     public class LanguageService : ServiceBase, ILanguageService
     {
         private readonly LanguageRespository _repo;
+        private readonly ICacheService _cache;
 
-        public LanguageService(AppDbContext context, ICacheService service) : base(context)
+        public LanguageService(AppDbContext context, ICacheService cache) : base(context)
         {
             _repo = new LanguageRespository(context);
+            _cache = cache;
         }
 
         public async Task<Result<string?>> ChangeLanguageAsync(ChangeLanguageRequest request)
@@ -191,12 +193,17 @@ namespace ManageLife.Services
             string msg;
             try
             {
-                var models = new List<LanguageModel>();
+                var cacheKeyItem = CacheKey.Languages();
+                var cached = await _cache.TryGetValueAsync<List<LanguageModel>>(cacheKeyItem.Key);
+                if (cached != null)
+                    return Result.Ok(cached);
 
                 var entities = await _repo.FindAsync(x => x.IsDeleted == false);
+                var models = entities.IsNotEmpty()
+                    ? entities.MapToList<LanguageModel>()
+                    : new List<LanguageModel>();
 
-                if (entities.IsNotEmpty())
-                    models = entities.MapToList<LanguageModel>();
+                await _cache.SetAsync(cacheKeyItem.Key, models, cacheKeyItem.Expiry);
 
                 return Result.Ok(models);
             }

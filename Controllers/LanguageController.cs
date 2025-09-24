@@ -28,5 +28,12 @@ namespace ManageLife.Controllers
             var rs = await _service.GetListLanguagesAsync();
             return rs;
         }
+
+        [HttpPost]
+        public async Task<Result<LanguageModel>> GetLanguageByCode([FromBody] GetLanguageByCodeRequest request)
+        {
+            var rs = await _service.GetLanguageByCodeAsync(request);
+            return rs;
+        }
     }
 }

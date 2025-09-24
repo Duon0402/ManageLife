@@ -20,12 +20,6 @@
 	</form>
 </div>
 
-<div class="languages mt-5">
-	<h3>Chọn ngôn ngữ</h3>
-	<select id="languageSelect" class="form-select w-25"></select>
-	<button type="button" class="btn btn-primary mt-2" onclick="changeLanguage()">Đổi ngôn ngữ</button>
-</div>
-
 @{
 	var popupOptions = new PopupViewOptions
 	{
@@ -70,8 +64,6 @@
 			e.preventDefault();
 			sendMessage();
 		});
-
-		loadLanguages();
 	});
 
 	function sendMessage() {
