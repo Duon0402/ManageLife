@@ -3,7 +3,7 @@ using ManageLife.Base;
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
-using ManageLife.Extentions;
+using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -14,10 +14,14 @@ namespace ManageLife.Services
     public class TranslationService : ServiceBase, ITranslationService
     {
         private readonly TranslationRepository _repo;
+        private readonly LanguageRespository _languageRepo;
+        private readonly ICacheService _cache;
 
-        public TranslationService(AppDbContext context) : base(context)
+        public TranslationService(AppDbContext context, ICacheService cache) : base(context)
         {
             _repo = new TranslationRepository(context);
+            _languageRepo = new LanguageRespository(context);
+            _cache = cache;
         }
 
         public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request)
@@ -33,7 +37,15 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var existing = await _repo.GetAsync(x => x.LanguageId == request.LanguageId && x.Key == request.Key);
+                var language = await _languageRepo.GetAsync(x => x.Id == request.LanguageId && x.IsDeleted == false);
+
+                if (language == null)
+                {
+                    msg = TranslationKey.Common.Message.DataInvalid;
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                var existing = await _repo.GetAsync(x => x.LanguageId == language.Id && x.Key == request.Key);
                 if (existing != null)
                 {
                     msg = TranslationKey.Common.Message.DataExisted;
@@ -49,6 +61,9 @@ namespace ManageLife.Services
                     msg = TranslationKey.Common.Message.CreateError;
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
+
+                var cacheKeyItem = CacheKey.Translations(language.Code);
+                await _cache.RemoveAsync(cacheKeyItem.Key);
 
                 return Result.Ok();
             }
@@ -91,6 +106,44 @@ namespace ManageLife.Services
             }
         }
 
+        public async Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request)
+        {
+            string msg;
+            try
+            {
+                var dictionary = new Dictionary<string, string>();
+
+                if (request == null || request.LanguageCode.IsEmpty())
+                {
+                    msg = TranslationKey.Common.Message.DataInvalid;
+                    return Result.Error<Dictionary<string, string>>(Result.DATA_INVALID.Code, msg);
+                }
+
+                var cachKeyItem = CacheKey.Translations(request.LanguageCode, TimeSpan.FromDays(7));
+
+                dictionary = await _cache.TryGetValueAsync<Dictionary<string, string>>(cachKeyItem.Key);
+
+                if (dictionary.IsEmpty())
+                {
+                    dictionary = await _repo.Query().Include(t => t.Language)
+                        .Where(l => l.Language != null && l.Language.Code == request.LanguageCode)
+                        .ToDictionaryAsync(t => t.Key, t => t.Value);
+
+                    if (dictionary.IsNotEmpty())
+                    {
+                        await _cache.SetAsync(cachKeyItem.Key, dictionary, cachKeyItem.Expiry);
+                    }
+                }
+
+                return Result.Ok(dictionary);
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception<Dictionary<string, string>>(msg, ex);
+            }
+        }
+
         public async Task<Result<List<TranslationModel>>> GetListTranslationsAsync(GetListTranslationsRequest request)
         {
             string msg;
@@ -126,9 +179,36 @@ namespace ManageLife.Services
             throw new NotImplementedException();
         }
 
-        public Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request)
+        public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request)
         {
-            throw new NotImplementedException();
+            string msg;
+            try
+            {
+                if (request == null || request.LanguageCode.IsEmpty() || request.Key.IsEmpty())
+                {
+                    msg = TranslationKey.Common.Message.DataInvalid;
+                    return Result.Error<TranslationModel>(Result.DATA_INVALID.Code, msg);
+                }
+
+                var entity = await _repo.Query()
+                    .Include(l => l.Language)
+                    .Where(x => x.Language!.Code == request.LanguageCode && x.Key == request.Key)
+                    .FirstOrDefaultAsync();
+
+                if (entity == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var model = entity.MapTo<TranslationModel>();
+                return Result.Ok(model);
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception<TranslationModel>(msg, ex);
+            }
         }
 
         public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request)

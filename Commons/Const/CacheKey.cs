@@ -10,5 +10,10 @@ namespace ManageLife.Commons
         public static CacheKeyItem Permissions(string userId, TimeSpan? expiry = null)
             => new($"{_prefix}permissions:{userId}", expiry);
 
+        public static CacheKeyItem Translations(string languageCode, TimeSpan? expiry = null)
+            => new($"{_prefix}translations:{languageCode}", expiry);
+
+        public static CacheKeyItem Languages(TimeSpan? expiry = null)
+            => new($"{_prefix}languages", expiry ?? TimeSpan.FromHours(24));
     }
 }

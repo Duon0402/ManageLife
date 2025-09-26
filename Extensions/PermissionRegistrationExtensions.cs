@@ -2,7 +2,7 @@
 using ManageLife.Interfaces;
 using System.Reflection;
 
-namespace ManageLife.Extentions
+namespace ManageLife.Extensions
 {
     public static class PermissionRegistrationExtensions
     {

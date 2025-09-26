@@ -1,13 +1,13 @@
 ﻿using ManageLife.Interfaces;
 using ManageLife.Services;
 
-namespace ManageLife.Extentions
+namespace ManageLife.Extensions
 {
     public static class ServiceRegistrationExtensions
     {
         public static IServiceCollection AddApplicationCustomServices(this IServiceCollection services)
         {
-            services.AddScoped<ICacheService, CacheService>();
+            services.AddSingleton<ICacheService, CacheService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPermissionService, PermissionService>();

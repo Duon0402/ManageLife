@@ -4,9 +4,9 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers.Admin
+namespace ManageLife.Controllers
 {
-    public class LanguageController : WebAdminControllerBase
+    public class LanguageController : WebControllerBase
     {
         private readonly ILanguageService _service;
 
@@ -15,9 +15,11 @@ namespace ManageLife.Controllers.Admin
             _service = service;
         }
 
-        public IActionResult Index()
+        [HttpPost]
+        public Task<Result<string?>> ChangeLanguage([FromBody] ChangeLanguageRequest request)
         {
-            return View();
+            var rs = _service.ChangeLanguageAsync(request);
+            return rs;
         }
 
         [HttpGet]
@@ -27,11 +29,10 @@ namespace ManageLife.Controllers.Admin
             return rs;
         }
 
-        [InsertPermission]
         [HttpPost]
-        public async Task<Result> CreateLanguage([FromBody] CreateLanguageRequest request)
+        public async Task<Result<LanguageModel>> GetLanguageByCode([FromBody] GetLanguageByCodeRequest request)
         {
-            var rs = await _service.CreateLanguageAsync(request);
+            var rs = await _service.GetLanguageByCodeAsync(request);
             return rs;
         }
     }

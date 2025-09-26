@@ -1,0 +1,43 @@
+﻿.layout {
+    font-size: 16px;
+    font-family: "Arial", sans-serif;
+    --color-primary: #4b49ac;
+    --color-sub-active: #5c59b0;
+    --color-text: #6c7383;
+    --color-bg: #ffffff;
+    --color-bg-content: #f5f7ff;
+}
+
+    .layout .header {
+        background-color: var(--color-bg);
+        height: 60px;
+        color: var(--color-primary);
+        box-shadow: 0px 5px 21px -5px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+        flex-shrink: 0;
+    }
+
+        .layout .header a {
+            text-decoration: none;
+            color: var(--color-primary);
+        }
+
+            .layout.header a .brand {
+                font-size: 1.3rem !important;
+                margin: 0;
+            }
+
+        .layout .header .nav .menu {
+            display: flex;
+            list-style: none;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            gap: 1rem;
+        }
+
+        .layout .header .language button {
+            border: none;
+            background-color: transparent;
+        }

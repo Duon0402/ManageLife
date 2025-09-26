@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Text;
 
-namespace ManageLife.Extentions
+namespace ManageLife.Extensions
 {
     public static class ApplicationServicesExtentions
     {

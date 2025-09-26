@@ -1,78 +1,131 @@
 ﻿@using Microsoft.AspNetCore.Html
 @{
-    ViewData["Title"] = "Home Page";
+	ViewData["Title"] = "Home Page";
 }
 
 <div class="send_message_container">
-    <h2>Send Telegram Message</h2>
+	<h2>Send Telegram Message</h2>
 
-    <form id="sendMessageForm">
-        @{
-            var textBoxOptions = new TextBoxViewOptions()
-            {
-                Id = "message",
-                Placeholder = "Enter your message",
-                Name = "Message",
-            };
-        }
-        @Html.TextBox(textBoxOptions)
-        <button type="submit" class="btn btn-primary mt-3">Send Message</button>
-    </form>
+	<form id="sendMessageForm">
+		@{
+			var textBoxOptions = new TextBoxViewOptions()
+			{
+				Id = "message",
+				Placeholder = "Enter your message",
+				Name = "Message",
+			};
+		}
+		@Html.TextBox(textBoxOptions)
+		<button type="submit" class="btn btn-primary mt-3">Send Message</button>
+	</form>
 </div>
 
 @{
-    var popupOptions = new PopupViewOptions
-    {
-        Id = "myPopup",
-        Title = "Thông Báo",
-        Width = "500px",
-        MinWidth = "300px",
-        Height = "300px",
-        MinHeight = "200px",
-        ShowTitle = true,
-        ShowCloseButton = true,
-        Content = new HtmlString("<p>Nội dung của popup.</p>")
-    };
+	var popupOptions = new PopupViewOptions
+	{
+		Id = "myPopup",
+		Title = "Thông Báo",
+		Width = "500px",
+		MinWidth = "300px",
+		Height = "300px",
+		MinHeight = "200px",
+		ShowTitle = true,
+		ShowCloseButton = true,
+		Content = new HtmlString("<p>Nội dung của popup.</p>")
+	};
 }
 
 @Html.Popup(popupOptions)
 <button type="button" class="btn btn-primary mt-3" onclick="openPopup('myPopup')">Mở Popup</button>
 
 @{
-    var uploaderOptions = new FileUploaderViewOptions
-    {
-        UploadMode = UploadMode.OnButtonClick,
-        AllowRemove = true,
-        AllowMultiFileUpload = true,
-        Accept = ".pdf,.docx,.xlsx"
-    };
+	var uploaderOptions = new FileUploaderViewOptions
+	{
+		UploadMode = UploadMode.OnButtonClick,
+		AllowRemove = true,
+		AllowMultiFileUpload = true,
+		Accept = ".pdf,.docx,.xlsx"
+	};
 }
 
 @Html.FileUploader(uploaderOptions)
 
 <script>
-    function openPopup(popupId) {
-        $('#' + popupId).modal('show');
-    }
+	function openPopup(popupId) {
+		$('#' + popupId).modal('show');
+	}
 
-    function closePopup(popupId) {
-        $('#' + popupId).modal('hide');
-    }
+	function closePopup(popupId) {
+		$('#' + popupId).modal('hide');
+	}
 
-    $(document).ready(function () {
-        $('#sendMessageForm').on('submit', function (e) {
-            e.preventDefault();
-            var message = $('#message').val();
-            ajaxService.post('/Home/SendMessage', message, {
-                onSuccess: function (response) {
-                    if (response.isOk()) {
-                        showToast('Gửi tin nhắn thành công', 'Thông báo', 'success', 10000);
-                    }
-                    else {
-                        showToast(response.message, 'Thông báo', 'error')
-                    }
-                }
-            })
-        });
-    });
+	$(document).ready(function () {
+		$('#sendMessageForm').on('submit', function (e) {
+			e.preventDefault();
+			sendMessage();
+		});
+	});
+
+	function sendMessage() {
+		var message = $('#message').val();
+
+		ajaxService.post('/Home/SendMessage', message, {
+			onSuccess: function (response) {
+				if (response.isOk()) {
+					showToast('Gửi tin nhắn thành công', 'Thông báo', 'success', 10000);
+					$('#message').val("");
+				}
+				else {
+					showToast(response.message, 'Thông báo', 'error');
+				}
+			}
+		});
+	}
+
+	function loadLanguages() {
+		ajaxService.get('/Language/GetListLanguages', {}, {
+			onSuccess: function (res) {
+				if (res.isOk() && res.data) {
+					const $select = $('#languageSelect');
+					$select.empty();
+					res.data.forEach(lang => {
+						$select.append(
+							$('<option>', {
+								value: lang.code,
+								text: lang.name
+							})
+						);
+					});
+				}
+			}
+		});
+	}
+
+	function changeLanguage() {
+		const selectedLang = $('#languageSelect').val();
+		if (!selectedLang) {
+			showToast("Vui lòng chọn ngôn ngữ", "Thông báo", "warning");
+			return;
+		}
+
+		const req = {
+			LanguageCode: selectedLang,
+			ReturnUrl: window.location.pathname + window.location.search
+		};
+
+		ajaxService.post('/Language/ChangeLanguage', req, {
+			showLoading: false,
+			onSuccess: function (res) {
+				if (res.isOk()) {
+					if (res.data) {
+						window.location.href = res.data;
+					} else {
+						location.reload();
+					}
+				} else {
+					showToast(res.message || "Không đổi được ngôn ngữ", "Thông báo", "error");
+				}
+			}
+		});
+	}
 </script>

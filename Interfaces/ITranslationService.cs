@@ -11,5 +11,6 @@ namespace ManageLife.Interfaces
         public Task<Result> CreateTranslationAsync(CreateTranslationRequest request);
         public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request);
         public Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request);
+        public Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request);
     }
 }

@@ -1,4 +1,7 @@
 ﻿using ManageLife.Base;
+using ManageLife.Commons;
+using ManageLife.Helpers;
+using System.Transactions;
 using Telegram.Bot;
 
 namespace ManageLife.Services
@@ -24,13 +27,13 @@ namespace ManageLife.Services
 			{
 				if (string.IsNullOrWhiteSpace(message))
 				{
-					msg = "Vui lòng nhập tin nhắn cần gửi";
-					return Result.Error(Result.DATA_INVALID.Code, msg);
-				}
+                    msg = await TranslationHelper.TAsync(TranslationKey.Common.Message.DataInvalid);
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
 
 				if (_chatId == null)
 				{
-					msg = "Không lấy được ChatId";
+					msg = await TranslationHelper.TAsync(TranslationKey.Common.Message.DataInvalid);
 					return Result.Error(Result.DATA_INVALID.Code, msg);
 				}
 

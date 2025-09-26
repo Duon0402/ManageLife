@@ -11,5 +11,6 @@ namespace ManageLife.Interfaces
         public Task<Result> CreateLanguageAsync(CreateLanguageRequest request);
         public Task<Result> UpdateLanguageAsync(UpdateLanguageRequest request);
         public Task<Result> DeleteLanguageAsync(DeleteLanguageRequest request);
+        public Task<Result<string?>> ChangeLanguageAsync(ChangeLanguageRequest request);
     }
 }

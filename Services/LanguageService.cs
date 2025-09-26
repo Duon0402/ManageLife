@@ -2,7 +2,8 @@
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
-using ManageLife.Extentions;
+using ManageLife.Extensions;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -12,10 +13,44 @@ namespace ManageLife.Services
     public class LanguageService : ServiceBase, ILanguageService
     {
         private readonly LanguageRespository _repo;
+        private readonly ICacheService _cache;
 
-        public LanguageService(AppDbContext context) : base(context)
+        public LanguageService(AppDbContext context, ICacheService cache) : base(context)
         {
             _repo = new LanguageRespository(context);
+            _cache = cache;
+        }
+
+        public async Task<Result<string?>> ChangeLanguageAsync(ChangeLanguageRequest request)
+        {
+            string msg;
+            try
+            {
+                var currentLang = LanguageHelper.GetLanguage();
+
+                if (!string.IsNullOrEmpty(currentLang) &&
+                    string.Equals(currentLang, request.LanguageCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Result.Ok(request.ReturnUrl);
+                }
+
+                var entity = await _repo.GetAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
+
+                if (entity == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error<string?>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                LanguageHelper.SetLanguage(entity.Code);
+
+                return Result.Ok(request.ReturnUrl);
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception<string?>(msg, ex);
+            }
         }
 
         public async Task<Result> CreateLanguageAsync(CreateLanguageRequest request)
@@ -158,12 +193,17 @@ namespace ManageLife.Services
             string msg;
             try
             {
-                var models = new List<LanguageModel>();
+                var cacheKeyItem = CacheKey.Languages();
+                var cached = await _cache.TryGetValueAsync<List<LanguageModel>>(cacheKeyItem.Key);
+                if (cached != null)
+                    return Result.Ok(cached);
 
                 var entities = await _repo.FindAsync(x => x.IsDeleted == false);
+                var models = entities.IsNotEmpty()
+                    ? entities.MapToList<LanguageModel>()
+                    : new List<LanguageModel>();
 
-                if (entities.IsNotEmpty())
-                    models = entities.MapToList<LanguageModel>();
+                await _cache.SetAsync(cacheKeyItem.Key, models, cacheKeyItem.Expiry);
 
                 return Result.Ok(models);
             }

@@ -5,10 +5,12 @@ namespace ManageLife.Interfaces
 {
     public interface IUserService
     {
-        public Task<Result> RegisterAsync(RegisterAccountModel model);
+        public Task<Result> RegisterAsync(RegisterAccountRequest model);
 
-        public Task<Result> LoginAsync(LoginAccountModel model);
+        public Task<Result> LoginAsync(LoginAccountRequest model);
 
         public Task<Result> LogoutAsync(string refreshToken);
+
+        public Task<Result> ChangePasswordAsync(ChangePasswordRequest request);
     }
 }

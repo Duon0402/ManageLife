@@ -1,5 +1,5 @@
 ﻿using ManageLife.Base;
-using ManageLife.Extentions;
+using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;

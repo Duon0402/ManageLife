@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using ManageLife.Base;
 using ManageLife.Data;
-using ManageLife.Extentions;
+using ManageLife.Extensions;
 using ManageLife.Helpers;
+using ManageLife.Interfaces;
 using ManageLife.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,9 +33,17 @@ using (var scope = app.Services.CreateScope())
     await services.RegisterPermissionsAsync();
 }
 
-// Gán IMapper từ DI vào MapperBase
+// Configure MapperBase
 var mapper = app.Services.GetRequiredService<IMapper>();
 MapperBase.Configure(mapper);
+
+// Configure LanguageHelper
+var httpContextAccessor = app.Services.GetRequiredService<IHttpContextAccessor>();
+LanguageHelper.Configure(httpContextAccessor, app.Services);
+
+// Configure TranslationHelper
+var cacheService = app.Services.GetRequiredService<ICacheService>();
+TranslationHelper.Configure(app.Services, cacheService);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

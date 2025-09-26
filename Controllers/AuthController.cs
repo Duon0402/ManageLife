@@ -33,14 +33,14 @@ namespace ManageLife.Controllers
         }
 
         [HttpPost]
-        public async Task<Result> Register([FromBody] RegisterAccountModel model)
+        public async Task<Result> Register([FromBody] RegisterAccountRequest model)
         {
             var rs = await _userService.RegisterAsync(model);
             return rs;
         }
 
         [HttpPost]
-        public async Task<Result> Login([FromBody] LoginAccountModel model)
+        public async Task<Result> Login([FromBody] LoginAccountRequest model)
         {
             var rs = await _userService.LoginAsync(model);
             return rs;
