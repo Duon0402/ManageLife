@@ -1,11 +1,12 @@
 ﻿@{
-    ViewData["Title"] = "Login";
+    var title = await TranslationHelper.TAsync(TranslationKey.Login.Title);
+    ViewData["Title"] = title;
 }
 
 <div class="container d-flex justify-content-center align-items-center">
     <div class="card" style="width: 100%; max-width: 400px;">
         <div class="card-body">
-            <h5 class="card-title text-center">@await TranslationHelper.TAsync(TranslationKey.Login.Title)</h5>
+            <h5 class="card-title text-center">@title</h5>
             <form id="loginForm">
                 <div class="mb-3">
                     <label for="username" class="form-label">@await TranslationHelper.TAsync(TranslationKey.Login.Field.UserName)</label>
