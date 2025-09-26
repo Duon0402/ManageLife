@@ -2,7 +2,7 @@
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
-using ManageLife.Extentions;
+using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;

@@ -1,7 +1,7 @@
 ﻿using ManageLife.Interfaces;
 using ManageLife.Services;
 
-namespace ManageLife.Extentions
+namespace ManageLife.Extensions
 {
     public static class ServiceRegistrationExtensions
     {

@@ -1,7 +1,7 @@
 ﻿using ManageLife.Repositories;
 using ManageLife.Services;
 
-namespace ManageLife.Extentions
+namespace ManageLife.Extensions
 {
     public static class RepositoryRegistrationExtensions
     {

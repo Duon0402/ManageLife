@@ -2,6 +2,7 @@
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -28,33 +29,21 @@ namespace ManageLife.Services
             _tokenService = tokenService;
         }
 
-        public async Task<Result> RegisterAsync(RegisterAccountModel model)
+        public async Task<Result> RegisterAsync(RegisterAccountRequest request)
         {
             using var uow = await UnitOfWork.CreateAsync(_context);
             string msg;
             bool b;
             try
             {
-                if (model == null)
+                var validation = request.Validate();
+                if (!validation.IsValid)
                 {
-                    msg = "Dữ liệu đầu vào không hợp lệ";
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                if (model.Password != model.ConfirmPassword)
-                {
-                    msg = "Mật khẩu xác nhận không khớp";
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
-
-                var (isValid, passwordMsg) = IsPasswordValid(model.Password);
-                if (!isValid)
-                {
-                    msg = passwordMsg;
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
-
-                var existedUser = await _userRepo.GetAsync(x => x.UserName == model.UserName);
+                var existedUser = await _userRepo.GetAsync(x => x.UserName == request.UserName);
                 if (existedUser != null)
                 {
                     msg = "Tên đăng nhập đã tồn tại";
@@ -71,8 +60,8 @@ namespace ManageLife.Services
                 var userEntity = new UserEntity
                 {
                     Id = IdHeper.NewId(),
-                    UserName = model.UserName,
-                    HashPassword = PasswordHelper.HashPassword(model.Password),
+                    UserName = request.UserName,
+                    HashPassword = PasswordHelper.HashPassword(request.Password),
                     CreatedUser = SystemUsers.System
                 };
                 b = await _userRepo.InsertAsync(userEntity, uow);
@@ -126,20 +115,21 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> LoginAsync(LoginAccountModel model)
+        public async Task<Result> LoginAsync(LoginAccountRequest request)
         {
             using var uow = await UnitOfWork.CreateAsync(_context);
             string msg;
             bool b;
             try
             {
-                if (model == null)
+                var validation = request.Validate();
+                if (!validation.IsValid)
                 {
-                    msg = "Dữ liệu đầu vào không hợp lệ";
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var userEntity = await _userRepo.GetAsync(x => x.UserName == model.UserName && !x.IsDeleted);
+                var userEntity = await _userRepo.GetAsync(x => x.UserName == request.UserName && !x.IsDeleted);
                 if (userEntity == null)
                 {
                     msg = "Tên đăng nhập hoặc mật khẩu không đúng";
@@ -152,7 +142,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                if (PasswordHelper.HashPassword(model.Password) != userEntity.HashPassword)
+                if (PasswordHelper.HashPassword(request.Password) != userEntity.HashPassword)
                 {
                     msg = "Tên đăng nhập hoặc mật khẩu không đúng";
                     return Result.Error(Result.DATA_INVALID.Code, msg);
@@ -233,27 +223,41 @@ namespace ManageLife.Services
             }
         }
 
-        private (bool isSuccess, string msg) IsPasswordValid(string password)
+        public async Task<Result> ChangePasswordAsync(ChangePasswordRequest request)
         {
-            if (string.IsNullOrEmpty(password))
-                return (false, "Mật khẩu không được để trống");
+            string msg;
+            bool b;
+            try
+            {
+                var validate = request.Validate();
 
-            if (password.Length < 8)
-                return (false, "Mật khẩu phải có ít nhất 8 ký tự");
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
 
-            if (!password.Any(char.IsDigit))
-                return (false, "Mật khẩu phải có ít nhất 1 chữ số");
+                var userId = GlobalHttpContext.User?.GetUserId();
+                var user = await _userRepo.GetAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
+                if (user == null)
+                {
+                    msg = TranslationKey.Common.Message.DataInvalid;
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
 
-            if (!password.Any(char.IsUpper))
-                return (false, "Mật khẩu phải có ít nhất 1 chữ hoa");
+                if (user.HashPassword != PasswordHelper.HashPassword(request.OldPassword))
+                {
 
-            if (!password.Any(char.IsLower))
-                return (false, "Mật khẩu phải có ít nhất 1 chữ thường");
+                }
 
-            if (!password.Any(ch => "!@#$%^&*()-_=+[]{};:'\",.<>?/\\|`~".Contains(ch)))
-                return (false, "Mật khẩu phải có ít nhất 1 ký tự đặc biệt");
-
-            return (true, string.Empty);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception(msg, ex);
+            }
         }
     }
 }

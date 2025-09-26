@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace ManageLife.Extentions
+namespace ManageLife.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {

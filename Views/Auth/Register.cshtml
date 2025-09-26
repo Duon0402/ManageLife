@@ -30,7 +30,7 @@
 		event.preventDefault();
 
 		const formData = {
-			username: $("#username").val(),
+			userName: $("#username").val(),
 			password: $("#password").val(),
 			confirmPassword: $("#confirmPassword").val(),
 		};
@@ -38,10 +38,6 @@
 		ajaxService.post('/Auth/Register', formData, {
 			onSuccess: function (response) {
 				if (response.isOk()) {
-					const tokenData = response.data;
-					localStorage.setItem('accessToken', tokenData.accessToken);
-					localStorage.setItem('refreshToken', tokenData.refreshToken);
-
 					window.location.href = '/'
 				}
 				else {

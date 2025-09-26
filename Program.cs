@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using ManageLife.Base;
 using ManageLife.Data;
-using ManageLife.Extentions;
+using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Middlewares;

@@ -2,7 +2,7 @@
 using ManageLife.Commons;
 using System.ComponentModel.DataAnnotations;
 
-namespace ManageLife.Extentions
+namespace ManageLife.Extensions
 {
     //TODO: Cải tiến cho phần UI (validate form + bootstrap)
     public static class ValidationExtensions
