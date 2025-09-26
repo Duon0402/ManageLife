@@ -14,11 +14,13 @@ namespace ManageLife.Services
     public class TranslationService : ServiceBase, ITranslationService
     {
         private readonly TranslationRepository _repo;
+        private readonly LanguageRespository _languageRepo;
         private readonly ICacheService _cache;
 
         public TranslationService(AppDbContext context, ICacheService cache) : base(context)
         {
             _repo = new TranslationRepository(context);
+            _languageRepo = new LanguageRespository(context);
             _cache = cache;
         }
 
@@ -35,7 +37,15 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var existing = await _repo.GetAsync(x => x.LanguageId == request.LanguageId && x.Key == request.Key);
+                var language = await _languageRepo.GetAsync(x => x.Id == request.LanguageId && x.IsDeleted == false);
+
+                if (language == null)
+                {
+                    msg = TranslationKey.Common.Message.DataInvalid;
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                var existing = await _repo.GetAsync(x => x.LanguageId == language.Id && x.Key == request.Key);
                 if (existing != null)
                 {
                     msg = TranslationKey.Common.Message.DataExisted;
@@ -51,6 +61,9 @@ namespace ManageLife.Services
                     msg = TranslationKey.Common.Message.CreateError;
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
+
+                var cacheKeyItem = CacheKey.Translations(language.Code);
+                await _cache.RemoveAsync(cacheKeyItem.Key);
 
                 return Result.Ok();
             }

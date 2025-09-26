@@ -1,52 +1,54 @@
 ﻿@{
-	ViewData["Title"] = "Login";
+    ViewData["Title"] = "Login";
 }
 
 <div class="container d-flex justify-content-center align-items-center">
-	<div class="card" style="width: 100%; max-width: 400px;">
-		<div class="card-body">
-			<h5 class="card-title text-center">Login</h5>
-			<form id="loginForm">
-				<div class="mb-3">
-					<label for="username" class="form-label">Username</label>
-					<input type="text" class="form-control" id="username" name="Username" required />
-				</div>
-				<div class="mb-3">
-					<label for="password" class="form-label">Password</label>
-					<input type="password" class="form-control" id="password" name="Password" required />
-				</div>
-				<button type="submit" class="btn btn-primary w-100" id="btnLogin">Login</button>
-			</form>
-		</div>
-	</div>
+    <div class="card" style="width: 100%; max-width: 400px;">
+        <div class="card-body">
+            <h5 class="card-title text-center">@await TranslationHelper.TAsync(TranslationKey.Login.Title)</h5>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">@await TranslationHelper.TAsync(TranslationKey.Login.Field.UserName)</label>
+                    <input type="text" class="form-control" id="username" name="Username" required />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">@await TranslationHelper.TAsync(TranslationKey.Login.Field.Password)</label>
+                    <input type="password" class="form-control" id="password" name="Password" required />
+                </div>
+                <button type="submit" class="btn btn-primary w-100" id="btnLogin">
+                    @await TranslationHelper.TAsync(TranslationKey.Login.Button.Login)
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
-	$("#loginForm").submit(function (event) {
-		event.preventDefault();
+    $("#loginForm").submit(function (event) {
+        event.preventDefault();
 
-		const formData = {
-			userName: $("#username").val(),
-			password: $("#password").val()
-		};
+        const formData = {
+            userName: $("#username").val(),
+            password: $("#password").val()
+        };
 
-		ajaxService.post('/auth/login', formData, {
-			onSuccess: function (response) {
-				if (response.isOk()) {
+        ajaxService.post('/auth/login', formData, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
 
-					const params = new URLSearchParams(window.location.search);
-					let returnUrl = params.get("returnUrl");
+                    const params = new URLSearchParams(window.location.search);
+                    let returnUrl = params.get("returnUrl");
 
-					if (!returnUrl) {
-						returnUrl = sessionStorage.getItem("returnUrl") || "/";
-					}
-					sessionStorage.removeItem("returnUrl");
+                    if (!returnUrl) {
+                        returnUrl = sessionStorage.getItem("returnUrl") || "/";
+                    }
+                    sessionStorage.removeItem("returnUrl");
 
-					window.location.href = returnUrl;
-				} else {
-					showToast(response.message, 'Thông báo', 'error');
-				}
-			}
-		});
-	});
+                    window.location.href = returnUrl;
+                } else {
+                    showToast(response.message, 'Thông báo', 'error');
+                }
+            }
+        });
+    });
 </script>

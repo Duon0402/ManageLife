@@ -9,5 +9,5 @@ namespace ManageLife.Models
 
         [Required(ErrorMessage = "Mật khẩu không được để trống")]
         public string Password { get; set; } = null!;
-	}
+    }
 }
