@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OfficeOpenXml;
 using StackExchange.Redis;
 using System.Text;
 
@@ -13,10 +14,12 @@ namespace ManageLife.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
+            // Set EPPlus license 1 lần
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
             services.AddApplicationCustomServices();
             services.AddRepositories();
-
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddHttpContextAccessor();
             services.AddScoped<IMenuRegister, MenuRegister>();
             services.AddHttpClient();
 
@@ -72,7 +75,6 @@ namespace ManageLife.Extensions
             });
             #endregion
 
-            services.AddHttpContextAccessor();
 
             #region File Upload Limits
             services.Configure<FormOptions>(o =>
