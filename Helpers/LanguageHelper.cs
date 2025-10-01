@@ -50,9 +50,9 @@ namespace ManageLife.Helpers
             var rs = await languageService.GetListLanguagesAsync();
             if (rs.IsOk() && rs.Data != null)
             {
-                var found = rs.Data.FirstOrDefault(x => x.Code == languageCode);
-                if (found != null)
-                    return found.Name ?? languageCode;
+                var language = rs.Data.FirstOrDefault(x => x.Code == languageCode);
+                if (language != null)
+                    return language.Name ?? languageCode;
             }
 
             return languageCode;
