@@ -14,6 +14,6 @@ namespace ManageLife.Commons
             => new($"{_prefix}translations:{languageCode}", expiry);
 
         public static CacheKeyItem Languages(TimeSpan? expiry = null)
-            => new($"{_prefix}languages", expiry ?? TimeSpan.FromHours(24));
+            => new($"{_prefix}languages", expiry);
     }
 }
