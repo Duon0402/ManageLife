@@ -74,7 +74,6 @@ namespace ManageLife.Extensions
             });
             #endregion
 
-
             #region File Upload Limits
             services.Configure<FormOptions>(o =>
             {

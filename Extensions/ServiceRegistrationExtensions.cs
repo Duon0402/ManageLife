@@ -7,6 +7,8 @@ namespace ManageLife.Extensions
     {
         public static IServiceCollection AddApplicationCustomServices(this IServiceCollection services)
         {
+            services.AddScoped<ITodoTaskService, TodoTaskService>();
+            services.AddScoped<ITodoListService, TodoListService>();
             services.AddSingleton<ICacheService, CacheService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserService, UserService>();

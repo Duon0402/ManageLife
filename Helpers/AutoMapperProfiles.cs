@@ -8,6 +8,11 @@ namespace ManageLife.Helpers
     {
         public AutoMapperProfiles()
         {
+            // TodoList
+            CreateMap<TodoListEntity, TodoListModel>().ReverseMap();
+            CreateMap<TodoListEntity, CreateToDoListRequest>().ReverseMap();
+            CreateMap<TodoListEntity, UpdateToDoListRequest>().ReverseMap();
+
             // Permission
             CreateMap<PermissionEntity, PermissionModel>().ReverseMap();
 

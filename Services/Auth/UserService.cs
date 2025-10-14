@@ -229,29 +229,34 @@ namespace ManageLife.Services
             bool b;
             try
             {
-                var validate = request.Validate();
+                //TODO: Hoàn thiện chức năng đổi mật khẩu
 
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                //var validate = request.Validate();
 
-                var userId = GlobalHttpContext.User?.GetUserId();
-                var user = await _userRepo.GetAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
-                if (user == null)
-                {
-                    msg = TranslationKey.Common.Message.DataInvalid;
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                //var validation = request.Validate();
+                //if (!validation.IsValid)
+                //{
+                //    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                //    return Result.Error(Result.DATA_INVALID.Code, msg);
+                //}
 
-                if (user.HashPassword != PasswordHelper.HashPassword(request.OldPassword))
-                {
+                //var userId = GlobalHttpContext.User?.GetUserId();
+                //var user = await _userRepo.GetAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
+                //if (user == null)
+                //{
+                //    msg = TranslationKey.Common.Message.DataInvalid;
+                //    return Result.Error(Result.DATA_INVALID.Code, msg);
+                //}
 
-                }
+                //if (user.HashPassword != PasswordHelper.HashPassword(request.OldPassword))
+                //{
+                //    msg = "Mật khẩu cũ không đúng";
+                //    return Result.Error(Result.DATA_INVALID.Code, msg);
+                //}
 
-                return Result.Ok();
+
+
+                //return Result.Ok();
             }
             catch (Exception ex)
             {

@@ -23,6 +23,8 @@ namespace ManageLife.Data
         public DbSet<RolePermissionEntity> RolePermissions { get; set; } = default!;
         public DbSet<UserPermissionEntity> UserPermissions { get; set; } = default!;
         public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; } = default!;
+        public DbSet<TodoListEntity> TodoLists { get; set; } = default!;
+        public DbSet<TodoTaskEntity> TodoTasks { get; set; } = default!;
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -87,6 +89,20 @@ namespace ManageLife.Data
                 .HasOne(up => up.Permission)
                 .WithMany(p => p.UserPermissions)
                 .HasForeignKey(up => up.PermissionId);
+            #endregion
+
+            #region Todo
+            modelBuilder.Entity<TodoListEntity>()
+                .HasMany(l => l.Tasks)
+                .WithOne(t => t.TodoList)
+                .HasForeignKey(t => t.TodoListId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TodoTaskEntity>()
+                .HasMany(t => t.SubTasks)
+                .WithOne(st => st.ParentTask)
+                .HasForeignKey(st => st.ParentTaskId)
+                .OnDelete(DeleteBehavior.Cascade);
             #endregion
         }
     }
