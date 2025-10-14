@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers
 {
+    [Route("api/telegram")]
     public class TelegramApiController : ApiControllerBase
     {
         private readonly TelegramService _service;
@@ -14,7 +15,7 @@ namespace ManageLife.Controllers
             _service = new TelegramService(config);
         }
 
-        [HttpGet("notify")]
+        [HttpGet("send-notification")]
         public async Task<IActionResult> SendNotification()
         {
 
