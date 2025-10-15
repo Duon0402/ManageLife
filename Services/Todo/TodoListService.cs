@@ -9,6 +9,7 @@ using ManageLife.Repositories;
 
 namespace ManageLife.Services
 {
+    // TODO: Viết Service Getlist và thêm func check duplicate name
     public class TodoListService : ServiceBase, ITodoListService
     {
         private readonly TodoListRepository _repo;
@@ -48,9 +49,41 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result> DeleteToDoList(DeleteToDoListRequest request)
+        public async Task<Result> DeleteToDoList(DeleteToDoListRequest request)
         {
-            throw new NotImplementedException();
+            string msg;
+            try
+            {
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                var entity = await _repo.GetAsync(request.Id);
+
+                if (entity == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var b = await _repo.DeleteAsync(entity);
+
+                if (!b)
+                {
+                    msg = TranslationKey.Common.Message.DeleteError;
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception(msg, ex);
+            }
         }
 
         public Task<Result<List<TodoListModel>>> GetListTodoLists(GetListTodoListsRequest request)
@@ -58,14 +91,72 @@ namespace ManageLife.Services
             throw new NotImplementedException();
         }
 
-        public Task<Result<TodoListModel>> GetTodoListById(GetTodoListByIdRequest request)
+        public async Task<Result<TodoListModel>> GetTodoListById(GetTodoListByIdRequest request)
         {
-            throw new NotImplementedException();
+            string msg;
+            try
+            {
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error<TodoListModel>(Result.DATA_INVALID.Code, msg);
+                }
+
+                var entity = await _repo.GetAsync(request.Id);
+
+                if (entity == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error<TodoListModel>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var model = entity.MapTo<TodoListModel>();
+
+                return Result.Ok(model);
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception<TodoListModel>(msg, ex);
+            }
         }
 
-        public Task<Result> UpdateToDoList(UpdateToDoListRequest request)
+        public async Task<Result> UpdateToDoList(UpdateToDoListRequest request)
         {
-            throw new NotImplementedException();
+            string msg;
+            try
+            {
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                var entity = await _repo.GetAsync(request.Id);
+                if (entity == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                request.MapTo(entity);
+
+                var b = await _repo.UpdateAsync(entity);
+                if (!b)
+                {
+                    msg = TranslationKey.Common.Message.UpdateError;
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception(msg, ex);
+            }
         }
     }
 }

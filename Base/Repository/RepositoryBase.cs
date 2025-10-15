@@ -49,6 +49,11 @@ namespace ManageLife.Base
             return await query.FirstOrDefaultAsync(predicate);
         }
 
+        public async Task<T?> GetAsync(string key)
+        {
+            return await _context.Set<T>().FindAsync(key);
+        }
+
         #region CRUD
 
         public async Task<bool> InsertAsync(T entity, IUnitOfWork? uow = null)

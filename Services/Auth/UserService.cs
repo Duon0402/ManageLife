@@ -256,7 +256,7 @@ namespace ManageLife.Services
 
 
 
-                //return Result.Ok();
+                return Result.Ok();
             }
             catch (Exception ex)
             {
