@@ -1,4 +1,5 @@
-﻿using ManageLife.Base;
+﻿using LinqKit;
+using ManageLife.Base;
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
@@ -9,7 +10,6 @@ using ManageLife.Repositories;
 
 namespace ManageLife.Services
 {
-    // TODO: Viết Service Getlist và thêm func check duplicate name
     public class TodoListService : ServiceBase, ITodoListService
     {
         private readonly TodoListRepository _repo;
@@ -29,6 +29,13 @@ namespace ManageLife.Services
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                bool isDuplicate = await IsDuplicateNameAsync(request.Name);
+                if (isDuplicate)
+                {
+                    msg = TranslationKey.Common.Message.DataExisted;
+                    return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
                 var entity = request.MapTo<TodoListEntity>();
@@ -86,9 +93,20 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result<List<TodoListModel>>> GetListTodoLists(GetListTodoListsRequest request)
+        public async Task<Result<List<TodoListModel>>> GetListTodoLists()
         {
-            throw new NotImplementedException();
+            string msg;
+            try
+            {
+                var entities = await _repo.FindAsync(x => x.IsDeleted == false);
+                var models = entities.MapTo<List<TodoListModel>>();
+                return Result.Ok(models);
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception<List<TodoListModel>>(msg, ex);
+            }
         }
 
         public async Task<Result<TodoListModel>> GetTodoListById(GetTodoListByIdRequest request)
@@ -141,6 +159,13 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
+                bool isDuplicate = await IsDuplicateNameAsync(request.Name, entity.Id);
+                if (isDuplicate)
+                {
+                    msg = TranslationKey.Common.Message.DataExisted;
+                    return Result.Error(Result.DATA_EXISTED.Code, msg);
+                }
+
                 request.MapTo(entity);
 
                 var b = await _repo.UpdateAsync(entity);
@@ -157,6 +182,21 @@ namespace ManageLife.Services
                 msg = TranslationKey.Common.Message.SystemError;
                 return Result.Exception(msg, ex);
             }
+        }
+
+        private async Task<bool> IsDuplicateNameAsync(string name, string? id = null)
+        {
+            name = name.Trim().ToLower();
+
+            var predicate = PredicateBuilder.New<TodoListEntity>(
+                x => !x.IsDeleted && x.Name.ToLower() == name
+            );
+
+            if (id.IsNotEmpty())
+                predicate = predicate.And(x => x.Id != id);
+
+            var entity = await _repo.GetAsync(predicate);
+            return entity != null;
         }
     }
 }

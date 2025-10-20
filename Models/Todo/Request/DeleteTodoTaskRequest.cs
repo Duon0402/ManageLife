@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Models
 {
-    public class GetListTodoListsRequest
+    public class DeleteTodoTaskRequest
     {
     }
 }
