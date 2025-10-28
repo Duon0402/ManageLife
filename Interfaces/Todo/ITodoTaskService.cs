@@ -8,7 +8,7 @@ namespace ManageLife.Interfaces
         public Task<Result> CreateTodoTask(CreateTodoTaskRequest request);
         public Task<Result> UpdateTodoTask(UpdateTodoTaskRequest request);
         public Task<Result> DeleteTodoTask(DeleteTodoTaskRequest request);
-        public Task<Result<TodoListModel>> GetTodoTaskById(GetTodoTaskByIdRequest request);
+        public Task<Result<TodoTaskModel>> GetTodoTaskById(GetTodoTaskByIdRequest request);
         public Task<Result<List<TodoTaskModel>>> GetListTodoTasks(GetListTodoTasksRequest request);
     }
 }

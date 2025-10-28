@@ -4,12 +4,10 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Caching.Memory;
 
 public class PermissionAttribute : ActionFilterAttribute
 {
     public string Permission { get; }
-    private static readonly MemoryCache _cache = new(new MemoryCacheOptions());
 
     public PermissionAttribute(string permission) => Permission = permission;
 

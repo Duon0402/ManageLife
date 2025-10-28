@@ -2,7 +2,7 @@
 
 namespace ManageLife.Base
 {
-    public static class StringExtension
+    public static class StringExtention
     {
         public static bool IsEmpty([NotNullWhen(false)] this string? value)
             => string.IsNullOrWhiteSpace(value);
