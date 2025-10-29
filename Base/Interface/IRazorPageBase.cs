@@ -1,13 +1,15 @@
-﻿namespace ManageLife.Base
+﻿using ManageLife.Base.Model;
+
+namespace ManageLife.Base
 {
     public interface IRazorPageBase
     {
         RazorPageOptions Options { get; }
 
-        void UseCss(params string[] cssUrls);
+        void UseCss(params ResourceLink[] cssUrls);
 
-        void UseScriptAtBottom(params string[] jsUrls);
+        void UseScriptAtBottom(params ResourceLink[] jsUrls);
 
-        void UseScriptAtHead(params string[] jsUrls);
+        void UseScriptAtHead(params ResourceLink[] jsUrls);
     }
 }

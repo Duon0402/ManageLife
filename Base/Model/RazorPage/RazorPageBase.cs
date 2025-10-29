@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Razor;
+﻿using ManageLife.Base.Model;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ManageLife.Base
@@ -13,17 +14,17 @@ namespace ManageLife.Base
             }
         }
 
-        public void UseCss(params string[] cssUrls)
+        public void UseCss(params ResourceLink[] cssUrls)
         {
             Options.UseCss(cssUrls);
         }
 
-        public void UseScriptAtBottom(params string[] jsUrls)
+        public void UseScriptAtBottom(params ResourceLink[] jsUrls)
         {
             Options.UseScriptAtBottom(jsUrls);
         }
 
-        public void UseScriptAtHead(params string[] jsUrls)
+        public void UseScriptAtHead(params ResourceLink[] jsUrls)
         {
             Options.UseScriptAtHead(jsUrls);
         }

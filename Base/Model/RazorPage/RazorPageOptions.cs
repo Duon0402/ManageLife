@@ -1,4 +1,6 @@
-﻿namespace ManageLife.Base
+﻿using ManageLife.Base.Model;
+
+namespace ManageLife.Base
 {
     public class RazorPageOptions
     {
@@ -17,9 +19,9 @@
         public bool ShowTitle { get; set; }
         public BreadcrumbModel Breadcrumb { get; set; }
         public bool ShowBreadcrumb { get; set; }
-        public List<string> ScriptBottomLinks { get; }
-        public List<string> CssLinks { get; }
-        public List<string> ScriptHeadLinks { get; }
+        public List<ResourceLink> ScriptBottomLinks { get; }
+        public List<ResourceLink> CssLinks { get; }
+        public List<ResourceLink> ScriptHeadLinks { get; }
 
         public bool HasHeadScripts
         {
@@ -45,7 +47,7 @@
             }
         }
 
-        public void UseCss(params string[] cssUrls)
+        public void UseCss(params ResourceLink[] cssUrls)
         {
             if (cssUrls.IsEmpty())
             {
@@ -63,7 +65,7 @@
             }
         }
 
-        public void UseScriptAtHead(params string[] jsUrls)
+        public void UseScriptAtHead(params ResourceLink[] jsUrls)
         {
             if (jsUrls.IsEmpty())
             {
@@ -81,7 +83,7 @@
             }
         }
 
-        public void UseScriptAtBottom(params string[] jsUrls)
+        public void UseScriptAtBottom(params ResourceLink[] jsUrls)
         {
             if (jsUrls.IsEmpty())
             {
