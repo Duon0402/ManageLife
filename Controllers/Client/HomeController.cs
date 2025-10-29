@@ -4,9 +4,9 @@ using ManageLife.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.Client
 {
-    public class HomeController : WebControllerBase
+    public class HomeController : WebClientControllerBase
     {
         private readonly IConfiguration _config;
         private readonly TelegramService _telegramService;
@@ -26,7 +26,7 @@ namespace ManageLife.Controllers
         [HttpPost]
         public async Task<Result> SendMessage([FromBody] string message)
         {
-            var rs = await this._telegramService.SendMessageAsync(message);
+            var rs = await _telegramService.SendMessageAsync(message);
             return rs;
         }
     }

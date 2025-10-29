@@ -1,20 +1,19 @@
-﻿using ManageLife.Base.View;
-
-namespace ManageLife.Base
+﻿namespace ManageLife.Base
 {
-    public class RazorPageOption
+    public class RazorPageOptions
     {
-        public RazorPageOption()
+        public RazorPageOptions()
         {
-           
+            Breadcrumb = new();
+            ShowBreadcrumb = true;
+            Title = string.Empty;
+            ShowTitle = true;
         }
 
         public string? Title { get; set; }
         public bool ShowTitle { get; set; }
 
-
         public BreadcrumbModel Breadcrumb { get; set; }
         public bool ShowBreadcrumb { get; set; }
-
     }
 }

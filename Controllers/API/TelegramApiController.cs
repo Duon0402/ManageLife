@@ -3,7 +3,7 @@ using ManageLife.Data;
 using ManageLife.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.API
 {
     [Route("api/telegram")]
     public class TelegramApiController : ApiControllerBase

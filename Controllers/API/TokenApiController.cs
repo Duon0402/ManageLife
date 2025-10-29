@@ -3,7 +3,7 @@ using ManageLife.Data;
 using ManageLife.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.API
 {
     [Route("api/token")]
     public class TokenApiController : ApiControllerBase

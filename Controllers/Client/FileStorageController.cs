@@ -4,10 +4,10 @@ using ManageLife.Models;
 using ManageLife.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.Client
 {
     [Route("filestorage")]
-    public class FileStorageController : WebControllerBase
+    public class FileStorageController : WebClientControllerBase
     {
         private readonly TelegramFileService _telegramFileService;
 

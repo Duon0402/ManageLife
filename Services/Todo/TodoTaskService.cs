@@ -172,6 +172,8 @@ namespace ManageLife.Services
                 }
 
                 var entity = await _repo.GetAsync(x => x.Id == request.Id);
+                //TODO: Hoàn thiện nốt phần UpdateTodoTask
+                return Result.Ok();
             }
             catch (Exception ex)
             {

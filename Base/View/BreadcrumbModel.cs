@@ -1,4 +1,4 @@
-﻿namespace ManageLife.Base.View
+﻿namespace ManageLife.Base
 {
     public class BreadcrumbModel
     {
@@ -8,6 +8,16 @@
         }
 
         public List<BreadcrumbItem> Items { get; set; }
+
+        public void Add(string url, string title, bool isActive = false)
+        {
+            Items.Add(new(url, title, isActive));
+        }
+
+        public void AddRange(List<BreadcrumbItem> items)
+        {
+            Items.AddRange(items);
+        }
     }
 
     public class BreadcrumbItem

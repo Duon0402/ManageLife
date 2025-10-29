@@ -4,9 +4,9 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.Client
 {
-    public class LanguageController : WebControllerBase
+    public class LanguageController : WebClientControllerBase
     {
         private readonly ILanguageService _service;
 

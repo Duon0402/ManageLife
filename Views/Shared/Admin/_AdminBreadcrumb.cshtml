@@ -1,0 +1,42 @@
+﻿@model BreadcrumbModel
+
+@{
+    var items = Model.Items;
+}
+
+<style>
+
+</style>
+
+<div class="breadcrumb-wrap">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            @if (items.IsEmpty())
+            {
+                <li class="breadcrumb-item">
+                    <a href="/admin">Home</a>
+                </li>
+            }
+            else
+            {
+                <li class="breadcrumb-item">
+                    <a href="/admin">Home</a>
+                </li>
+
+                @foreach (var item in items.Take(items.Count - 1))
+                {
+                    <li class="breadcrumb-item">
+                        <a href="@item.Url">@item.Title</a>
+                    </li>
+                }
+
+                var activeItem = items.LastOrDefault();
+
+                if (activeItem != null)
+                {
+                    <li class="breadcrumb-item active" aria-current="page">@activeItem.Title</li>
+                }
+            }
+        </ol>
+    </nav>
+</div>

@@ -2,5 +2,7 @@
 {
     public interface IRazorPageBase
     {
+        RazorPageOptions Options { get; }
+
     }
 }

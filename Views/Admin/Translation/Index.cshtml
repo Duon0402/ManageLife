@@ -1,108 +1,107 @@
 ﻿@model TranslationViewModel
 @{
-	Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
-	ViewData["Title"] = "Translation";
+    ViewData["Title"] = "Translation";
 }
 
 <h2>Quản lý Translation</h2>
 
 <div class="mb-3">
-	<button class="btn btn-primary" id="btnLoad">Load danh sách</button>
+    <button class="btn btn-primary" id="btnLoad">Load danh sách</button>
 </div>
 
 <div class="card mb-3 p-3">
-	<h5>Thêm Translation</h5>
-	<div class="row g-2">
-		<div class="col-md-3">
-			<input type="text" class="form-control" id="txtKey" placeholder="Key" />
-		</div>
-		<div class="col-md-3">
-			<input type="text" class="form-control" id="txtValue" placeholder="Value" />
-		</div>
-		<div class="col-md-3">
-			<select id="ddlLanguageId" class="form-control">
-				<option value="">-- Chọn ngôn ngữ --</option>
-				@foreach (var lang in Model.Languages)
-				{
-					<option value="@lang.Key">@lang.Value</option>
-				}
-			</select>
-		</div>
-		<div class="col-md-2">
-			<button class="btn btn-success w-100" id="btnCreate">Thêm mới</button>
-		</div>
-	</div>
+    <h5>Thêm Translation</h5>
+    <div class="row g-2">
+        <div class="col-md-3">
+            <input type="text" class="form-control" id="txtKey" placeholder="Key" />
+        </div>
+        <div class="col-md-3">
+            <input type="text" class="form-control" id="txtValue" placeholder="Value" />
+        </div>
+        <div class="col-md-3">
+            <select id="ddlLanguageId" class="form-control">
+                <option value="">-- Chọn ngôn ngữ --</option>
+                @foreach (var lang in Model.Languages)
+                {
+                    <option value="@lang.Key">@lang.Value</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-success w-100" id="btnCreate">Thêm mới</button>
+        </div>
+    </div>
 </div>
 
 <table class="table table-bordered" id="tblTranslations">
-	<thead>
-		<tr>
-			<th>Key</th>
-			<th>Value</th>
-			<th>Language</th>
-		</tr>
-	</thead>
-	<tbody></tbody>
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+            <th>Language</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
 </table>
 
 @section Scripts {
-	<script>
-		function loadTranslations() {
-			const req = {
-				// lấy theo ID trong selectbox
-				languageId: $("#ddlLanguageId").val() || null
-			};
+    <script>
+        function loadTranslations() {
+            const req = {
+                // lấy theo ID trong selectbox
+                languageId: $("#ddlLanguageId").val() || null
+            };
 
-			ajaxService.post('/Admin/Translation/GetListTranslations', req, {
-				onSuccess: function (response) {
-					if (response.isOk()) {
-						const tbody = $('#tblTranslations tbody');
-						tbody.empty();
+            ajaxService.post('/Admin/Translation/GetListTranslations', req, {
+                onSuccess: function (response) {
+                    if (response.isOk()) {
+                        const tbody = $('#tblTranslations tbody');
+                        tbody.empty();
 
-						response.data.forEach(t => {
-							const row = `
-								<tr>
-									<td>${t.key}</td>
-									<td>${t.value}</td>
-									<td>${t.languageName}</td>
-								</tr>
-							`;
-							tbody.append(row);
-						});
-					} else {
-						showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
-					}
-				}
-			});
-		}
+                        response.data.forEach(t => {
+                            const row = `
+                                <tr>
+                                    <td>${t.key}</td>
+                                    <td>${t.value}</td>
+                                    <td>${t.languageName}</td>
+                                </tr>
+                            `;
+                            tbody.append(row);
+                        });
+                    } else {
+                        showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
+                    }
+                }
+            });
+        }
 
-		function createTranslation() {
-			const req = {
-				key: $("#txtKey").val(),
-				value: $("#txtValue").val(),
-				languageId: $("#ddlLanguageId").val()
-			};
+        function createTranslation() {
+            const req = {
+                key: $("#txtKey").val(),
+                value: $("#txtValue").val(),
+                languageId: $("#ddlLanguageId").val()
+            };
 
-			ajaxService.post('/Admin/Translation/CreateTranslation', req, {
-				onSuccess: function (response) {
-					if (response.isOk()) {
-						showToast("Thêm thành công", "Thông báo", "success");
-						loadTranslations();
-						$("#txtKey").val('');
-						$("#txtValue").val('');
-						$("#ddlLanguageId").val('');
-					} else {
-						showToast(response.message || 'Thêm thất bại', 'Thông báo', 'error');
-					}
-				}
-			});
-		}
+            ajaxService.post('/Admin/Translation/CreateTranslation', req, {
+                onSuccess: function (response) {
+                    if (response.isOk()) {
+                        showToast("Thêm thành công", "Thông báo", "success");
+                        loadTranslations();
+                        $("#txtKey").val('');
+                        $("#txtValue").val('');
+                        $("#ddlLanguageId").val('');
+                    } else {
+                        showToast(response.message || 'Thêm thất bại', 'Thông báo', 'error');
+                    }
+                }
+            });
+        }
 
-		$(function () {
-			$("#btnLoad").click(loadTranslations);
-			$("#btnCreate").click(createTranslation);
+        $(function () {
+            $("#btnLoad").click(loadTranslations);
+            $("#btnCreate").click(createTranslation);
 
-			loadTranslations();
-		});
-	</script>
+            loadTranslations();
+        });
+    </script>
 }

@@ -4,9 +4,9 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.Client
 {
-    public class AuthController : WebControllerBase
+    public class AuthController : WebClientControllerBase
     {
         private readonly IUserService _userService;
         private readonly ITokenService _tokenService;
@@ -19,17 +19,17 @@ namespace ManageLife.Controllers
 
         public IActionResult Login()
         {
-            return View();
+            return View("Login");
         }
 
         public IActionResult Register()
         {
-            return View();
+            return View("Regiester");
         }
 
         public IActionResult AccessDenied()
         {
-            return View();
+            return View("AccessDenied");
         }
 
         [HttpPost]
