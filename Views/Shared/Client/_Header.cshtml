@@ -1,80 +1,79 @@
-﻿
-@{
-	var currentLanguageCode = LanguageHelper.GetLanguage();
-	var currentLanguageName = await LanguageHelper.GetLanguageName();
+﻿@{
+    var currentLanguageCode = LanguageHelper.GetLanguage();
+    var currentLanguageName = await LanguageHelper.GetLanguageName();
 }
 
 <header class="header d-flex justify-content-between align-items-center px-5">
-	<div class="logo d-flex align-items-center">
-		<a href="/">
-			<h3 class="brand">Manage Life</h3>
-		</a>
-	</div>
+    <div class="logo d-flex align-items-center">
+        <a href="/">
+            <h3 class="brand">Manage Life</h3>
+        </a>
+    </div>
 
-	<div class="language">
-		<div class="dropdown">
-			<button id="currentLangBtn" class="dropdown-toggle btn btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-				@currentLanguageName
-			</button>
-			<ul class="dropdown-menu" id="languageMenu"></ul>
-		</div>
-	</div>
+    <div class="language">
+        <div class="dropdown">
+            <button id="currentLangBtn" class="dropdown-toggle btn btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                @currentLanguageName
+            </button>
+            <ul class="dropdown-menu" id="languageMenu"></ul>
+        </div>
+    </div>
 </header>
 
 <input type="hidden" id="currentLangCode" value="@currentLanguageCode" />
 
 <script>
-	$(function () {
-		const currentLangCode = $('#currentLangCode').val();
-		loadLanguages();
-		function loadLanguages() {
-			ajaxService.get('/Language/GetListLanguages', {}, {
-				showLoading: false,
-				onSuccess: function (res) {
-					if (res.isOk() && res.data) {
-						const $menu = $('#languageMenu');
-						$menu.empty();
+    $(function () {
+        const currentLangCode = $('#currentLangCode').val();
+        loadLanguages();
+        function loadLanguages() {
+            ajaxService.get('/Language/GetListLanguages', {}, {
+                showLoading: false,
+                onSuccess: function (res) {
+                    if (res.isOk() && res.data) {
+                        const $menu = $('#languageMenu');
+                        $menu.empty();
 
-						res.data.forEach(lang => {
-							const activeClass = (lang.code === currentLangCode) ? "active" : "";
-							const $item = $('<a>', {
-								class: `dropdown-item ${activeClass}`,
-								href: '#',
-								text: lang.name,
-								click: function (e) {
-									e.preventDefault();
-									changeLanguage(lang.code, lang.name);
-								}
-							});
-							$menu.append($('<li>').append($item));
-						});
-					}
-				}
-			});
-		}
+                        res.data.forEach(lang => {
+                            const activeClass = (lang.code === currentLangCode) ? "active" : "";
+                            const $item = $('<a>', {
+                                class: `dropdown-item ${activeClass}`,
+                                href: '#',
+                                text: lang.name,
+                                click: function (e) {
+                                    e.preventDefault();
+                                    changeLanguage(lang.code, lang.name);
+                                }
+                            });
+                            $menu.append($('<li>').append($item));
+                        });
+                    }
+                }
+            });
+        }
 
-		function changeLanguage(langCode, langName) {
-			const req = {
-				LanguageCode: langCode,
-				ReturnUrl: window.location.pathname + window.location.search
-			};
+        function changeLanguage(langCode, langName) {
+            const req = {
+                LanguageCode: langCode,
+                ReturnUrl: window.location.pathname + window.location.search
+            };
 
-			ajaxService.post('/Language/ChangeLanguage', req, {
-				showLoading: false,
-				onSuccess: function (res) {
-					if (res.isOk()) {
-						$('#currentLangBtn').text(langName);
+            ajaxService.post('/Language/ChangeLanguage', req, {
+                showLoading: false,
+                onSuccess: function (res) {
+                    if (res.isOk()) {
+                        $('#currentLangBtn').text(langName);
 
-						if (res.data) {
-							window.location.href = res.data;
-						} else {
-							location.reload();
-						}
-					} else {
-						showToast(res.message || "Không đổi được ngôn ngữ", "Thông báo", "error");
-					}
-				}
-			});
-		}
-	});
+                        if (res.data) {
+                            window.location.href = res.data;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        showToast(res.message || "Không đổi được ngôn ngữ", "Thông báo", "error");
+                    }
+                }
+            });
+        }
+    });
 </script>

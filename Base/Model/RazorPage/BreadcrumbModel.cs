@@ -14,6 +14,11 @@
             Items.Add(new(url, title, isActive));
         }
 
+        public void Add(BreadcrumbItem item)
+        {
+            Items.Add(item);
+        }
+
         public void AddRange(List<BreadcrumbItem> items)
         {
             Items.AddRange(items);
