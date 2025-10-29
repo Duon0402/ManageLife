@@ -14,7 +14,14 @@
                 <partial name="Admin/_AdminBreadcrumb" model="Options.Breadcrumb" />
             }
 
-            <div class="grid-container card" style="height: calc(100vh - 148px)">
+            @if (Options.UseFormData && IsSectionDefined(RazorPageConst.Section.Form))
+            {
+                <div class="card my-2 form-container">
+                    @RenderSection(RazorPageConst.Section.Form, required: false)
+                </div>
+            }
+
+            <div class="grid-container card" id="grid_container" style="height: calc(100vh - 148px)">
                 @RenderBody()
             </div>
         </main>

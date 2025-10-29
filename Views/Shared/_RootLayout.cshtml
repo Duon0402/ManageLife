@@ -1,6 +1,11 @@
 ﻿@{
     var title = this.GetTitle();
 
+    if (title.IsEmpty())
+    {
+        title = "Manage Life";
+    }
+
     this.UseCss(
         new ResourceLink("~/css/site.css"),
         new ResourceLink("~/lib/bootstrap/dist/css/bootstrap.min.css"),
@@ -53,7 +58,7 @@
             <script src="@item.Url" asp-append-version="@item.AppendVersion"></script>
         }
     }
-     
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

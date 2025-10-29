@@ -1,0 +1,14 @@
+﻿@{
+    Layout = RazorPageConst.Layout.RootLayout;
+    this.UseCss(new ResourceLink("~/css/client-layout.css"));
+}
+
+<div class="layout">
+    <partial name="Client/_ClientHeader" />
+
+    <div class="d-flex flex-grow-1">
+        <main class="content-container flex-grow-1 px-5 py-4">
+            @RenderBody()
+        </main>
+    </div>
+</div>

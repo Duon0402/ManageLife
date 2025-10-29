@@ -11,12 +11,14 @@
             ScriptBottomLinks = new();
             ScriptHeadLinks = new();
             CssLinks = new();
+            UseFormData = false;
         }
 
         public string Title { get; set; }
         public bool ShowTitle { get; set; }
         public BreadcrumbModel Breadcrumb { get; set; }
         public bool ShowBreadcrumb { get; set; }
+        public bool UseFormData { get; set; }
         public List<ResourceLink> ScriptBottomLinks { get; }
         public List<ResourceLink> CssLinks { get; }
         public List<ResourceLink> ScriptHeadLinks { get; }
