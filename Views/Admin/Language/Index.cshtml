@@ -34,56 +34,54 @@
     <tbody></tbody>
 </table>
 
-@section Scripts {
-    <script>
-        function loadLanguages() {
-            ajaxService.get('/Admin/Language/GetListLanguages', null, {
-                onSuccess: function (response) {
-                    if (response.isOk()) {
-                        const tbody = $('#tblLanguages tbody');
-                        tbody.empty();
+<script>
+    function loadLanguages() {
+        ajaxService.get('/Admin/Language/GetListLanguages', null, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    const tbody = $('#tblLanguages tbody');
+                    tbody.empty();
 
-                        response.data.forEach(l => {
-                            const row = `
-                                <tr>
-                                    <td>${l.code}</td>
-                                    <td>${l.name}</td>
-                                </tr>
-                            `;
-                            tbody.append(row);
-                        });
-                    } else {
-                        showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
-                    }
+                    response.data.forEach(l => {
+                        const row = `
+                                    <tr>
+                                        <td>${l.code}</td>
+                                        <td>${l.name}</td>
+                                    </tr>
+                                `;
+                        tbody.append(row);
+                    });
+                } else {
+                    showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
                 }
-            });
-        }
-
-        function createLanguage() {
-            const req = {
-                code: $("#txtCode").val(),
-                name: $("#txtName").val()
-            };
-
-            ajaxService.post('/Admin/Language/CreateLanguage', req, {
-                onSuccess: function(response) {
-                    if (response.isOk()) {
-                        showToast("Thêm thành công", "Thông báo", "success");
-                        loadLanguages();
-                        $("#txtCode").val('');
-                        $("#txtName").val('');
-                    } else {
-                        showToast(response.message || 'Thêm thất bại', 'Thông báo', 'error');
-                    }
-                }
-            });
-        }
-
-        $(function () {
-            $("#btnLoad").click(loadLanguages);
-            $("#btnCreate").click(createLanguage);
-
-            loadLanguages();
+            }
         });
-    </script>
-}
+    }
+
+    function createLanguage() {
+        const req = {
+            code: $("#txtCode").val(),
+            name: $("#txtName").val()
+        };
+
+        ajaxService.post('/Admin/Language/CreateLanguage', req, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    showToast("Thêm thành công", "Thông báo", "success");
+                    loadLanguages();
+                    $("#txtCode").val('');
+                    $("#txtName").val('');
+                } else {
+                    showToast(response.message || 'Thêm thất bại', 'Thông báo', 'error');
+                }
+            }
+        });
+    }
+
+    $(function () {
+        $("#btnLoad").click(loadLanguages);
+        $("#btnCreate").click(createLanguage);
+
+        loadLanguages();
+    });
+</script>

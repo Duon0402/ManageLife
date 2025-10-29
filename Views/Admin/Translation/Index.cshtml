@@ -45,64 +45,62 @@
     <tbody></tbody>
 </table>
 
-@section Scripts {
-    <script>
-        function loadTranslations() {
-            const req = {
-                // lấy theo ID trong selectbox
-                languageId: $("#ddlLanguageId").val() || null
-            };
+<script>
+    function loadTranslations() {
+        const req = {
+            // lấy theo ID trong selectbox
+            languageId: $("#ddlLanguageId").val() || null
+        };
 
-            ajaxService.post('/Admin/Translation/GetListTranslations', req, {
-                onSuccess: function (response) {
-                    if (response.isOk()) {
-                        const tbody = $('#tblTranslations tbody');
-                        tbody.empty();
+        ajaxService.post('/Admin/Translation/GetListTranslations', req, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    const tbody = $('#tblTranslations tbody');
+                    tbody.empty();
 
-                        response.data.forEach(t => {
-                            const row = `
-                                <tr>
-                                    <td>${t.key}</td>
-                                    <td>${t.value}</td>
-                                    <td>${t.languageName}</td>
-                                </tr>
-                            `;
-                            tbody.append(row);
-                        });
-                    } else {
-                        showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
-                    }
+                    response.data.forEach(t => {
+                        const row = `
+                                    <tr>
+                                        <td>${t.key}</td>
+                                        <td>${t.value}</td>
+                                        <td>${t.languageName}</td>
+                                    </tr>
+                                `;
+                        tbody.append(row);
+                    });
+                } else {
+                    showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
                 }
-            });
-        }
-
-        function createTranslation() {
-            const req = {
-                key: $("#txtKey").val(),
-                value: $("#txtValue").val(),
-                languageId: $("#ddlLanguageId").val()
-            };
-
-            ajaxService.post('/Admin/Translation/CreateTranslation', req, {
-                onSuccess: function (response) {
-                    if (response.isOk()) {
-                        showToast("Thêm thành công", "Thông báo", "success");
-                        loadTranslations();
-                        $("#txtKey").val('');
-                        $("#txtValue").val('');
-                        $("#ddlLanguageId").val('');
-                    } else {
-                        showToast(response.message || 'Thêm thất bại', 'Thông báo', 'error');
-                    }
-                }
-            });
-        }
-
-        $(function () {
-            $("#btnLoad").click(loadTranslations);
-            $("#btnCreate").click(createTranslation);
-
-            loadTranslations();
+            }
         });
-    </script>
-}
+    }
+
+    function createTranslation() {
+        const req = {
+            key: $("#txtKey").val(),
+            value: $("#txtValue").val(),
+            languageId: $("#ddlLanguageId").val()
+        };
+
+        ajaxService.post('/Admin/Translation/CreateTranslation', req, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    showToast("Thêm thành công", "Thông báo", "success");
+                    loadTranslations();
+                    $("#txtKey").val('');
+                    $("#txtValue").val('');
+                    $("#ddlLanguageId").val('');
+                } else {
+                    showToast(response.message || 'Thêm thất bại', 'Thông báo', 'error');
+                }
+            }
+        });
+    }
+
+    $(function () {
+        $("#btnLoad").click(loadTranslations);
+        $("#btnCreate").click(createTranslation);
+
+        loadTranslations();
+    });
+</script>
