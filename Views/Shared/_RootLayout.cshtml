@@ -50,10 +50,10 @@
     {
         foreach (var item in Options.ScriptBottomLinks)
         {
-            <script src="@item" asp-append-version="true"></script>
+            <script src="@item.Url" asp-append-version="@item.AppendVersion"></script>
         }
     }
-
+     
     @RenderSection("Scripts", required: false)
 </body>
 </html>

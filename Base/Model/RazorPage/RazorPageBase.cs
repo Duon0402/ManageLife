@@ -1,5 +1,4 @@
-﻿using ManageLife.Base.Model;
-using Microsoft.AspNetCore.Mvc.Razor;
+﻿using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ManageLife.Base

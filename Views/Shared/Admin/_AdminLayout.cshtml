@@ -1,57 +1,22 @@
 ﻿@{
-    Layout = null;
-
-    if (Options.ShowTitle)
-    {
-        ViewBag.Title = "Manage Life - Admin";
-
-        var title = Options.Title;
-
-        if (title.IsNotEmpty())
-        {
-            ViewBag.Title = $"{title} - Admin";
-        }
-    }
+    Layout = "_RootLayout";
+    this.UseCss(new ResourceLink("~/css/admin-layout.css"));
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewBag.Title</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/admin-layout.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-</head>
-<body>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+<div class="admin-layout">
+    <partial name="Admin/_AdminHeader" />
 
-    <div class="admin-layout">
-        <partial name="Admin/_AdminHeader" />
+    <div class="d-flex flex-grow-1">
+        <partial name="Admin/_AdminSidebar" />
 
-        <div class="d-flex flex-grow-1">
-            <partial name="Admin/_AdminSidebar" />
+        <main class="content-container flex-grow-1 px-5 py-4">
+            @if (Options.ShowBreadcrumb)
+            {
+                <partial name="Admin/_AdminBreadcrumb" model="Options.Breadcrumb" />
+            }
 
-            <main class="content-container flex-grow-1 px-5 py-4">
-                @if (Options.ShowBreadcrumb)
-                {
-                    <partial name="Admin/_AdminBreadcrumb" model="Options.Breadcrumb" />
-                }
-
-                <div class="grid-container card" style="height: calc(100vh - 148px)">
-                    @RenderBody()
-                </div>
-            </main>
-        </div>
+            <div class="grid-container card" style="height: calc(100vh - 148px)">
+                @RenderBody()
+            </div>
+        </main>
     </div>
-
-    <script src="@Url.Content("~/lib/bootstrap/dist/js/bootstrap.bundle.min.js")"></script>
-    <script src="@Url.Content("~/js/ajaxService.js")?v=1.0.2"></script>
-    <script src="@Url.Content("~/js/toast.js")?v=1.0.0"></script>
-    <script src="@Url.Content("~/js/loading.js")?v=1.0.0"></script>
-    <script src="@Url.Content("~/js/site.js")?v=1.0.0"></script>
-    @RenderSection("Scripts", required: false)
-</body>
-</html>
+</div>

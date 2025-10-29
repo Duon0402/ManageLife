@@ -1,6 +1,4 @@
-﻿using ManageLife.Base.Model;
-
-namespace ManageLife.Base
+﻿namespace ManageLife.Base
 {
     public interface IRazorPageBase
     {
