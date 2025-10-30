@@ -138,4 +138,6 @@
     /* Content */
     .admin-layout .content-container {
         background-color: var(--color-bg-content);
+        height: calc(100vh - 60px);
+        overflow-y: auto;
     }

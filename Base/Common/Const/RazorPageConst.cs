@@ -16,12 +16,5 @@
             public const string AdminHeader = "Admin/_AdminHeader";
             public const string AdminSidebar = "Admin/_AdminSidebar";
         }
-
-        public static class Section
-        {
-            public const string Form = "Form";
-            public const string Grid = "Grid";
-            public const string ViewScripts = "ViewScripts";
-        }
     }
 }
