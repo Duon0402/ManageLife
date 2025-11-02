@@ -55,6 +55,7 @@
 
     /* Sidebar */
     .admin-layout .sidebar-container {
+        min-width: 250px;
         background: var(--color-bg);
         overflow-y: auto;
         scrollbar-color: var(--color-text) transparent;

@@ -17,13 +17,15 @@
 </table>
 
 
-<script>
-    $(document).ready(function () {
-        loadCronJobs();
-    });
+@{
+    var loadUrl = AjaxHelper.GetActionUrl<CronJobController>(x => x.GetListCronJobs());
 
+    var dataGridOptions = new DataGridViewOptions<CronJobModel>();
+}
+
+<script>
     function loadCronJobs() {
-        ajaxService.get('/Admin/CronJob/GetListCronJobs', null, {
+        ajaxService.get('@loadUrl', null, {
             onSuccess: function (response) {
                 if (response.isOk()) {
                     const tbody = $('#cronJobsTable tbody');
@@ -32,20 +34,23 @@
                     response.data.forEach(job => {
                         const statusText = job.enabled ? 'Hoạt động' : 'Tạm dừng';
                         const row = `
-                            <tr>
-                                <td>${job.jobId}</td>
-                                <td>${job.title}</td>
-                                <td>${statusText}</td>
-                                <td>${job.url}</td>
-                            </tr>
-                        `;
+                                    <tr>
+                                        <td>${job.jobId}</td>
+                                        <td>${job.title}</td>
+                                        <td>${statusText}</td>
+                                        <td>${job.url}</td>
+                                    </tr>
+                                `;
                         tbody.append(row);
                     });
                 } else {
                     showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
                 }
-            },
+            }
         });
     }
 
+    $(document).ready(function () {
+        loadCronJobs();
+    });
 </script>
