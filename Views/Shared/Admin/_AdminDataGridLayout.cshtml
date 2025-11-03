@@ -3,7 +3,8 @@
     var title = this.GetTitle();
 
     this.UseCss(
-        new ResourceLink("https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.min.css", isCdn: true)
+        new ResourceLink("https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.min.css", isCdn: true),
+        new ResourceLink("~/css/grid-table.css")
     );
 
     this.UseScriptAtBottom(

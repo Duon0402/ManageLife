@@ -1,28 +1,6 @@
 ﻿@{
     Options.Title = "Dashboard";
 }
-
-<style>
-    /* Giữ header không bị wrap */
-    table.dataTable th,
-    table.dataTable td {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    /* Nếu muốn căn giữa text tiêu đề */
-    table.dataTable thead th {
-        vertical-align: middle !important;
-        text-align: center !important;
-    }
-
-        /* Nếu muốn header có tooltip khi bị cắt */
-        table.dataTable thead th[title] {
-            cursor: help;
-        }
-</style>
-
 <table id="gridTable" class="table-bordered">
     <thead>
         <tr>
@@ -671,7 +649,7 @@
 <script>
     $(document).ready(function () {
         $('#gridTable').DataTable({
-            scrollY: 'calc(100vh - 395px',
+            scrollY: 'calc(100vh - 395px)',
             scrollCollapse: true,
         });
     });

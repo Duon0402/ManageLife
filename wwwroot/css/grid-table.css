@@ -1,0 +1,15 @@
+﻿.grid-container table.dataTable th,
+.grid-container table.dataTable td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.grid-container table.dataTable thead th {
+    vertical-align: middle !important;
+    text-align: center !important;
+}
+
+    .grid-container table.dataTable thead th[title] {
+        cursor: help;
+    }

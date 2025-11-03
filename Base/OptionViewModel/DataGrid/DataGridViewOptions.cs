@@ -11,12 +11,14 @@
             ShowPaging = false;
             ShowSearching = false;
 
+            DataSource = new DataSourceOptions<T>();
             Columns = new List<DataGridColumn>();
         }
 
         public bool AllowInsert { get; set; }
         public bool AllowUpdate { get; set; }
         public bool AllowDelete { get; set; }
+
         public string? Id { get; set; }
 
         public string? CssClass { get; set; }
@@ -26,20 +28,17 @@
 
         public List<DataGridColumn> Columns { get; set; }
 
-        public IEnumerable<T>? DataSource { get; set; }
-
-        public Func<T, Task<T>>? OnInsert { get; set; }
-        public Func<T, Task<T>>? OnUpdate { get; set; }
-        public Func<T, Task<bool>>? OnDelete { get; set; }
-
-        public string? ControllerUrl { get; set; }
-        public string? InsertUrl { get; set; }
-        public string? UpdateUrl { get; set; }
-        public string? DeleteUrl { get; set; }
+        public DataSourceOptions<T> DataSource { get; set; }
 
         public DataGridViewOptions<T> SetColumns(List<DataGridColumn> columns)
         {
-            Columns = columns;
+            Columns = columns ?? new List<DataGridColumn>();
+            return this;
+        }
+
+        public DataGridViewOptions<T> SetDataSource(DataSourceOptions<T> source)
+        {
+            DataSource = source ?? throw new ArgumentNullException(nameof(source));
             return this;
         }
 

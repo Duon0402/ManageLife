@@ -2,38 +2,39 @@
 {
     public class DataGridColumn
     {
+        #region Constructors
+
         public DataGridColumn() { }
 
-        public DataGridColumn(string fieldName, string? headerText = null)
+        public DataGridColumn(string fieldName, string? title = null)
         {
             FieldName = fieldName;
-            HeaderText = headerText ?? fieldName;
+            Title = title ?? fieldName;
         }
 
-        public bool Visible { get; set; } = true;
+        #endregion
+
+        #region Properties
+
         public string FieldName { get; set; } = null!;
-        public string? HeaderText { get; set; }
+        public string? Title { get; set; }
+        public bool Visible { get; set; } = true;
+
         public string? CssClass { get; set; }
         public string? Width { get; set; }
+
         public bool Sortable { get; set; } = true;
         public bool Searchable { get; set; } = true;
+
         public ColumnDataType? DataType { get; set; }
 
-        public DataGridColumn AddCssClass(string cssClass)
-        {
-            if (cssClass.IsNotEmpty())
-            {
-                CssClass = CssClass.IsEmpty()
-                    ? cssClass.Trim()
-                    : $"{CssClass} {cssClass.Trim()}";
-            }
+        #endregion
 
-            return this;
-        }
+        #region Fluent Setters
 
-        public DataGridColumn SetHeader(string headerText)
+        public DataGridColumn SetTitle(string title)
         {
-            HeaderText = headerText;
+            Title = title;
             return this;
         }
 
@@ -49,7 +50,7 @@
             return this;
         }
 
-        private DataGridColumn SetDataType(ColumnDataType dataType)
+        public DataGridColumn SetDataType(ColumnDataType dataType)
         {
             DataType = dataType;
 
@@ -57,51 +58,35 @@
             {
                 case ColumnDataType.Number:
                 case ColumnDataType.Boolean:
-                    AddCssClass("text-end");
+                    SetCssClass("text-end");
                     break;
 
                 case ColumnDataType.Date:
                 case ColumnDataType.DateTime:
                 case ColumnDataType.Time:
-                    AddCssClass("text-center");
+                    SetCssClass("text-center");
                     break;
 
                 default:
-                    AddCssClass("text-start");
+                    SetCssClass("text-start");
                     break;
             }
 
             return this;
         }
+
+        public DataGridColumn SetCssClass(string cssClass)
+        {
+            if (cssClass.IsNotEmpty())
+            {
+                CssClass = CssClass.IsEmpty()
+                    ? cssClass.Trim()
+                    : $"{CssClass} {cssClass.Trim()}";
+            }
+
+            return this;
+        }
+
+        #endregion
     }
-
-    //public class DataGridColumn<TModel> : DataGridColumn where TModel : class
-    //{
-    //    public DataGridColumn() { }
-
-    //    public DataGridColumn(Expression<Func<TModel, object>> expression, string headerText)
-    //    {
-    //        if (expression == null)
-    //            throw new ArgumentNullException(nameof(expression));
-
-    //        FieldName = GetPropertyName(expression);
-    //        HeaderText = headerText ?? FieldName;
-    //    }
-
-    //    private static string GetPropertyName(Expression<Func<TModel, object>> expression)
-    //    {
-    //        if (expression.Body is MemberExpression member)
-    //        {
-    //            return member.Member.Name;
-    //        }
-    //        else if (expression.Body is UnaryExpression unary && unary.Operand is MemberExpression unaryMember)
-    //        {
-    //            return unaryMember.Member.Name;
-    //        }
-    //        else
-    //        {
-    //            throw new ArgumentException("Expression must be a property access", nameof(expression));
-    //        }
-    //    }
-    //}
 }

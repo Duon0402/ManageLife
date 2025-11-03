@@ -9,5 +9,11 @@ namespace ManageLife.Base
 
         public static bool IsNotEmpty<T>([NotNullWhen(true)] this IEnumerable<T>? collection)
             => collection != null && collection.Any();
+
+        // TODO: Thêm 1 extension convertData để load sang data table
+        public static object ConvertDataTableResult()
+        {
+            return new object();
+        }
     }
 }
