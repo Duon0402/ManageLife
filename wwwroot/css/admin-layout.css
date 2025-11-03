@@ -55,11 +55,12 @@
 
     /* Sidebar */
     .admin-layout .sidebar-container {
-        min-width: 250px;
+        max-width: 250px;
         background: var(--color-bg);
         overflow-y: auto;
         scrollbar-color: var(--color-text) transparent;
         scrollbar-width: thin;
+        transition: width 0.3s ease;
     }
 
     .admin-layout .sidebar {
