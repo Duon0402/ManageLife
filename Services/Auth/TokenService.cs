@@ -96,7 +96,7 @@ namespace ManageLife.Services
             bool b;
             try
             {
-                using var uow = await UnitOfWork.CreateAsync(_context);
+                using var uow = new UnitOfWork(_context);
 
                 if (refreshToken.IsEmpty())
                 {

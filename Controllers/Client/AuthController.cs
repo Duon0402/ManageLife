@@ -24,7 +24,7 @@ namespace ManageLife.Controllers.Client
 
         public IActionResult Register()
         {
-            return View("Regiester");
+            return View("Register");
         }
 
         public IActionResult AccessDenied()

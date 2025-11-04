@@ -31,7 +31,7 @@ namespace ManageLife.Services
 
         public async Task<Result> RegisterAsync(RegisterAccountRequest request)
         {
-            using var uow = await UnitOfWork.CreateAsync(_context);
+            using var uow = new UnitOfWork(_context);
             string msg;
             bool b;
             try
@@ -117,7 +117,7 @@ namespace ManageLife.Services
 
         public async Task<Result> LoginAsync(LoginAccountRequest request)
         {
-            using var uow = await UnitOfWork.CreateAsync(_context);
+            using var uow = new UnitOfWork(_context);
             string msg;
             bool b;
             try

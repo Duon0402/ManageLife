@@ -12,23 +12,19 @@ namespace ManageLife.Base
         private bool _committed;
         private bool _disposed;
 
-        public UnitOfWork(AppDbContext context)
+        public UnitOfWork(AppDbContext context, bool autoStartTransaction = true)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _strategy = _context.Database.CreateExecutionStrategy();
-        }
 
-        public static async Task<UnitOfWork> CreateAsync(AppDbContext context, bool autoStartTransaction = true)
-        {
-            var uow = new UnitOfWork(context);
             if (autoStartTransaction)
-                await uow.BeginTransactionAsync();
-            return uow;
+                BeginTransactionAsync().GetAwaiter().GetResult();
         }
 
         public async Task BeginTransactionAsync()
         {
-            if (_transaction != null) return;
+            if (_transaction != null)
+                return;
 
             await _strategy.ExecuteAsync(async () =>
             {
@@ -39,19 +35,13 @@ namespace ManageLife.Base
         public async Task CommitAsync()
         {
             EnsureNotDisposed();
+
             await _context.SaveChangesAsync();
+
             if (_transaction != null)
             {
                 await _transaction.CommitAsync();
                 _committed = true;
-            }
-        }
-
-        private async Task SafeRollbackAsync()
-        {
-            if (_transaction != null && !_committed)
-            {
-                try { await _transaction.RollbackAsync(); } catch { /* swallow */ }
             }
         }
 
@@ -61,9 +51,18 @@ namespace ManageLife.Base
             await SafeRollbackAsync();
         }
 
+        private async Task SafeRollbackAsync()
+        {
+            if (_transaction != null && !_committed)
+            {
+                try { await _transaction.RollbackAsync(); } catch { }
+            }
+        }
+
         private void EnsureNotDisposed()
         {
-            if (_disposed) throw new ObjectDisposedException(nameof(UnitOfWork));
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(UnitOfWork));
         }
 
         public async ValueTask DisposeAsync()
@@ -78,10 +77,10 @@ namespace ManageLife.Base
                 _transaction = null;
             }
 
-            _context.Dispose();
             _disposed = true;
         }
 
-        public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
+        public void Dispose() =>
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 }
