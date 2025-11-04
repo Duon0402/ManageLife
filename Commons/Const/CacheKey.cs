@@ -16,7 +16,7 @@ namespace ManageLife.Commons
         public static CacheKeyItem Languages(TimeSpan? expiry = null)
             => new($"{_prefix}languages", expiry);
 
-        public static CacheKeyItem MenuItems(TimeSpan? expiry = null)
-            => new($"{_prefix}menu_items", expiry);
+        public static CacheKeyItem MenuItems()
+            => new($"{_prefix}menu_items", TimeSpan.FromDays(7));
     }
 }
