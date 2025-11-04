@@ -241,13 +241,13 @@ namespace ManageLife.Services
 					.Where(x => x.Language != null && (languages.Contains(x.Language.Name) || languages.Contains(x.Language.Code)))
 					.ToListAsync();
 
-				using var unitOfWork = new UnitOfWork(_context);
+				using var uow = new UnitOfWork(_context);
 				var insertEntities = new List<TranslationEntity>();
 				var updateEntities = new List<TranslationEntity>();
 
 				if (insertEntities.IsNotEmpty())
 				{
-					b = await _repo.BulkInsertAsync(insertEntities, unitOfWork);
+					b = await _repo.BulkInsertAsync(insertEntities, uow);
 					if (!b)
 					{
 						msg = TranslationKey.Common.Message.CreateError;
@@ -257,7 +257,7 @@ namespace ManageLife.Services
 
 				if (updateEntities.IsNotEmpty())
 				{
-					b = await _repo.BulkUpdateAsync(updateEntities, unitOfWork);
+					b = await _repo.BulkUpdateAsync(updateEntities, uow);
 					if (!b)
 					{
 						msg = TranslationKey.Common.Message.UpdateError;
@@ -265,7 +265,7 @@ namespace ManageLife.Services
 					}
 				}
 
-				await unitOfWork.CommitAsync();
+				await uow.CommitAsync();
 
 				return Result.Ok();
 			}
