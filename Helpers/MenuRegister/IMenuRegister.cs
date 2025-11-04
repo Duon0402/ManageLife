@@ -4,6 +4,6 @@ namespace ManageLife.Helpers
 {
 	public interface IMenuRegister
 	{
-		public List<MenuItem> GetListMenuItems();
+		public Task<List<MenuItem>> GetListMenuItemsAsync();
 	}
 }
