@@ -1,8 +1,8 @@
 ﻿namespace ManageLife.Base
 {
-    public class DataGridViewOptions<T>
+    public class DataGridOptions<T>
     {
-        public DataGridViewOptions()
+        public DataGridOptions()
         {
             AllowInsert = false;
             AllowUpdate = false;
@@ -12,7 +12,7 @@
             ShowSearching = false;
 
             DataSource = new DataSourceOptions<T>();
-            Columns = new List<DataGridColumn>();
+            Columns = new List<DataGridColumnOptions>();
         }
 
         public bool AllowInsert { get; set; }
@@ -26,23 +26,23 @@
         public bool ShowPaging { get; set; }
         public bool ShowSearching { get; set; }
 
-        public List<DataGridColumn> Columns { get; set; }
+        public List<DataGridColumnOptions> Columns { get; set; }
 
         public DataSourceOptions<T> DataSource { get; set; }
 
-        public DataGridViewOptions<T> SetColumns(List<DataGridColumn> columns)
+        public DataGridOptions<T> SetColumns(List<DataGridColumnOptions> columns)
         {
-            Columns = columns ?? new List<DataGridColumn>();
+            Columns = columns ?? new List<DataGridColumnOptions>();
             return this;
         }
 
-        public DataGridViewOptions<T> SetDataSource(DataSourceOptions<T> source)
+        public DataGridOptions<T> SetDataSource(DataSourceOptions<T> source)
         {
             DataSource = source ?? throw new ArgumentNullException(nameof(source));
             return this;
         }
 
-        public DataGridViewOptions<T> SetCssClass(string cssClass)
+        public DataGridOptions<T> SetCssClass(string cssClass)
         {
             if (cssClass.IsNotEmpty())
             {

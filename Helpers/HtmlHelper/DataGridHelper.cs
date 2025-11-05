@@ -7,7 +7,7 @@ namespace ManageLife.Helpers
 {
     public static class DataGridHelper
     {
-        public static IHtmlContent DataGrid<T>(this IHtmlHelper htmlHelper, DataGridViewOptions<T> options)
+        public static IHtmlContent DataGrid<T>(this IHtmlHelper htmlHelper, DataGridOptions<T> options)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
@@ -29,7 +29,7 @@ namespace ManageLife.Helpers
             return gridBuilder;
         }
 
-        private static TagBuilder CreateScript<T>(DataGridViewOptions<T> options)
+        private static TagBuilder CreateScript<T>(DataGridOptions<T> options)
         {
             var tableId = options.Id;
 
