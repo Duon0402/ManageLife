@@ -1,4 +1,4 @@
-﻿namespace ManageLife.Base.Model.ViewOptions.DataTable.Column
+﻿namespace ManageLife.Base
 {
     /// <summary>
     /// Define multiple column ordering as the default order for a column.
@@ -22,6 +22,6 @@
         /// Multiple column indexes to define multi-column sorting
         /// </summary>
         /// <param name="value"></param>
-        public static implicit operator DataTableColumnOrderData(int[] value) => new(value);
+        public static implicit operator DataTableColumnOrderData(List<int> value) => new(value);
     }
 }

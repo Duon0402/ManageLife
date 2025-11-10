@@ -1,5 +1,4 @@
-﻿using ManageLife.Base.Model.ViewOptions.DataTable.Column;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace ManageLife.Base
 {
