@@ -13,7 +13,7 @@ namespace ManageLife.Base
         /// Cell type to be created for a column
         /// </summary>
         [JsonConverter(typeof(DataTableCellTypeConverter))]
-        public DataTableCellType? CellStyle { get; set; }
+        public DataTableCellType? CellType { get; set; }
 
         /// <summary>
         /// Class to assign to each cell in the column
