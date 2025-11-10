@@ -1,4 +1,6 @@
-﻿namespace ManageLife.Base
+﻿using ManageLife.Base.Model.ViewOptions.DataTable.Column;
+
+namespace ManageLife.Base
 {
     public class DataTableColumnOptionsBuilder
     {
@@ -15,7 +17,7 @@
             return this;
         }
 
-        public DataTableColumnOptionsBuilder CellType(DataTableCellType cellType)
+        public DataTableColumnOptionsBuilder CellType(DataTableColumnCellType cellType)
         {
             _options.CellType = cellType;
             return this;
@@ -39,37 +41,40 @@
             return this;
         }
 
-
-        public DataTableColumnOptionsBuilder Data(string data)
-        {
-            _options.Data = data;
-            return this;
-        }
-
-        public DataTableColumnOptionsBuilder Data(int data)
-        {
-            _options.Data = data;
-            return this;
-        }
-
-        public DataTableColumnOptionsBuilder Data()
-        {
-            _options.Data = null;
-            return this;
-        }
-
-        public DataTableColumnOptionsBuilder Data(object data)
-        {
-            _options.Data = data;
-            return this;
-        }
-
         public DataTableColumnOptionsBuilder Data(DataTableColumnData data)
         {
             _options.Data = data;
             return this;
         }
-    }
 
-    public delegate string DataTableColumnData(object row, string type, object set, object meta);
+        public DataTableColumnOptionsBuilder DefaultContent(string defaultContent)
+        {
+            _options.DefaultContent = defaultContent;
+            return this;
+        }
+
+        public DataTableColumnOptionsBuilder Footer(string footer)
+        {
+            _options.Footer = footer;
+            return this;
+        }
+
+        public DataTableColumnOptionsBuilder Name(string name)
+        {
+            _options.Name = name;
+            return this;
+        }
+
+        public DataTableColumnOptionsBuilder Orderable(bool orderable)
+        {
+            _options.Orderable = orderable;
+            return this;
+        }
+
+        public DataTableColumnOptionsBuilder OrderData(DataTableColumnOrderData orderData)
+        {
+            _options.OrderData = orderData;
+            return this;
+        }
+    }
 }

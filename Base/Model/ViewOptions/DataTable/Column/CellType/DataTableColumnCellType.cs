@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-    public enum DataTableCellType
+    public enum DataTableColumnCellType
     {
         Td,
         Th,

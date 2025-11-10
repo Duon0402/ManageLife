@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-    public enum DataTableOrderDirection
+    public enum DataTableColumnOrderDirection
     {
         /// <summary>
         /// (i.e. empty string) - data index order. Note that this option is available as of DataTables 2.0 and newe

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using ManageLife.Base.Model.ViewOptions.DataTable.Column;
+using System.Text.Json.Serialization;
 
 namespace ManageLife.Base
 {
@@ -12,8 +13,8 @@ namespace ManageLife.Base
         /// <summary>
         /// Cell type to be created for a column
         /// </summary>
-        [JsonConverter(typeof(DataTableCellTypeConverter))]
-        public DataTableCellType? CellType { get; set; }
+        [JsonConverter(typeof(DataTableColumnCellTypeConverter))]
+        public DataTableColumnCellType? CellType { get; set; }
 
         /// <summary>
         /// Class to assign to each cell in the column
@@ -43,7 +44,7 @@ namespace ManageLife.Base
         /// Type: integer, string, null, object, data(row: array/object, type: string, set: any, meta: object)
         /// Link: "https://datatables.net/reference/option/columns.data"
         /// </summary>
-        public object? Data { get; set; }
+        public DataTableColumnData? Data { get; set; }
 
         /// <summary>
         /// Set default, static, content for a column
@@ -67,20 +68,19 @@ namespace ManageLife.Base
 
         /// <summary>
         /// Define multiple column ordering as the default order for a column
-        /// Type: interger, array
         /// </summary>
-        public object? OrderData { get; set; }
+        public DataTableColumnOrderData? OrderData { get; set; }
 
         /// <summary>
         /// Live DOM sorting type assignment
         /// </summary>
         public string? OrderDataType { get; set; }
 
-        [JsonConverter(typeof(DataTableOrderDirectionConverter))]
+        [JsonConverter(typeof(DataTableColumnOrderDirectionConverter))]
         /// <summary>
         /// Order direction application sequence
         /// </summary>
-        public DataTableOrderDirection[]? OrderSequence { get; set; }
+        public DataTableColumnOrderDirection[]? OrderSequence { get; set; }
 
         /// <summary>
         /// Render (process) the data for use in the table
