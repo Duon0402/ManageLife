@@ -10,10 +10,23 @@ namespace ManageLife.Base
         public static bool IsNotEmpty<T>([NotNullWhen(true)] this IEnumerable<T>? collection)
             => collection != null && collection.Any();
 
-        // TODO: Thêm 1 extension convertData để load sang data table
-        public static object ConvertDataTableResult()
+        public static DataTableAjaxDataSrcResult ConvertDataTableResult<T>(
+            this IEnumerable<T>? collection,
+            int draw = 0,
+            int? recordsFiltered = null,
+            int? recordsTotal = null,
+            string? error = null)
         {
-            return new object();
+            var list = collection?.ToList() ?? new List<T>();
+
+            return new DataTableAjaxDataSrcResult
+            {
+                Draw = draw,
+                RecordsTotal = recordsTotal ?? list.Count,
+                RecordsFiltered = recordsFiltered ?? list.Count,
+                Data = list.Cast<object>().ToList(),
+                Error = error
+            };
         }
     }
 }
