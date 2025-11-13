@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using ManageLife.Base.Model.ViewOptions.DataTable.Ajax;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ManageLife.Base
 {

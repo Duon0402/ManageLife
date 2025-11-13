@@ -2,77 +2,82 @@
 {
     public class DataTableColumnOptionsBuilder
     {
-        private readonly DataTableColumnOptions _column = new();
-
-        public DataTableColumnOptions Build()
-        {
-            return _column;
-        }
+        private readonly DataTableColumnOptions _columnOptions = new();
 
         public DataTableColumnOptionsBuilder AriaTitle(string ariaTitle)
         {
-            _column.AriaTitle = ariaTitle;
+            _columnOptions.AriaTitle = ariaTitle;
             return this;
         }
 
         public DataTableColumnOptionsBuilder CellType(DataTableColumnCellType cellType)
         {
-            _column.CellType = cellType;
+            _columnOptions.CellType = cellType;
             return this;
         }
 
         public DataTableColumnOptionsBuilder ClassName(string className)
         {
-            _column.ClassName = className;
+            _columnOptions.ClassName = className;
             return this;
         }
 
         public DataTableColumnOptionsBuilder ContentPadding(string contentPadding)
         {
-            _column.ContentPadding = contentPadding;
+            _columnOptions.ContentPadding = contentPadding;
             return this;
         }
 
         public DataTableColumnOptionsBuilder CreatedCell(string createdCell)
         {
-            _column.CreatedCell = createdCell;
+            _columnOptions.CreatedCell = createdCell;
             return this;
         }
 
         public DataTableColumnOptionsBuilder Data(DataTableColumnData data)
         {
-            _column.Data = data;
+            _columnOptions.Data = data;
             return this;
         }
 
         public DataTableColumnOptionsBuilder DefaultContent(string defaultContent)
         {
-            _column.DefaultContent = defaultContent;
+            _columnOptions.DefaultContent = defaultContent;
             return this;
         }
 
         public DataTableColumnOptionsBuilder Footer(string footer)
         {
-            _column.Footer = footer;
+            _columnOptions.Footer = footer;
             return this;
         }
 
         public DataTableColumnOptionsBuilder Name(string name)
         {
-            _column.Name = name;
+            _columnOptions.Name = name;
             return this;
         }
 
         public DataTableColumnOptionsBuilder Orderable(bool orderable)
         {
-            _column.Orderable = orderable;
+            _columnOptions.Orderable = orderable;
             return this;
         }
 
         public DataTableColumnOptionsBuilder OrderData(DataTableColumnOrderData orderData)
         {
-            _column.OrderData = orderData;
+            _columnOptions.OrderData = orderData;
             return this;
+        }
+
+        public DataTableColumnOptions Build()
+        {
+            return _columnOptions;
+        }
+
+        public static implicit operator DataTableColumnOptions(DataTableColumnOptionsBuilder builder)
+        {
+            return builder.Build();
         }
     }
 }
