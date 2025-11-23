@@ -1,0 +1,35 @@
+﻿@{
+    Options.Title = "QR Generator";
+}
+
+<div class="form-group">
+    <input id="txt" class="form-control" placeholder="Nhập nội dung..." />
+    <button id="btnGen" class="btn btn-primary mt-2">Generate & Download</button>
+</div>
+
+<div class="mt-4" id="qrResult" style="display:none;">
+    <img id="qrImg" style="max-width:200px;border:1px solid #ccc;padding:10px;" />
+</div>
+
+<script>
+    $("#btnGen").click(function () {
+        const text = $("#txt").val();
+        if(!text) return alert("Nhập nội dung!");
+
+        $.get("/qr/generate", { text: text }, function(res) {
+            if(res.code !== "00") return alert(res.message);
+
+            // Render QR lên trang
+            $("#qrImg").attr("src", "data:image/png;base64," + res.data);
+            $("#qrResult").show();
+
+            // Tự động tải file xuống
+            const link = document.createElement("a");
+            link.href = "data:image/png;base64," + res.data;
+            link.download = "qr.png";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    });
+</script>
