@@ -13,5 +13,6 @@ namespace ManageLife.Base
         Task<bool> BulkInsertAsync(IEnumerable<T> entities, IUnitOfWork? uow = null);
         Task<bool> BulkUpdateAsync(IEnumerable<T> entities, IUnitOfWork? uow = null);
         Task<bool> BulkDeleteAsync(IEnumerable<T> entities, IUnitOfWork? uow = null);
+        Task<bool> DeleteAllAsync(IUnitOfWork? uow = null);
     }
 }

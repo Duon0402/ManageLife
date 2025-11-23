@@ -199,5 +199,32 @@ namespace ManageLife.Base
         }
 
         #endregion
+
+        public async Task<bool> DeleteAllAsync(IUnitOfWork? uow = null)
+        {
+            var entities = await _context.Set<T>()
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (entities.IsEmpty())
+                return true;
+
+            if (typeof(ISoftDelete).IsAssignableFrom(typeof(T)))
+            {
+                foreach (var entity in entities)
+                    PrepareEntityForDelete(entity);
+
+                _context.Set<T>().UpdateRange(entities);
+            }
+            else
+            {
+                _context.Set<T>().RemoveRange(entities);
+            }
+
+            if (uow == null)
+                return await _context.SaveChangesAsync() > 0;
+
+            return true;
+        }
     }
 }
