@@ -1,4 +1,4 @@
-﻿namespace ManageLife.Base.OptionModelBase
+﻿namespace ManageLife.Base
 {
 	public class ValidationViewOptions
 	{

@@ -1,6 +1,6 @@
 ﻿namespace ManageLife.Base
 {
-    public class AjaxOptions
+    public class AjaxServiceOptions
     {
         public string ContentType { get; set; } = "application/json";
 
