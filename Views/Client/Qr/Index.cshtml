@@ -1,0 +1,44 @@
+﻿@{
+    Options.Title = "QR Generator";
+}
+
+<div class="d-flex justify-content-center align-items-center">
+    <div class="d-flex flex-column align-items-center w-75">
+        <div class="mb-3 w-100">
+            <input type="text" class="form-control" id="textInput" placeholder="Nhập nội dung QR..." />
+        </div>
+        <button id="btnGenerate" class="btn btn-primary mb-3">
+            <i class="fa-solid fa-qrcode"></i> Generate & Download
+        </button>
+
+        <div id="qrContainer" class="card" style="width: 250px; height: 250px; display: none;">
+            <img id="qrImage" src="" alt="QR Preview" class="object-fit-contain w-100 h-100">
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#btnGenerate").click(function () {
+        const text = $("#textInput").val();
+        if (!text) return alert("Vui lòng nhập nội dung QR!");
+
+        $.get("/qr/generate", { text: text }, function (res) {
+            if (res.code !== "00") {
+                alert(res.message);
+                return;
+            }
+
+            const base64 = "data:image/png;base64," + res.data;
+
+            $("#qrImage").attr("src", base64);
+            $("#qrContainer").show();
+
+            const link = document.createElement("a");
+            link.href = base64;
+            link.download = "qr.png";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    });
+</script>
