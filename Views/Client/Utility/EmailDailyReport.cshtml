@@ -1,0 +1,108 @@
+﻿@{
+    Options.Title = "Generate Email Daily Report";
+}
+
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Generate Email Daily Report</h2>
+        <button id="btnGenerate" class="btn btn-primary btn-lg mt-3">Generate</button>
+    </div>
+
+    <div id="result" class="d-none mt-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <!-- Subject -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Subject</label>
+                    <div class="input-group">
+                        <input id="txtSubject" class="form-control" readonly />
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyField('#txtSubject')">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Body</label>
+                    <div class="input-group">
+                        <textarea id="txtBody" class="form-control" rows="6" readonly></textarea>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyField('#txtBody')">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Email To -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Email To</label>
+                    <div class="input-group">
+                        <input id="txtEmailTo" class="form-control" readonly />
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyField('#txtEmailTo')">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Email CC -->
+                <div class="mb-0">
+                    <label class="form-label fw-bold">Email CC</label>
+                    <div class="input-group">
+                        <input id="txtEmailCc" class="form-control" readonly />
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyField('#txtEmailCc')">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $("#btnGenerate").click(async function () {
+        const rs = await ajaxService.post('/Utility/GenerateEmailDailyReport', {}, {
+            showToast: true,
+            onSuccess: function (res) {
+                if (!res.isOk()) return;
+
+                const data = res.data;
+
+                $("#txtSubject").val(data.subject ?? "");
+                $("#txtBody").val(data.body ?? "");
+                $("#txtEmailTo").val(data.emailTo ?? "");
+                $("#txtEmailCc").val(data.emailCc ?? "");
+
+                $("#result").removeClass("d-none");
+            }
+        });
+    });
+
+    function copyField(selector) {
+        const text = $(selector).val();
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('Copy thành công!', 'Thông báo', 'success'))
+            .catch(() => showToast('Copy thất bại!', 'Thông báo', 'error'));
+    }
+</script>
+
+<style>
+    #result .card {
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+    }
+
+    .input-group .btn-sm {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        padding: 0.25rem;
+    }
+
+    .input-group .form-control[readonly] {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+</style>
