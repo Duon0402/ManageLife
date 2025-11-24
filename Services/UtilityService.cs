@@ -41,8 +41,8 @@ namespace ManageLife.Services
 
                 var emailDailyReport = new EmailDailyReportModel
                 {
-                    EmailCc = EmailDailyReportReceiver.EmailTo,
-                    EmailTo = EmailDailyReportReceiver.EmailCc,
+                    EmailTo = EmailDailyReportReceiver.EmailTo,
+                    EmailCc = EmailDailyReportReceiver.EmailCc,
                     Subject = subject,
                     Body = body
                 };
