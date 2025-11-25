@@ -20,7 +20,6 @@ namespace ManageLife.Extensions
             services.AddScoped<ITranslationService, TranslationService>();
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ICronJobService, CronJobService>();
-            services.AddScoped<TelegramService>();
             services.AddScoped<TelegramFileService>();
             return services;
         }
