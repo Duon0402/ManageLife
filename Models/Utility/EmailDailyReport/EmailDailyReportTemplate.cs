@@ -8,15 +8,16 @@
 
 Tôi là: {0}, mã nhân viên: {1}
 Đơn vị: {2}
+Phụ trách trực tiếp: {3}
 
-I. Kết quả công việc ngày {3}
-{5}
-
-II. Dự kiến công việc ngày {4}
+I. Kết quả công việc ngày {4}
 {6}
 
-III. Ý kiến đề xuất
+II. Dự kiến công việc ngày {5}
 {7}
+
+III. Ý kiến đề xuất
+{8}
 
 Trân trọng,
 {0}";

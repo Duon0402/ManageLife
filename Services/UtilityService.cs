@@ -30,6 +30,7 @@ namespace ManageLife.Services
                 var fullName = "Đặng Trường Dương";
                 var employeeCode = "002740";
                 var department = "Tổ Web - Phòng PTPM";
+                var supervisor = "Hoàng Đức Hưng";
 
                 var subject = string.Format(
                     EmailDailyReportTemplate.Subject,
@@ -43,6 +44,7 @@ namespace ManageLife.Services
                     fullName,
                     employeeCode,
                     department,
+                    supervisor,
                     today.ToString("dd.MM.yyyy"),
                     tomorrow.ToString("dd.MM.yyyy"),
                     request.TodayResult,
