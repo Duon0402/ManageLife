@@ -4,12 +4,12 @@
     {
         public static readonly List<string> EmailTo = new()
         {
-            "hunghd@hncjsc.vn"
+            "hunghd@hncjsc.vn",
+            "baocaongay.cntt@hopnhat.vn",
         };
 
         public static readonly List<string> EmailCc = new()
         {
-            "baocaongay.cntt@hopnhat.vn",
         };
     }
 }
