@@ -1,5 +1,6 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
+using ManageLife.Interfaces;
 using ManageLife.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,11 +8,11 @@ namespace ManageLife.Controllers.Client
 {
     public class TelegramController : WebClientControllerBase
     {
-        private readonly TelegramService _service;
+        private readonly ITelegramService _service;
 
-        public TelegramController(AppDbContext context, IConfiguration config, ILogger? logger = null) : base(context, logger)
+        public TelegramController(AppDbContext context, ITelegramService service, ILogger? logger = null) : base(context, logger)
         {
-            _service = new TelegramService(config);
+            _service = service;
         }
 
         public IActionResult Index()

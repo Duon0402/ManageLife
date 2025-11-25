@@ -1,6 +1,7 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
-using ManageLife.Services;
+using ManageLife.Interfaces;
+using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.API
@@ -8,18 +9,17 @@ namespace ManageLife.Controllers.API
     [Route("api/telegram")]
     public class TelegramApiController : ApiControllerBase
     {
-        private readonly TelegramService _service;
+        private readonly ITelegramService _service;
 
-        public TelegramApiController(AppDbContext context, IConfiguration config, ILogger? logger = null) : base(context, logger)
+        public TelegramApiController(AppDbContext context, ITelegramService service, ILogger? logger = null) : base(context, logger)
         {
-            _service = new TelegramService(config);
+            _service = service;
         }
 
-        [HttpGet("send-notification")]
-        public async Task<IActionResult> SendNotification()
+        [HttpPost("send-message")]
+        public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
         {
-
-            var rs = await _service.SendMessageAsync("Thông báo hàng ngày");
+            var rs = await _service.SendMessageAsync(request);
             if (rs.IsOk())
             {
                 return Ok();

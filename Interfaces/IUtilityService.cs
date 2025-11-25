@@ -5,6 +5,6 @@ namespace ManageLife.Interfaces
 {
     public interface IUtilityService
     {
-        Result<EmailDailyReportModel> GenerateEmailDailyReport();
+        Result<EmailDailyReportModel> GenerateEmailDailyReport(GenerateEmailDailyReportRequest request);
     }
 }

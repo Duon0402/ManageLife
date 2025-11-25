@@ -26,9 +26,9 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpPost]
-        public Result<EmailDailyReportModel> GenerateEmailDailyReport()
+        public Result<EmailDailyReportModel> GenerateEmailDailyReport([FromBody] GenerateEmailDailyReportRequest request)
         {
-            var rs = _service.GenerateEmailDailyReport();
+            var rs = _service.GenerateEmailDailyReport(request);
             return rs;
         }
     }
