@@ -9,8 +9,11 @@ namespace ManageLife.Services
 {
     public class UtilityService : ServiceBase, IUtilityService
     {
-        public UtilityService(AppDbContext context) : base(context)
+        private readonly IExceptionItemService _exceptionItemService;
+
+        public UtilityService(AppDbContext context, IExceptionItemService service) : base(context)
         {
+            _exceptionItemService = service;
         }
 
         public Result<EmailDailyReportModel> GenerateEmailDailyReport(GenerateEmailDailyReportRequest request)

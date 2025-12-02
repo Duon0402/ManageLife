@@ -7,6 +7,7 @@ namespace ManageLife.Extensions
     {
         public static IServiceCollection AddApplicationCustomServices(this IServiceCollection services)
         {
+            services.AddScoped<IExceptionItemService, ExceptionItemService>();
             services.AddScoped<ITelegramService, TelegramService>();
             services.AddScoped<IUtilityService, UtilityService>();
             services.AddScoped<IQrService, QrService>();

@@ -8,6 +8,9 @@ namespace ManageLife.Helpers
     {
         public AutoMapperProfiles()
         {
+            // Exception
+            CreateMap<ExceptionItemEntity, ExceptionItemModel>().ReverseMap();
+
             // TodoList
             CreateMap<TodoListEntity, TodoListModel>().ReverseMap();
             CreateMap<TodoListEntity, CreateToDoListRequest>().ReverseMap();

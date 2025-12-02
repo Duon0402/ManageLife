@@ -13,6 +13,7 @@ namespace ManageLife.Data
         }
 
         #region DbSet<>
+        public DbSet<ExceptionItemEntity> ExceptionItems { get; set; } = default!;
         public DbSet<SettingEntity> Settings { get; set; } = default!;
         public DbSet<TranslationEntity> Translations { get; set; } = default!;
         public DbSet<LanguageEntity> Languages { get; set; } = default!;

@@ -6,6 +6,7 @@ namespace ManageLife.Extensions
     {
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
+            services.AddScoped<ExceptionItemRepository>();
             services.AddScoped<SettingRepository>();
             services.AddScoped<TodoTaskRepository>();
             services.AddScoped<TodoListRepository>();

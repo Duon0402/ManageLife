@@ -3,6 +3,7 @@ using System;
 using ManageLife.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManageLife.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251202030810_UpdateExceptionItemEntity")]
+    partial class UpdateExceptionItemEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,9 +37,6 @@ namespace ManageLife.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<string>("DeletedUser")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Description")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("IsDeleted")

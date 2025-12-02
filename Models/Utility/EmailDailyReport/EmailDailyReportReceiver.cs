@@ -4,6 +4,7 @@
     {
         public static readonly List<string> EmailTo = new()
         {
+            "quynn@hncjsc.vn",
             "hunghd@hncjsc.vn",
             "baocaongay.cntt@hopnhat.vn",
         };

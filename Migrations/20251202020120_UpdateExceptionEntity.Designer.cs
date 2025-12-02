@@ -3,6 +3,7 @@ using System;
 using ManageLife.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,16 +11,17 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManageLife.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251202020120_UpdateExceptionEntity")]
+    partial class UpdateExceptionEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "6.0.36")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("ManageLife.Entities.ExceptionItemEntity", b =>
+            modelBuilder.Entity("ManageLife.Entities.ExceptionEntity", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(95)");
@@ -35,9 +37,6 @@ namespace ManageLife.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<string>("DeletedUser")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Description")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("IsDeleted")
@@ -59,7 +58,7 @@ namespace ManageLife.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExceptionItems");
+                    b.ToTable("Exceptions");
                 });
 
             modelBuilder.Entity("ManageLife.Entities.FileEntity", b =>
