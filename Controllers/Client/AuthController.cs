@@ -2,6 +2,7 @@
 using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.Client
@@ -46,11 +47,30 @@ namespace ManageLife.Controllers.Client
             return rs;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<Result> RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
             var rs = await _tokenService.RefreshTokenAsync(refreshToken);
+            return rs;
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<Result> Logout()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            var rs = await _userService.LogoutAsync(refreshToken);
+            return rs;
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<Result> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            var rs = await _userService.ChangePasswordAsync(request, refreshToken);
             return rs;
         }
     }

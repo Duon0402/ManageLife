@@ -9,8 +9,8 @@ namespace ManageLife.Interfaces
 
         public Task<Result> LoginAsync(LoginAccountRequest model);
 
-        public Task<Result> LogoutAsync(string refreshToken);
+        public Task<Result> LogoutAsync(string? refreshToken);
 
-        public Task<Result> ChangePasswordAsync(ChangePasswordRequest request);
+        public Task<Result> ChangePasswordAsync(ChangePasswordRequest request, string? refreshToken);
     }
 }

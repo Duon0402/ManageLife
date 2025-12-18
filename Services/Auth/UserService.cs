@@ -191,12 +191,18 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> LogoutAsync(string refreshToken)
+        public async Task<Result> LogoutAsync(string? refreshToken)
         {
             string msg;
             bool b;
             try
             {
+                if (refreshToken == null)
+                {
+                    msg = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
                 var tokenEntity = await _refreshRepo.GetAsync(r => r.RefreshToken == refreshToken && !r.IsRevoked);
 
                 if (tokenEntity == null)
@@ -223,38 +229,67 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> ChangePasswordAsync(ChangePasswordRequest request)
+        public async Task<Result> ChangePasswordAsync(ChangePasswordRequest request, string? refreshToken)
         {
             string msg;
             bool b;
             try
             {
-                //TODO: Hoàn thiện chức năng đổi mật khẩu
+                var validate = request.Validate();
 
-                //var validate = request.Validate();
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
 
-                //var validation = request.Validate();
-                //if (!validation.IsValid)
-                //{
-                //    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                //    return Result.Error(Result.DATA_INVALID.Code, msg);
-                //}
+                if (refreshToken == null)
+                {
+                    msg = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
 
-                //var userId = GlobalHttpContext.User?.GetUserId();
-                //var user = await _userRepo.GetAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
-                //if (user == null)
-                //{
-                //    msg = TranslationKey.Common.Message.DataInvalid;
-                //    return Result.Error(Result.DATA_INVALID.Code, msg);
-                //}
+                var userId = GlobalHttpContext.User?.GetUserId();
+                var user = await _userRepo.GetAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
+                if (user == null)
+                {
+                    msg = TranslationKey.Common.Message.DataInvalid;
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
 
-                //if (user.HashPassword != PasswordHelper.HashPassword(request.OldPassword))
-                //{
-                //    msg = "Mật khẩu cũ không đúng";
-                //    return Result.Error(Result.DATA_INVALID.Code, msg);
-                //}
+                var tokenEntity = await _refreshRepo.GetAsync(x => x.RefreshToken == refreshToken && x.UserId == user.Id && x.IsRevoked == false);
 
+                if (tokenEntity == null)
+                {
+                    msg = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
 
+                if (user.HashPassword != PasswordHelper.HashPassword(request.OldPassword))
+                {
+                    msg = "Mật khẩu cũ không đúng";
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                using var uow = new UnitOfWork(_context);
+                var newHashedPassword = PasswordHelper.HashPassword(request.NewPassword);
+                user.HashPassword = newHashedPassword;
+                b = await _userRepo.UpdateAsync(user, uow);
+                if (!b)
+                {
+                    msg = TranslationKey.Common.Message.UpdateError;
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
+                }
+
+                tokenEntity.IsRevoked = true;
+                b = await _refreshRepo.UpdateAsync(tokenEntity, uow);
+                if (!b)
+                {
+                    msg = "Không thể cập nhật token";
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
+                }
+                await uow.CommitAsync();
 
                 return Result.Ok();
             }
