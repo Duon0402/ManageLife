@@ -10,6 +10,8 @@ namespace ManageLife.Entities
         public string? FullName { get; set; }
         public bool IsActive { get; set; } = true;
 
+        public string SecurityStamp { get; set; } = null!;
+
         public string CreatedUser { get; set; } = null!;
         public DateTime CreatedTime { get; set; }
         string? ICanUpdate.UpdatedUser { get; set; }
