@@ -18,5 +18,8 @@ namespace ManageLife.Commons
 
         public static CacheKeyItem MenuItems(TimeSpan? expiry = null)
             => new($"{_prefix}menu_items", expiry);
+
+        public static CacheKeyItem SecurityStamp(string userId, TimeSpan? expiry = null)
+            => new($"{_prefix}security_stamp:{userId}", expiry);
     }
 }

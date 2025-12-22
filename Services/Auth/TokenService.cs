@@ -31,7 +31,7 @@ namespace ManageLife.Services
         }
 
         #region Access Token
-        public string GenerateAccessToken(string userId, string username, IEnumerable<string> roles)
+        public string GenerateAccessToken(string userId, string username, string securityStamp, IEnumerable<string> roles)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -39,7 +39,8 @@ namespace ManageLife.Services
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, userId),
-                new(ClaimTypes.Name, username)
+                new(ClaimTypes.Name, username),
+                new(JwtConst.SECURITY_STAMP, securityStamp)
             };
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
@@ -158,7 +159,7 @@ namespace ManageLife.Services
                     .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
                     .ToListAsync();
 
-                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, tokenEntity.User.UserName, roles);
+                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, tokenEntity.User.UserName, IdHeper.NewId(), roles);
 
                 SetTokensCookie(newAccessToken, newRefreshToken);
 

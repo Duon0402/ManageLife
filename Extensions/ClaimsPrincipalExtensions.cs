@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using ManageLife.Commons;
+using System.Security.Claims;
 
 namespace ManageLife.Extensions
 {
@@ -22,6 +23,11 @@ namespace ManageLife.Extensions
         public static bool IsInRole(this ClaimsPrincipal user, string role)
         {
             return user?.IsInRole(role) ?? false;
+        }
+
+        public static string? GetSecurityStamp(this ClaimsPrincipal user)
+        {
+            return user?.FindFirstValue(JwtConst.SECURITY_STAMP);
         }
     }
 }
