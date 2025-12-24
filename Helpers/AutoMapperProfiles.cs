@@ -25,6 +25,7 @@ namespace ManageLife.Helpers
             CreateMap<TranslationEntity, UpdateLanguageRequest>().ReverseMap();
 
             // Langugage
+            CreateMap<ChangeLanguageRequest, ChangeLanguageResult>().ReverseMap();
             CreateMap<LanguageEntity, LanguageModel>().ReverseMap();
             CreateMap<LanguageEntity, CreateLanguageRequest>().ReverseMap();
             CreateMap<LanguageEntity, UpdateLanguageRequest>().ReverseMap();

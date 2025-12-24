@@ -9,5 +9,8 @@
         void UseScriptAtBottom(params ResourceLink[] jsUrls);
 
         void UseScriptAtHead(params ResourceLink[] jsUrls);
+
+        string T(string key, params object[] args);
+        string T(string key, string languageCode, params object[] args);
     }
 }

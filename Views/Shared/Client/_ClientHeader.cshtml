@@ -1,6 +1,6 @@
 ﻿@{
-    var currentLanguageCode = LanguageHelper.GetLanguage();
-    var currentLanguageName = await LanguageHelper.GetLanguageName();
+    var currentLanguageCode = LanguageContext.GetCurrentLanguage();
+    var currentLanguageName = await LanguageContext.GetCurrentLanguageNameAsync(currentLanguageCode);
 }
 
 <header class="header d-flex justify-content-between align-items-center px-5">
@@ -85,8 +85,8 @@
                     if (res.isOk()) {
                         $('#currentLangBtn').text(langName);
 
-                        if (res.data) {
-                            window.location.href = res.data;
+                        if (res.data && res.data.returnUrl) {
+                            window.location.href = res.data.returnUrl;
                         } else {
                             location.reload();
                         }

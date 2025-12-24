@@ -3,7 +3,6 @@ using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
-using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -21,17 +20,17 @@ namespace ManageLife.Services
             _cache = cache;
         }
 
-        public async Task<Result<string?>> ChangeLanguageAsync(ChangeLanguageRequest request)
+        public async Task<Result<ChangeLanguageResult>> ChangeLanguageAsync(ChangeLanguageRequest request, string currentLanguage)
         {
             string msg;
             try
             {
-                var currentLang = LanguageHelper.GetLanguage();
+                var result = request.MapTo<ChangeLanguageResult>();
 
-                if (!string.IsNullOrEmpty(currentLang) &&
-                    string.Equals(currentLang, request.LanguageCode, StringComparison.OrdinalIgnoreCase))
+                if (currentLanguage.IsNotEmpty() &&
+                    string.Equals(currentLanguage, request.LanguageCode, StringComparison.OrdinalIgnoreCase))
                 {
-                    return Result.Ok(request.ReturnUrl);
+                    return Result.Ok(result);
                 }
 
                 var entity = await _repo.GetAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
@@ -39,17 +38,15 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
-                    return Result.Error<string?>(Result.DATA_NOT_EXISTED.Code, msg);
+                    return Result.Error<ChangeLanguageResult>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                LanguageHelper.SetLanguage(entity.Code);
-
-                return Result.Ok(request.ReturnUrl);
+                return Result.Ok(result);
             }
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
-                return Result.Exception<string?>(msg, ex);
+                return Result.Exception<ChangeLanguageResult>(msg, ex);
             }
         }
 

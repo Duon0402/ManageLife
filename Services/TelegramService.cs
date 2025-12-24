@@ -37,7 +37,7 @@ namespace ManageLife.Services
 
                 if (_chatId == null)
                 {
-                    msg = await TranslationHelper.TAsync(TranslationKey.Common.Message.DataInvalid);
+                    msg = "Không tìm thấy ChatId được cấu hình";
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 

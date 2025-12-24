@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Razor;
+﻿using ManageLife.Contexts;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ManageLife.Base
@@ -11,6 +12,21 @@ namespace ManageLife.Base
             {
                 return GetRazorPageOptions();
             }
+        }
+
+        protected ITranslationContext TranslationContext =>
+            ViewContext?.HttpContext?.RequestServices
+                .GetRequiredService<ITranslationContext>()
+            ?? throw new InvalidOperationException("TranslationContext is not available.");
+
+        public string T(string key, params object[] args)
+        {
+            return TranslationContext.TranslateAsync(key, args).GetAwaiter().GetResult();
+        }
+
+        public string T(string key, string languageCode, params object[] args)
+        {
+            return TranslationContext.TranslateAsync(key, languageCode, args).GetAwaiter().GetResult();
         }
 
         public void UseCss(params ResourceLink[] cssUrls)

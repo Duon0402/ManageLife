@@ -1,5 +1,5 @@
 ﻿@{
-    var title = await TranslationHelper.TAsync(TranslationKey.Login.Title);
+    var title = T(TranslationKey.Login.Title);
     Options.Title = title;
 }
 
@@ -9,15 +9,15 @@
             <h5 class="card-title text-center">@title</h5>
             <form id="loginForm">
                 <div class="mb-3">
-                    <label for="username" class="form-label">@await TranslationHelper.TAsync(TranslationKey.Login.Field.UserName)</label>
+                    <label for="username" class="form-label">@T(TranslationKey.Login.Field.UserName)</label>
                     <input type="text" class="form-control" id="username" name="Username" required />
                 </div>
                 <div class="mb-3">
-                    <label for="password" class="form-label">@await TranslationHelper.TAsync(TranslationKey.Login.Field.Password)</label>
+                    <label for="password" class="form-label">@T(TranslationKey.Login.Field.Password)</label>
                     <input type="password" class="form-control" id="password" name="Password" required />
                 </div>
                 <button type="submit" class="btn btn-primary w-100" id="btnLogin">
-                    @await TranslationHelper.TAsync(TranslationKey.Login.Button.Login)
+                    @T(TranslationKey.Login.Button.Login)
                 </button>
             </form>
         </div>

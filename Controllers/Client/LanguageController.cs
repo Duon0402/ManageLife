@@ -1,4 +1,5 @@
 ﻿using ManageLife.Base;
+using ManageLife.Contexts;
 using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -9,16 +10,25 @@ namespace ManageLife.Controllers.Client
     public class LanguageController : WebClientControllerBase
     {
         private readonly ILanguageService _service;
+        private readonly ILanguageContext _languageContext;
 
-        public LanguageController(AppDbContext context, ILanguageService service, ILogger? logger = null) : base(context, logger)
+        public LanguageController(AppDbContext context, ILanguageService service, ILanguageContext languageContext, ILogger? logger = null) : base(context, logger)
         {
             _service = service;
+            _languageContext = languageContext;
         }
 
         [HttpPost]
-        public Task<Result<string?>> ChangeLanguage([FromBody] ChangeLanguageRequest request)
+        public async Task<Result<ChangeLanguageResult>> ChangeLanguage([FromBody] ChangeLanguageRequest request)
         {
-            var rs = _service.ChangeLanguageAsync(request);
+            var currrentLangugage = _languageContext.GetCurrentLanguage();
+            var rs = await _service.ChangeLanguageAsync(request, currrentLangugage);
+
+            if (rs.IsOk())
+            {
+                _languageContext.SetCurrentLanguage(rs.Data.LanguageCode);
+            }
+
             return rs;
         }
 

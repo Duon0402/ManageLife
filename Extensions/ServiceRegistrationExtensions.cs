@@ -1,4 +1,5 @@
-﻿using ManageLife.Interfaces;
+﻿using ManageLife.Contexts;
+using ManageLife.Interfaces;
 using ManageLife.Services;
 
 namespace ManageLife.Extensions
@@ -7,6 +8,8 @@ namespace ManageLife.Extensions
     {
         public static IServiceCollection AddApplicationCustomServices(this IServiceCollection services)
         {
+            services.AddScoped<ITranslationContext, TranslationContext>();
+            services.AddScoped<ILanguageContext, LanguageContext>();
             services.AddScoped<IExceptionItemService, ExceptionItemService>();
             services.AddScoped<ITelegramService, TelegramService>();
             services.AddScoped<IUtilityService, UtilityService>();
@@ -21,7 +24,7 @@ namespace ManageLife.Extensions
             services.AddScoped<ITranslationService, TranslationService>();
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ICronJobService, CronJobService>();
-            services.AddScoped<TelegramFileService>();
+            services.AddScoped<TelegramFileService>(); // TODO: Bổ sung Interface cho TelegramFileService
             return services;
         }
     }

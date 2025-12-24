@@ -103,7 +103,7 @@ namespace ManageLife.Services
 
                 var roles = new List<string> { roleEntity.Name };
 
-                var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, roles);
+                var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHeper.NewId(), roles);
                 _tokenService.SetTokensCookie(accessToken, refreshToken);
 
                 return Result.Ok();
@@ -178,7 +178,7 @@ namespace ManageLife.Services
                     .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
                     .ToListAsync();
 
-                var accessToken = this._tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, roles);
+                var accessToken = this._tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHeper.NewId(), roles);
 
                 _tokenService.SetTokensCookie(accessToken, refreshToken);
 
