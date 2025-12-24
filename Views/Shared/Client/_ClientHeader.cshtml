@@ -83,8 +83,6 @@
                 showLoading: false,
                 onSuccess: function (res) {
                     if (res.isOk()) {
-                        $('#currentLangBtn').text(langName);
-
                         if (res.data && res.data.returnUrl) {
                             window.location.href = res.data.returnUrl;
                         } else {
