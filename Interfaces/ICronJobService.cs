@@ -5,6 +5,6 @@ namespace ManageLife.Interfaces
 {
     public interface ICronJobService
     {
-        public Task<Result<List<CronJobModel>>> GetListCronJobsAsync();
+        Task<Result<List<CronJobModel>>> GetListCronJobsAsync();
     }
 }

@@ -5,13 +5,13 @@ namespace ManageLife.Interfaces
 {
     public interface ITranslationService
     {
-        public Task<Result<List<TranslationModel>>> GetListTranslationsAsync(GetListTranslationsRequest request);
-        public Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request);
-        public Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request);
-        public Task<Result> CreateTranslationAsync(CreateTranslationRequest request);
-        public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request);
-        public Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request);
-        public Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request);
-		public Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request);
+        Task<Result<List<TranslationModel>>> GetListTranslationsAsync(GetListTranslationsRequest request);
+        Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request);
+        Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request);
+        Task<Result> CreateTranslationAsync(CreateTranslationRequest request);
+        Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request);
+        Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request);
+        Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request);
+		Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request);
 	}
 }
