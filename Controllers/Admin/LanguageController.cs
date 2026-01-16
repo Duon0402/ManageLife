@@ -15,6 +15,7 @@ namespace ManageLife.Controllers.Admin
             _service = service;
         }
 
+        [AccessPagePermission]
         public IActionResult Index()
         {
             return View();

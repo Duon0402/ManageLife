@@ -94,6 +94,7 @@ namespace ManageLife.Services
 
                 await _cache.SetAsync(cacheKeyItem.Key, models, cacheKeyItem.Expiry);
 
+                await _cache.RemoveAsync(CacheKey.MenuItems().Key);
                 return Result.Ok(models);
             }
             catch (Exception ex)
