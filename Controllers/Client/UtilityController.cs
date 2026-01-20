@@ -25,6 +25,7 @@ namespace ManageLife.Controllers.Client
             return View("EmailDailyReport");
         }
 
+        [Permission("GenerateEmailDailyReport")]
         [HttpPost]
         public Result<EmailDailyReportModel> GenerateEmailDailyReport([FromBody] GenerateEmailDailyReportRequest request)
         {

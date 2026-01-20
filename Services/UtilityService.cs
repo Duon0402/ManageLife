@@ -28,11 +28,14 @@ namespace ManageLife.Services
                     return Result.Error<EmailDailyReportModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var today = DateTimeHelper.VNTime().Date;
+                var currentBusinessDay = request.CurrentBusinessDay.Date;
+                var nextBusinessDay = request.NextBusinessDay.Date;
 
-                var nextBusinessDate = today.DayOfWeek == DayOfWeek.Saturday
-                    ? today.AddDays(2)
-                    : today.AddDays(1);
+                if (nextBusinessDay <= currentBusinessDay)
+                {
+                    msg = "Ngày kế tiếp phải lớn hơn ngày hiện tại.";
+                    return Result.Error<EmailDailyReportModel>(Result.DATA_INVALID.Code, msg);
+                }
 
                 var fullName = "Đặng Trường Dương";
                 var employeeCode = "002740";
@@ -42,8 +45,8 @@ namespace ManageLife.Services
                 var subject = string.Format(
                     EmailDailyReportTemplate.Subject,
                     fullName,
-                    today.ToString("dd.MM.yyyy"),
-                    nextBusinessDate.ToString("dd.MM.yyyy")
+                    currentBusinessDay.ToString("dd.MM.yyyy"),
+                    nextBusinessDay.ToString("dd.MM.yyyy")
                 );
 
                 var body = string.Format(
@@ -52,11 +55,11 @@ namespace ManageLife.Services
                     employeeCode,
                     department,
                     supervisor,
-                    today.ToString("dd.MM.yyyy"),
-                    nextBusinessDate.ToString("dd.MM.yyyy"),
-                    request.TodayResult,
-                    request.TomorrowPlan,
-                    request.Suggestion.IsNotEmpty() ? request.Suggestion : "- Không có"
+                    currentBusinessDay.ToString("dd.MM.yyyy"),
+                    nextBusinessDay.ToString("dd.MM.yyyy"),
+                    request.TodayWorkResults,
+                    request.PlannedWorkTomorrow,
+                    request.Suggestions.IsNotEmpty() ? request.Suggestions : "- Không có"
                 );
 
                 var emailDailyReport = new EmailDailyReportModel

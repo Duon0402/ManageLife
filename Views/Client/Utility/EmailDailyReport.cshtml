@@ -1,173 +1,176 @@
 ﻿@{
-    Options.Title = "Generate Email Daily Report";
-
-    const string PlaceholderToday = @"- Liệt kê các công việc đã làm, kết quả/tiến độ, lý do chưa hoàn thành. Mã task trên Jira nếu có
-- Ứng dụng AI: bắt buộc với nhóm lập trình — ghi cụ thể việc; với QA/ Triển khai: khuyến khích";
-
-    const string PlaceholderTomorrow = @"- Liệt kê công việc sẽ làm. Mã task Jira nếu có. Nêu rõ yêu cầu hỗ trợ từ nhân sự khác nếu cần
-- Ứng dụng AI: dự kiến";
-
-    const string PlaceholderSuggestion = "- Các ý kiến đề xuất nếu có. Nếu không có ghi rõ \"Không có\"";
+    Options.Title = "Daily Report Email";
 }
 
-
-<div class="container my-5">
-    <div class="text-center mb-4">
-        <h2 class="fw-bold">Generate Email Daily Report</h2>
-    </div>
-
-    <!-- Input Form -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body p-4">
-            <h5 class="fw-bold mb-3">Nhập nội dung báo cáo</h5>
-
-            <!-- I. Kết quả công việc hôm nay -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">I. Kết quả công việc hôm nay <span class="text-danger">*</span></label>
-                <textarea id="txtTodayResult"
-                          class="form-control"
-                          rows="4"
-                          placeholder="@PlaceholderToday"></textarea>
-            </div>
-
-            <!-- II. Dự kiến công việc ngày mai -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">II. Dự kiến công việc ngày mai <span class="text-danger">*</span></label>
-                <textarea id="txtTomorrowPlan"
-                          class="form-control"
-                          rows="4"
-                          placeholder="@PlaceholderTomorrow"></textarea>
-            </div>
-
-            <!-- III. Ý kiến đề xuất -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">III. Ý kiến đề xuất</label>
-                <textarea id="txtSuggestion"
-                          class="form-control"
-                          rows="3"
-                          placeholder="@PlaceholderSuggestion"></textarea>
-            </div>
-
-            <div class="text-end">
-                <button id="btnGenerate" class="btn btn-primary btn-lg px-4">
-                    Generate
-                </button>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4 col-12 mb-lg-0 mb-3">
+            <div class="card my-3 h-100">
+                <div class="card-body">
+                    <div class="card-title mb-3 pb-2 border-1 border-bottom">
+                        <h4 class="text-center">Enter your report here</h4>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-12 mb-3">
+                            <label for="currentBusinessDay" class="form-label">Current Business Day <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control datepicker" id="currentBusinessDay" style="padding: 6px 12px !important;" required>
+                        </div>
+                        <div class="col-lg-6 col-12 mb-3">
+                            <label for="nextBusinessDay" class="form-label">Next Business Day <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control datepicker" id="nextBusinessDay" style="padding: 6px 12px !important;" required>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="todayWorkResults" class="form-label">Today's Work Results <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="todayWorkResults" rows="3" required></textarea>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="plannedWorkTomorrow" class="form-label">Planned Work for Tomorrow <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="plannedWorkTomorrow" rows="3" required></textarea>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="suggestions" class="form-label">Suggestions</label>
+                            <textarea class="form-control" id="suggestions" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="genEmail()">
+                        <i class="fa-solid fa-envelope me-2"></i>
+                        <span>Generate Email</span>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Result -->
-    <div id="result" class="d-none mt-4">
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
-
-                <!-- Email To -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Email To</label>
-                    <div class="input-group">
-                        <input id="txtEmailTo" class="form-control" readonly />
-                        <button class="btn btn-outline-secondary btn-sm" onclick="copyField('#txtEmailTo')">
-                            <i class="bi bi-clipboard"></i>
-                        </button>
+        <div class="col-lg-8 col-12">
+            <div class="card my-3 h-100">
+                <div class="card-body">
+                    <div class="card-title mb-3 pb-2 border-1 border-bottom">
+                        <h4 class="text-center">Email template</h4>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="emailTo" class="form-label d-flex justify-content-between align-items-center">
+                                <span>Email To</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy" onclick="copyField('#emailTo')">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="emailTo" readonly>
+                            </div>
+                        </div>
+                        @if (true)
+                        {
+                            <div class="col-12 mb-3">
+                                <label for="emailCc" class="form-label d-flex justify-content-between align-items-center">
+                                    <span>Email CC</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy" onclick="copyField('#emailCc')">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="EmailCc" readonly>
+                                </div>
+                            </div>
+                        }
+                        <div class="col-12 mb-3">
+                            <label for="subject" class="form-label d-flex justify-content-between align-items-center">
+                                <span>Subject</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy" onclick="copyField('#subject')">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="subject" readonly>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="body" class="form-label d-flex justify-content-between align-items-center">
+                                <span>Body</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy" onclick="copyField('#body')">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </label>
+                            <div class="input-group">
+                                <textarea class="form-control" id="body" rows="9" readonly></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Email CC -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Email CC</label>
-                    <div class="input-group">
-                        <input id="txtEmailCc" class="form-control" readonly />
-                        <button class="btn btn-outline-secondary btn-sm" onclick="copyField('#txtEmailCc')">
-                            <i class="bi bi-clipboard"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Subject -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Subject</label>
-                    <div class="input-group">
-                        <input id="txtSubject" class="form-control" readonly />
-                        <button class="btn btn-outline-secondary btn-sm" onclick="copyField('#txtSubject')">
-                            <i class="bi bi-clipboard"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Body -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Body</label>
-                    <div class="input-group">
-                        <textarea id="txtBody" class="form-control" rows="8" readonly></textarea>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="copyField('#txtBody')">
-                            <i class="bi bi-clipboard"></i>
-                        </button>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    $("#btnGenerate").click(async function () {
+    $(document).ready(function () {
+        var currentDate = new Date();
+        var nextDate = new Date(currentDate);
 
-        const todayResult = $("#txtTodayResult").val().trim();
-        const tomorrowPlan = $("#txtTomorrowPlan").val().trim();
-        const suggestion = $("#txtSuggestion").val().trim();
+        if (currentDate.getDay() === 6) {
+            nextDate.setDate(currentDate.getDate() + 2);
+        } else {
+            nextDate.setDate(currentDate.getDate() + 1);
+        }
 
-        const req = {
-            todayResult,
-            tomorrowPlan,
-            suggestion
-        };
+        $('#currentBusinessDay').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true,
+            clearBtn: true
+        }).datepicker('setDate', currentDate);
 
-        const rs = await ajaxService.post('/Utility/GenerateEmailDailyReport', req, {
+        $('#nextBusinessDay').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true,
+            clearBtn: true,
+            startDate: currentDate
+        }).datepicker('setDate', nextDate);
+    });
+
+    function copyField(selector) {
+        const text = $(selector).val()?.trim();
+
+        if (!text) {
+            showToast('Không có nội dung để copy!', 'Thông báo', 'warning');
+            return;
+        }
+
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('Copy thành công!', 'Thông báo', 'success'))
+            .catch(() => showToast('Copy thất bại!', 'Thông báo', 'error'));
+    }
+
+    async function genEmail() {
+        const currentBusinessDay = $('#currentBusinessDay').datepicker('getUTCDate');
+        const nextBusinessDay = $('#nextBusinessDay').datepicker('getUTCDate');
+        const todayWorkResults = $('#todayWorkResults').val().trim();
+        const plannedWorkTomorrow = $('#plannedWorkTomorrow').val().trim();
+        const suggestions = $('#suggestions').val().trim();
+
+        var request = {
+            currentBusinessDay,
+            nextBusinessDay,
+            todayWorkResults,
+            plannedWorkTomorrow,
+            suggestions
+        }
+
+        await ajaxService.post('/Utility/GenerateEmailDailyReport', request, {
             showToast: true,
             onSuccess: function (res) {
                 if (res.isOk()) {
-                    const data = res.data;
-
-                    $("#txtSubject").val(data.subject ?? "");
-                    $("#txtBody").val(data.body ?? "");
-                    $("#txtEmailTo").val(data.emailTo ?? "");
-                    $("#txtEmailCc").val(data.emailCc ?? "");
-
-                    $("#result").removeClass("d-none");
-                    window.scrollTo({ top: $("#result").offset().top - 100, behavior: "smooth" });
+                    $('#emailTo').val(res.data.emailTo);
+                    $('#emailCc').val(res.data.emailCc);
+                    $('#subject').val(res.data.subject);
+                    $('#body').val(res.data.body);
                 }
                 else {
                     showToast(res.message || 'Error', 'Thông báo', 'error');
                 }
             }
         });
-    });
-
-    function copyField(selector) {
-        const text = $(selector).val();
-        navigator.clipboard.writeText(text)
-            .then(() => showToast('Copy thành công!', 'Thông báo', 'success'))
-            .catch(() => showToast('Copy thất bại!', 'Thông báo', 'error'));
     }
 </script>
-
-<style>
-    #result .card {
-        border-radius: 12px;
-        border: 1px solid #dee2e6;
-    }
-
-    .input-group .btn-sm {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        padding: 0.25rem;
-    }
-
-    .input-group .form-control[readonly] {
-        background-color: #f8f9fa;
-        cursor: not-allowed;
-    }
-</style>

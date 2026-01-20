@@ -4,12 +4,18 @@ namespace ManageLife.Models
 {
     public class GenerateEmailDailyReportRequest
     {
-        [Required(ErrorMessage = "Kết quả công việc hôm nay không được để trống")]
-        public string TodayResult { get; set; } = null!;
+        [Required(ErrorMessage = "CurrentBusinessDay is required")]
+        public DateTime CurrentBusinessDay { get; set; }
 
-        [Required(ErrorMessage = "Dự kiến công việc ngày mai không được để trống")]
-        public string TomorrowPlan { get; set; } = null!;
+        [Required(ErrorMessage = "NextBusinessDay is required")]
+        public DateTime NextBusinessDay { get; set; }
 
-        public string? Suggestion { get; set; }
+        [Required(ErrorMessage = "TodayWorkResults is required")]
+        public string TodayWorkResults { get; set; } = null!;
+
+        [Required(ErrorMessage = "PlannedWorkTomorrow is required")]
+        public string PlannedWorkTomorrow { get; set; } = null!;
+
+        public string? Suggestions { get; set; }
     }
 }
