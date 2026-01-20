@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ManageLife.Base.Extension
+namespace ManageLife.Base
 {
     public static class DateTimeExtension
     {

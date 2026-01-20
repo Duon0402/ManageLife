@@ -2,9 +2,8 @@
 {
     public partial class TranslationKey
     {
-        public class Logout
+        public partial class Client
         {
-            public const string Title = "TranslationKey.Logout.Title";
         }
     }
 }
