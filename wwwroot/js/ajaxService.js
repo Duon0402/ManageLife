@@ -46,7 +46,7 @@
                         showToast(res.message, 'Thông báo', res.isOk() ? 'success' : 'error');
                     resolve(res);
                 },
-                error: async function (jqXHR) {
+                error: function (jqXHR) {
                     if (jqXHR.status === 401) {
                         window.location.href = "/Auth/Login?returnUrl=" +
                             encodeURIComponent(window.location.pathname + window.location.search);
@@ -54,16 +54,25 @@
                     }
 
                     if (settings.onError) settings.onError(jqXHR);
-                    else if (settings.showToast)
-                        showToast(jqXHR.responseJSON?.message || 'Đã có lỗi xảy ra', 'Thông báo', 'error');
                     reject(jqXHR);
                 },
                 complete: settings.onComplete
             });
         });
 
-        try { return await doRequest(); }
-        finally { if (settings.showLoading) hideLoading(); }
+        try {
+            return await doRequest();
+        }
+        catch (error) {
+            if (error.responseJSON?.code === "403") {
+                showToast("Bạn không có quyền thực hiện chức năng này", 'Thông báo', 'error');
+                return;
+            }
+            showToast(error.responseJSON?.message || 'Đã có lỗi xảy ra', 'Thông báo', 'error');
+        }
+        finally {
+            if (settings.showLoading) hideLoading();
+        }
     },
 
     get: (url, params = {}, options = {}) => ajaxService.request(params ? `${url}?${$.param(params)}` : url, 'GET', null, options),

@@ -2,6 +2,7 @@
 using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.Client

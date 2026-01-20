@@ -18,7 +18,7 @@ public class PermissionAttribute : ActionFilterAttribute
 
         if (userId.IsEmpty())
         {
-            await base.OnActionExecutionAsync(context, next);
+            context.Result = new UnauthorizedResult();
             return;
         }
 
