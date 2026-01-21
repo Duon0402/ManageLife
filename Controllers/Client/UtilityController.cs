@@ -21,6 +21,7 @@ namespace ManageLife.Controllers.Client
             return View();
         }
 
+        [Authorize]
         public IActionResult EmailDailyReport()
         {
             return View("EmailDailyReport");
