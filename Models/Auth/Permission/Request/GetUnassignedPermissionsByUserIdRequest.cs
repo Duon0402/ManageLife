@@ -2,7 +2,7 @@
 
 namespace ManageLife.Models
 {
-    public class GetAssignedPermissionsByUserIdRequest
+    public class GetUnassignedPermissionsByUserIdRequest
     {
         [Required]
         public string UserId { get; set; } = null!;

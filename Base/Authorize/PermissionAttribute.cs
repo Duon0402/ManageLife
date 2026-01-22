@@ -26,7 +26,7 @@ public class PermissionAttribute : ActionFilterAttribute
         var permissionCode = BuildPermissionCode(context.RouteData, Permission);
 
         var service = httpContext.RequestServices.GetRequiredService<IPermissionService>();
-        var result = await service.GetListPermissionsByUserIdAsync(new GetListPermissionsByUserIdRequest { UserId = userId });
+        var result = await service.GetAssignedPermissionsByUserIdAsync(new GetAssignedPermissionsByUserIdRequest { UserId = userId });
 
         var permissions = result.IsOk()
             ? result.Data?.Select(p => p.Code).ToHashSet(StringComparer.OrdinalIgnoreCase)

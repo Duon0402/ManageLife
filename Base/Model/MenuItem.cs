@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ManageLife.Commons;
+using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -6,13 +7,20 @@ namespace ManageLife.Base
 {
     public class MenuItem
     {
-        public MenuItem(string title, string? icon = null, List<MenuItem>? subItems = null, string? url = null, string? permissionCode = null)
+        protected MenuItem(string title, MenuItemType menuItemType, string? icon = null, List<MenuItem>? subItems = null, string? url = null, string? permissionCode = null)
         {
             Title = title;
             Url = url;
             Icon = icon;
             SubItems = subItems ?? new List<MenuItem>();
             PermissionCode = permissionCode;
+            MenuItemType = menuItemType;
+        }
+
+        public MenuItem(string title, string icon, List<MenuItem> subItems) : this(title, MenuItemType.Group, icon, subItems)
+        {
+            if (subItems.IsEmpty())
+                throw new ArgumentException("Group menu must contain at least one sub item.", nameof(subItems));
         }
 
         public string Title { get; set; }
@@ -20,19 +28,19 @@ namespace ManageLife.Base
         public string? Icon { get; set; }
         public string? PermissionCode { get; set; }
         public List<MenuItem> SubItems { get; set; }
-
-        public bool HasSubItems => SubItems.Any();
+        public MenuItemType MenuItemType { get; set; }
+        public bool HasSubItems => SubItems.IsNotEmpty();
     }
 
     public class MenuItem<TController> : MenuItem where TController : Controller
     {
-        public MenuItem(string title, Expression<Action<TController>> action, string? icon = null, List<MenuItem>? subItems = null)
-            : base(title, icon, subItems, GetUrl(action), GetPermissionCode(action))
+        public MenuItem(string title, Expression<Action<TController>> action, string? icon = null)
+            : base(title, MenuItemType.Link, icon, null, GetUrl(action), GetPermissionCode(action))
         {
         }
 
-        public MenuItem(string title, Expression<Func<TController, Task<IActionResult>>> action, string? icon = null, List<MenuItem>? subItems = null)
-            : base(title, icon, subItems, GetUrl(action), GetPermissionCode(action))
+        public MenuItem(string title, Expression<Func<TController, Task<IActionResult>>> action, string? icon = null)
+            : base(title, MenuItemType.Link, icon, null, GetUrl(action), GetPermissionCode(action))
         {
         }
 

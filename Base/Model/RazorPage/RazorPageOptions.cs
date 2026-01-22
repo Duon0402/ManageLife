@@ -22,6 +22,24 @@
         public List<ResourceLink> ScriptBottomLinks { get; }
         public List<ResourceLink> CssLinks { get; }
         public List<ResourceLink> ScriptHeadLinks { get; }
+        public string? BackUrl { get; private set; }
+
+        public bool ShowBackButton => BackUrl.IsNotEmpty();
+
+        public void EnableBackButton(string backUrl)
+        {
+            if (backUrl.IsNotEmpty())
+            {
+                throw new ArgumentException("BackUrl cannot be null or empty.", nameof(backUrl));
+            }
+
+            BackUrl = backUrl;
+        }
+
+        public void DisableBackButton()
+        {
+            BackUrl = null;
+        }
 
         public bool HasHeadScripts
         {

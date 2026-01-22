@@ -44,6 +44,10 @@ namespace ManageLife.Helpers
                     new MenuItem<LanguageController>("Language", x => x.Index(), "fa-regular fa-circle fa-2xs"),
                     new MenuItem<TranslationController>("Translation", x => x.Index(), "fa-regular fa-circle fa-2xs"),
                 }),
+                new MenuItem("User Management", "fa-solid fa-user",new List<MenuItem>
+                {
+                    new MenuItem<PermissionController>("Permission", x => x.Index(), "fa-solid fa-key")
+                })
             };
         }
 
@@ -55,8 +59,8 @@ namespace ManageLife.Helpers
 
             if (!userId.IsEmpty())
             {
-                var req = new GetListPermissionsByUserIdRequest { UserId = userId };
-                var res = await _permissionService.GetListPermissionsByUserIdAsync(req);
+                var req = new GetAssignedPermissionsByUserIdRequest { UserId = userId };
+                var res = await _permissionService.GetAssignedPermissionsByUserIdAsync(req);
 
                 if (res.IsOk() && res.Data.IsNotEmpty())
                 {

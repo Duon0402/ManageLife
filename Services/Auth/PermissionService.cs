@@ -2,6 +2,7 @@
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Repositories;
@@ -51,13 +52,15 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<PermissionModel>>> GetListPermissionsByUserIdAsync(GetListPermissionsByUserIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByUserIdAsync(GetAssignedPermissionsByUserIdRequest request)
         {
             try
             {
-                if (request == null || request.UserId.IsEmpty())
+                var validation = request.Validate();
+                if (!validation.IsValid)
                 {
-                    return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, TranslationKey.Common.Message.DataInvalid);
+                    string msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
                 var cacheKeyItem = CacheKey.Permissions(request.UserId, TimeSpan.FromMinutes(30));
@@ -180,6 +183,50 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
+            }
+        }
+
+        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserIdAsync(GetUnassignedPermissionsByUserIdRequest request)
+        {
+            string msg;
+            try
+            {
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
+                }
+
+                var rsAssignedPermissions = await GetAssignedPermissionsByUserIdAsync(new GetAssignedPermissionsByUserIdRequest
+                {
+                    UserId = request.UserId
+                });
+
+                if (rsAssignedPermissions.IsError())
+                {
+                    msg = rsAssignedPermissions.Message;
+                    return Result.Error<List<PermissionModel>>(rsAssignedPermissions.Code, msg);
+                }
+
+                var rsAllPermissions = await GetListPermissionsAsync();
+                if (rsAssignedPermissions.IsError())
+                {
+                    msg = rsAllPermissions.Message;
+                    return Result.Error<List<PermissionModel>>(rsAllPermissions.Code, msg);
+                }
+
+                var assignedPermissions = rsAssignedPermissions.Data ?? new List<PermissionModel>();
+                var allPermissions = rsAllPermissions.Data ?? new List<PermissionModel>();
+                var assignedCodes = new HashSet<string>(assignedPermissions.Select(p => p.Code));
+                var unassignedPermissions = allPermissions.Where(p => p.Code.NotIn(assignedCodes)).ToList();
+
+                return Result.Ok(unassignedPermissions);
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                return Result.Exception<List<PermissionModel>>(msg, ex);
             }
         }
     }
