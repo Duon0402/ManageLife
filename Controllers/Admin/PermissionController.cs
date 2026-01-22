@@ -23,7 +23,7 @@ namespace ManageLife.Controllers.Admin
 
         [HttpPost]
         [ViewPermission]
-        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByUserId(GetAssignedPermissionsByUserIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByUserId([FromBody] GetAssignedPermissionsByUserIdRequest request)
         {
             var rs = await _service.GetAssignedPermissionsByUserIdAsync(request);
             return rs;
@@ -31,9 +31,25 @@ namespace ManageLife.Controllers.Admin
 
         [HttpPost]
         [ViewPermission]
-        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserId(GetUnassignedPermissionsByUserIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserId([FromBody] GetUnassignedPermissionsByUserIdRequest request)
         {
             var rs = await _service.GetUnassignedPermissionsByUserIdAsync(request);
+            return rs;
+        }
+
+        [HttpPost]
+        [Permission("AssignPermissions")]
+        public async Task<Result> AssignPermissions([FromBody] AssignPermissionsRequest request)
+        {
+            var rs = await _service.AssignPermissionsAsync(request);
+            return rs;
+        }
+
+        [HttpPost]
+        [Permission("UnassignPermissions")]
+        public async Task<Result> UnassignPermissions([FromBody] UnassignPermissionsRequest request)
+        {
+            var rs = await _service.UnassignPermissionsAsync(request);
             return rs;
         }
     }

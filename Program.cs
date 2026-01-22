@@ -29,7 +29,7 @@ using (var scope = app.Services.CreateScope())
 
     // ======= REGISTER PERMISSIONS =========
     var services = scope.ServiceProvider;
-    await services.RegisterPermissionsAsync();
+    await services.RegisterPermissionsAsync(typeof(Program).Assembly);
 }
 
 // Configure MapperBase

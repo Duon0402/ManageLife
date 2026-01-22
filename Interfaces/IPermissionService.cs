@@ -9,6 +9,8 @@ namespace ManageLife.Interfaces
         Task<Result<List<PermissionModel>>> GetListPermissionsAsync();
         Task<Result<List<PermissionModel>>> GetAssignedPermissionsByUserIdAsync(GetAssignedPermissionsByUserIdRequest request);
         Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserIdAsync(GetUnassignedPermissionsByUserIdRequest request);
+        Task<Result> AssignPermissionsAsync(AssignPermissionsRequest request);
+        Task<Result> UnassignPermissionsAsync(UnassignPermissionsRequest request);
         Task<Result> SyncPermissionsAsync(List<string> permissionCodes);
     }
 }

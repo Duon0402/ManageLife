@@ -1,15 +1,176 @@
 ﻿@{
     Options.Title = "Permission";
     Options.Breadcrumb.Add("/permission", "Permission");
+    Options.UseFormData = true;
+    Options.EnableBackButton("/admin");
 }
 
-<div class="permission-co">
+@section FormData {
+    <div class="col-4">
+        <div class="row gx-2 align-items-center">
+            <div class="col-auto">
+                <label class="col-form-label">Username</label>
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" value="admin" readonly>
+            </div>
+        </div>
 
+        <input type="hidden" id="userId" value="05754982-6856-4104-9dfa-9e83e8aaa246" />
+    </div>
+}
+
+<div class="permission-wrap">
+    <div class="d-flex w-100 h-100 justify-content-between">
+        <div class="permission-panel border rounded p-2" style="width: calc(50% - 40px);">
+            <div class="fw-bold mb-2 text-center border-1 border-bottom">
+                Unassigned Permissions
+            </div>
+            <table id="tblUnassigned" class="display w-100 table-bordered"></table>
+        </div>
+        <div class="d-flex flex-column justify-content-center align-items-center gap-3" style="width: 80px;">
+            <button id="btnAssign" class="btn btn-outline-primary" onclick="assignPermissions()">
+                <i class="fa-solid fa-angles-right"></i>
+            </button>
+            <button id="btnUnassign" class="btn btn-outline-danger" onclick="unassignPermissions()">
+                <i class="fa-solid fa-angles-left"></i>
+            </button>
+        </div>
+        <div class="permission-panel border rounded p-2" style="width: calc(50% - 40px);">
+            <div class="fw-bold mb-2 text-center border-1 border-bottom">
+                Assigned Permissions
+            </div>
+            <table id="tblAssigned" class="display w-100 table-bordered"></table>
+        </div>
+    </div>
 </div>
 
-@* <script>
-    
-    async function getUnassignedPermissionsByUserIdAsync(string userId);
+<script>
+    $(function () {
+        loadData();
+    });
 
-    async function getGetAssignedPermissionsByUserIdAsync(s)
-</script> *@
+    async function loadData() {
+        const userId = $("#userId").val();
+        if (!userId) return;
+
+        const [unassigned, assigned] = await Promise.all([
+            getUnassignedPermissionsByUserIdAsync(userId),
+            getAssignedPermissionsByUserIdAsync(userId)
+        ]);
+
+        if (!unassigned?.isOk() || !assigned?.isOk()) {
+            showToast("Load permission failed", "Thông báo", "error");
+            return;
+        }
+
+        window.tblUnassigned = initPermissionTable(
+            "#tblUnassigned",
+            unassigned.data
+        );
+
+        window.tblAssigned = initPermissionTable(
+            "#tblAssigned",
+            assigned.data
+        );
+    }
+
+    async function getUnassignedPermissionsByUserIdAsync(userId) {
+        return await ajaxService.post('/Admin/Permission/GetUnassignedPermissionsByUserId', {userId: userId }, { showToast: false })
+    }
+
+    async function getAssignedPermissionsByUserIdAsync(userId) {
+        return await ajaxService.post('/Admin/Permission/GetAssignedPermissionsByUserId', {userId: userId }, { showToast: false })
+    };
+
+    function assignPermissions() {
+        const userId = $("#userId").val();
+        const permissionIds = getSelectedPermissionIds(tblUnassigned);
+
+        if (permissionIds.length === 0) {
+            showToast("Chưa chọn permission nào", "Thông báo", "warning");
+            return;
+        }
+
+        const request = {
+            UserId: userId,
+            PermissionIds: permissionIds
+        }
+
+        ajaxService.post('/Admin/Permission/AssignPermissions', request, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    showToast("Success", "Thông báo", "success");
+                } else {
+                    showToast(response.message || 'Error', 'Thông báo', 'error');
+                }
+            }
+        })
+    }
+
+    function unassignPermissions() {
+        const userId = $("#userId").val();
+        const permissionIds = getSelectedPermissionIds(tblAssigned);
+
+        if (permissionIds.length === 0) {
+            showToast("Chưa chọn permission nào", "Thông báo", "warning");
+            return;
+        }
+
+        const request = {
+            UserId: userId,
+            PermissionIds: permissionIds
+        }
+
+        ajaxService.post('/Admin/Permission/UnassignPermissions', request, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    showToast("Success", "Thông báo", "success");
+                } else {
+                    showToast(response.message || 'Error', 'Thông báo', 'error');
+                }
+            }
+        })
+    }
+
+    function initPermissionTable(selector, data) {
+        return $(selector).DataTable({
+            scrollY: 'calc(100vh - 395px)',
+            scrollCollapse: true,
+            destroy: true,
+            data: data,
+            paging: false,
+            info: false,
+            ordering: false,
+            searching: true,
+            autoWidth: false,
+            columnDefs: [
+                {
+                    orderable: false,
+                    render: DataTable.render.select(),
+                    className: 'select-checkbox',
+                    defaultContent: '',
+                    targets: 0
+                }
+            ],
+            select: {
+                style: 'multi', 
+                selector: 'td:first-child'
+            },
+            columns: [
+                { title: "", data: null },
+                { title: "Code", data: "code" },
+                { title: "Name", data: "name" },
+                {
+                    title: "Description",
+                    data: "description",
+                    defaultContent: ""
+                }
+            ]
+        });
+    }
+
+    function getSelectedPermissionIds(table) {
+        return table.rows({ selected: true }).data().toArray().map(r => r.id);
+    }
+</script>

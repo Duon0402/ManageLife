@@ -6,14 +6,18 @@ namespace ManageLife.Extensions
 {
     public static class PermissionRegistrationExtensions
     {
-        public static async Task RegisterPermissionsAsync(this IServiceProvider services)
+        public static async Task RegisterPermissionsAsync(this IServiceProvider services, Assembly assembly)
         {
             using var scope = services.CreateScope();
             var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
 
-            var permissions = PermissionScanner.ScanPermissions(Assembly.GetExecutingAssembly());
+            var permissions = PermissionScanner.ScanPermissions(assembly);
 
-            await permissionService.SyncPermissionsAsync(permissions);
+            var result = await permissionService.SyncPermissionsAsync(permissions);
+            if (result.IsError())
+            {
+                throw new InvalidOperationException($"Permission sync failed: {result.Message}");
+            }
         }
     }
 }
