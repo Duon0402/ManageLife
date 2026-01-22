@@ -16,7 +16,7 @@
     <div class="tooltip-item-start d-flex flex-row align-items-center gap-3">
         @if (Options.ShowBackButton)
         {
-            <button class="btn btn-outline-secondary" id="back_btn">Back</button>
+            <button class="btn btn-outline-secondary" id="back_btn" onclick="onBackClick()">Back</button>
         }
         <div class="text-uppercase fw-bold">@title</div>
     </div>
@@ -31,10 +31,29 @@
 
 @if (Options.UseFormData)
 {
-    <div class="card my-2 form-container" style="height: 120px;">
+    <div class="card my-2 form-container overflow-auto" style="max-height: 120px;">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                @RenderSection("FormData", required: false)
+            </div>
+        </div>
     </div>
 }
 
-<div class="grid-container card py-2 px-3 flex-grow-1 overflow-auto" style="max-height: calc(100vh - 220px);">
-    @RenderBody()
+<div class="grid-container card flex-grow-1" style="max-height: calc(100vh - 220px);">
+    <div class="card-body overflow-auto h-100">
+        @RenderBody()
+    </div>
 </div>
+
+<script>
+    window.options = {
+        backUrl: '@(Options.BackUrl ?? string.Empty)'
+    };
+
+    function onBackClick() {
+        if (window.options.backUrl) {
+            window.location.href = window.options.backUrl;
+        }
+    }
+</script>

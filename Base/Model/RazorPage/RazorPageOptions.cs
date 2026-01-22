@@ -28,7 +28,7 @@
 
         public void EnableBackButton(string backUrl)
         {
-            if (backUrl.IsNotEmpty())
+            if (backUrl.IsEmpty())
             {
                 throw new ArgumentException("BackUrl cannot be null or empty.", nameof(backUrl));
             }
