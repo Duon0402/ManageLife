@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Entities;
 using ManageLife.Models;
 
 namespace ManageLife.Interfaces
