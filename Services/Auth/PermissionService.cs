@@ -65,41 +65,40 @@ namespace ManageLife.Services
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var cacheKeyItem = CacheKey.Permissions(request.UserId, TimeSpan.FromMinutes(30));
+                var cacheItem = CacheItems.Permissions(request.UserId);
 
-                var cachedPermissions = await _cache.TryGetValueAsync<List<PermissionModel>>(cacheKeyItem.Key);
+                var cachedPermissions = await _cache.TryGetValueAsync<List<PermissionModel>>(cacheItem);
                 if (cachedPermissions.IsNotEmpty())
                 {
                     return Result.Ok(cachedPermissions);
                 }
 
-                var userPermissions = await _repoUserPermission.Query(true)
+                var permissionIds = await _repoUserPermission.Query(true)
                     .Where(up => up.UserId == request.UserId)
-                    .Include(up => up.Permission)
-                    .Select(x => x.Permission)
+                    .Select(up => up.PermissionId)
+                    .Concat(
+                        _repoUserRole.Query(true)
+                            .Where(ur => ur.UserId == request.UserId
+                                      && ur.Status == UserPermissionStatus.Grant)
+                            .Join(
+                                _repoRolePermission.Query(true),
+                                ur => ur.RoleId,
+                                rp => rp.RoleId,
+                                (ur, rp) => rp.PermissionId
+                            )
+                    )
+                    .Distinct()
                     .ToListAsync();
 
-                var rolePermissions = await _repoUserRole.Query(true)
-                    .Where(ur => ur.UserId == request.UserId)
-                    .Join(_repoRolePermission.Query(true),
-                        ur => ur.RoleId,
-                        rp => rp.RoleId,
-                        (ur, rp) => rp.Permission)
+                var permissions = await _repoPermission.Query(true)
+                    .Where(p => permissionIds.Contains(p.Id))
                     .ToListAsync();
 
-                var allPermissions = userPermissions
-                    .Union(rolePermissions)
-                    .GroupBy(p => p!.Id)
-                    .Select(g => g.First())
-                    .ToList();
-
-                var models = allPermissions.IsNotEmpty()
-                    ? allPermissions!.MapToList<PermissionModel>()
+                var models = permissions.IsNotEmpty()
+                    ? permissions.MapToList<PermissionModel>()
                     : new List<PermissionModel>();
 
-                await _cache.SetAsync(cacheKeyItem.Key, models, cacheKeyItem.Expiry);
-
-                await _cache.RemoveAsync(CacheKey.MenuItems().Key);
+                await _cache.SetAsync(models, cacheItem);
                 return Result.Ok(models);
             }
             catch (Exception ex)
@@ -111,7 +110,8 @@ namespace ManageLife.Services
         public async Task<Result> SyncPermissionsAsync(List<string> permissionCodes)
         {
             using var uow = new UnitOfWork(_context);
-            bool b;
+            bool clearPermissionCache = false;
+
             try
             {
                 var dbPermissions = await _repoPermission.GetAllAsync();
@@ -131,22 +131,23 @@ namespace ManageLife.Services
                 if (insertPermissions.IsNotEmpty())
                 {
                     if (!await _repoPermission.BulkInsertAsync(insertPermissions, uow))
-                    {
                         return Result.DATA_NOT_CREATE;
-                    }
+
+                    clearPermissionCache = true;
                 }
 
                 if (toDelete.IsNotEmpty())
                 {
                     if (!await _repoPermission.BulkDeleteAsync(toDelete, uow))
-                    {
                         return Result.DATA_NOT_DELETE;
-                    }
+
+                    clearPermissionCache = true;
                 }
 
                 var adminRole = await _repoRole.Query()
                     .FirstOrDefaultAsync(x => x.Name == RoleConst.Admin);
 
+                var userAdminIds = new List<string>();
                 if (adminRole != null)
                 {
                     if (toDelete.IsNotEmpty())
@@ -158,11 +159,10 @@ namespace ManageLife.Services
 
                         if (adminMappingsToDelete.IsNotEmpty())
                         {
-                            b = await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete, uow);
-                            if (!b)
-                            {
+                            if (!await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete, uow))
                                 return Result.DATA_NOT_DELETE;
-                            }
+
+                            clearPermissionCache = true;
                         }
                     }
 
@@ -174,15 +174,29 @@ namespace ManageLife.Services
                             PermissionId = p.Id
                         }).ToList();
 
-                        b = await _repoRolePermission.BulkInsertAsync(rolePermissions, uow);
-                        if (!b)
-                        {
+                        if (!await _repoRolePermission.BulkInsertAsync(rolePermissions, uow))
                             return Result.DATA_NOT_CREATE;
-                        }
+
+                        clearPermissionCache = true;
+                    }
+
+                    if (clearPermissionCache)
+                    {
+                        userAdminIds = await _repoUserRole.Query(true).Where(x => x.RoleId == adminRole.Id).Select(x => x.UserId).ToListAsync();
                     }
                 }
 
                 await uow.CommitAsync();
+
+                if (clearPermissionCache && userAdminIds.IsNotEmpty())
+                {
+                    foreach (var userId in userAdminIds)
+                    {
+                        var cacheKeyItem = CacheItems.Permissions(userId);
+
+                    }
+                }
+
                 return Result.Ok();
             }
             catch (Exception ex)
@@ -190,6 +204,7 @@ namespace ManageLife.Services
                 return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
             }
         }
+
 
         public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserIdAsync(GetUnassignedPermissionsByUserIdRequest request)
         {

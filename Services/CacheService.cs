@@ -1,89 +1,136 @@
-﻿using ManageLife.Interfaces;
+﻿using ManageLife.Base;
+using ManageLife.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 using System.Text.Json;
 
-public class CacheService : ICacheService
+public sealed class CacheService : ICacheService
 {
     private readonly IDatabase _redisDb;
     private readonly IMemoryCache _memoryCache;
-    private readonly bool _useMemoryOnly;
-    private static readonly TimeSpan _defaultMemoryExpiry = TimeSpan.FromMinutes(30);
+    private readonly ILogger<CacheService> _logger;
 
     public CacheService(
         IConnectionMultiplexer redis,
         IMemoryCache memoryCache,
-        bool useMemoryOnly = false)
+        ILogger<CacheService> logger)
     {
         _redisDb = redis.GetDatabase();
         _memoryCache = memoryCache;
-        _useMemoryOnly = useMemoryOnly;
+        _logger = logger;
     }
 
-    public async Task<T?> TryGetValueAsync<T>(string key)
+    public async Task<T?> TryGetValueAsync<T>(CacheItem cacheItem)
     {
-        if (!_useMemoryOnly)
+        try
         {
-            try
+            switch (cacheItem.Mode)
             {
-                var redisValue = await _redisDb.StringGetAsync(key);
-                if (redisValue.HasValue)
-                {
-                    return JsonSerializer.Deserialize<T>(redisValue!);
-                }
-            }
-            catch
-            {
-                // Redis lỗi, fallback MemoryCache
+                case CacheMode.Redis:
+                    {
+                        var value = await _redisDb.StringGetAsync(cacheItem.Key);
+                        return value.HasValue
+                            ? JsonSerializer.Deserialize<T>(value!)
+                            : default;
+                    }
+
+                case CacheMode.Memory:
+                    {
+                        return _memoryCache.TryGetValue(cacheItem.Key, out T cached)
+                            ? cached
+                            : default;
+                    }
+
+                default:
+                    return default;
             }
         }
-
-        if (_memoryCache.TryGetValue(key, out T cached))
-            return cached;
-
-        return default;
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get cache. Key={Key}, Mode={Mode}", cacheItem.Key, cacheItem.Mode);
+            return default;
+        }
     }
 
-    public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
+    public async Task SetAsync<T>(T value, CacheItem cacheItem)
     {
         if (value == null) return;
 
-        var memoryExpiry = expiry ?? (_useMemoryOnly ? _defaultMemoryExpiry : null);
-
-        if (!_useMemoryOnly)
+        try
         {
-            try
+            switch (cacheItem.Mode)
             {
-                var json = JsonSerializer.Serialize(value);
-                var redisSucceeded = await _redisDb.StringSetAsync(key, json, expiry);
-                if (redisSucceeded) return;
-            }
-            catch
-            {
-                // Redis lỗi -> fallback MemoryCache
+                case CacheMode.Redis:
+                    {
+                        var json = JsonSerializer.Serialize(value);
+                        await _redisDb.StringSetAsync(
+                            cacheItem.Key,
+                            json,
+                            cacheItem.Expiry);
+                        break;
+                    }
+
+                case CacheMode.Memory:
+                    {
+                        _memoryCache.Set(
+                            cacheItem.Key,
+                            value,
+                            cacheItem.Expiry);
+                        break;
+                    }
             }
         }
-
-        if (memoryExpiry.HasValue)
-            _memoryCache.Set(key, value, memoryExpiry.Value);
-        else
-            _memoryCache.Set(key, value);
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to set cache. Key={Key}, Mode={Mode}", cacheItem.Key, cacheItem.Mode);
+        }
     }
 
-    public async Task RemoveAsync(string key)
+    public async Task RemoveAsync(CacheItem cacheItem)
     {
-        if (!_useMemoryOnly)
+        try
         {
-            try
+            switch (cacheItem.Mode)
             {
-                await _redisDb.KeyDeleteAsync(key);
-            }
-            catch
-            {
-                // Redis lỗi -> vẫn xóa MemoryCache
+                case CacheMode.Redis:
+                    await _redisDb.KeyDeleteAsync(cacheItem.Key);
+                    break;
+
+                case CacheMode.Memory:
+                    _memoryCache.Remove(cacheItem.Key);
+                    break;
             }
         }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to remove cache. Key={Key}, Mode={Mode}", cacheItem.Key, cacheItem.Mode);
+        }
+    }
 
-        _memoryCache.Remove(key);
+    public async Task RemoveAsync(IEnumerable<CacheItem> cacheItems)
+    {
+        if (cacheItems == null) return;
+
+        try
+        {
+            var redisKeys = cacheItems
+                .Where(x => x.Mode == CacheMode.Redis)
+                .Select(x => (RedisKey)x.Key)
+                .ToArray();
+
+            if (redisKeys.Length > 0)
+            {
+                await _redisDb.KeyDeleteAsync(redisKeys);
+            }
+
+            foreach (var item in cacheItems.Where(x => x.Mode == CacheMode.Memory))
+            {
+                _memoryCache.Remove(item.Key);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to remove cache batch. Count={Count}", cacheItems.Count());
+        }
     }
 }

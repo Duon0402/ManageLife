@@ -20,12 +20,12 @@ namespace ManageLife.Helpers
 
         public async Task<List<MenuItem>> GetListMenuItemsAsync()
         {
-            var cacheKey = CacheKey.MenuItems();
-            var baseMenu = await _cache.TryGetValueAsync<List<MenuItem>>(cacheKey.Key);
+            var cacheItem = CacheItems.MenuItems();
+            var baseMenu = await _cache.TryGetValueAsync<List<MenuItem>>(cacheItem);
             if (baseMenu == null)
             {
                 baseMenu = BuildMenuItems();
-                await _cache.SetAsync(cacheKey.Key, baseMenu, cacheKey.Expiry);
+                await _cache.SetAsync(baseMenu, cacheItem);
             }
 
             return await FilterMenuByPermissionAsync(baseMenu);

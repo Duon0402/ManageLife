@@ -1,9 +1,12 @@
-﻿namespace ManageLife.Interfaces
+﻿using ManageLife.Base;
+
+namespace ManageLife.Interfaces
 {
     public interface ICacheService
     {
-        Task SetAsync<T>(string key, T value, TimeSpan? expiry = null);
-        Task<T?> TryGetValueAsync<T>(string key);
-        Task RemoveAsync(string key);
+        Task SetAsync<T>(T value, CacheItem cacheKeyItem);
+        Task<T?> TryGetValueAsync<T>(CacheItem cacheItem);
+        Task RemoveAsync(CacheItem cacheItem);
+        Task RemoveAsync(IEnumerable<CacheItem> cacheItems);
     }
 }

@@ -1,4 +1,5 @@
-﻿using ManageLife.Base.Common;
+﻿
+using ManageLife.Base;
 
 namespace ManageLife.Entities
 {

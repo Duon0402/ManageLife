@@ -190,8 +190,8 @@ namespace ManageLife.Services
             string msg;
             try
             {
-                var cacheKeyItem = CacheKey.Languages();
-                var cached = await _cache.TryGetValueAsync<List<LanguageModel>>(cacheKeyItem.Key);
+                var cacheItem = CacheItems.Languages();
+                var cached = await _cache.TryGetValueAsync<List<LanguageModel>>(cacheItem);
                 if (cached != null)
                     return Result.Ok(cached);
 
@@ -200,7 +200,7 @@ namespace ManageLife.Services
                     ? entities.MapToList<LanguageModel>()
                     : new List<LanguageModel>();
 
-                await _cache.SetAsync(cacheKeyItem.Key, models, cacheKeyItem.Expiry);
+                await _cache.SetAsync(models, cacheItem);
 
                 return Result.Ok(models);
             }

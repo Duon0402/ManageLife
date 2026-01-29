@@ -37,13 +37,13 @@ namespace ManageLife.Contexts
         {
             languageCode ??= _languageContext.GetCurrentLanguage();
 
-            var cacheKeyItem = CacheKey.Translations(languageCode);
+            var cacheItem = CacheItems.Translations(languageCode);
 
-            if (!HttpContext.Items.TryGetValue(cacheKeyItem.Key, out var dictObj))
+            if (!HttpContext.Items.TryGetValue(cacheItem.Key, out var dictObj))
             {
                 Dictionary<string, string>? dict = null;
                 dict = await _cacheService
-                    .TryGetValueAsync<Dictionary<string, string>>(cacheKeyItem.Key);
+                    .TryGetValueAsync<Dictionary<string, string>>(cacheItem);
 
                 if (dict.IsEmpty())
                 {
@@ -53,12 +53,12 @@ namespace ManageLife.Contexts
                     if (res.IsOk() && res.Data.IsNotEmpty())
                     {
                         dict = res.Data;
-                        await _cacheService.SetAsync(cacheKeyItem.Key, dict, cacheKeyItem.Expiry);
+                        await _cacheService.SetAsync(dict, cacheItem);
                     }
                 }
 
                 dictObj = dict ?? new Dictionary<string, string>();
-                HttpContext.Items[cacheKeyItem.Key] = dictObj;
+                HttpContext.Items[cacheItem.Key] = dictObj;
             }
 
             if (dictObj is not Dictionary<string, string> translations)

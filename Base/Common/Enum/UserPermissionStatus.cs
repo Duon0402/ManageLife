@@ -1,4 +1,4 @@
-﻿namespace ManageLife.Base.Common
+﻿namespace ManageLife.Base
 {
     public enum UserPermissionStatus
     {
