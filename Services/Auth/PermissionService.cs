@@ -190,11 +190,9 @@ namespace ManageLife.Services
 
                 if (clearPermissionCache && userAdminIds.IsNotEmpty())
                 {
-                    foreach (var userId in userAdminIds)
-                    {
-                        var cacheKeyItem = CacheItems.Permissions(userId);
+                    var cacheItems = userAdminIds.SelectDistinctToList(id => CacheItems.Permissions(id));
 
-                    }
+                    await _cache.RemoveAsync(cacheItems);
                 }
 
                 return Result.Ok();
@@ -204,7 +202,6 @@ namespace ManageLife.Services
                 return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
             }
         }
-
 
         public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserIdAsync(GetUnassignedPermissionsByUserIdRequest request)
         {
