@@ -299,5 +299,22 @@ namespace ManageLife.Services
                 return Result.Exception(msg, ex);
             }
         }
+
+        #region Admin
+        public async Task<Result<List<UserModel>>> GetListUsersAsync()
+        {
+            try
+            {
+                var entities = await _userRepo.Query().Where(x => x.IsDeleted == false).ToListAsync();
+                var models = entities.MapToList<UserModel>();
+                return Result.Ok(models);
+            }
+            catch (Exception ex)
+            {
+                string msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                return Result.Exception<List<UserModel>>(msg, ex);
+            }
+        }
+        #endregion
     }
 }

@@ -12,5 +12,10 @@ namespace ManageLife.Interfaces
         Task<Result> LogoutAsync(string? refreshToken);
 
         Task<Result> ChangePasswordAsync(ChangePasswordRequest request, string? refreshToken);
+
+        #region Admin
+        Task<Result<List<UserModel>>> GetListUsersAsync();
+        
+        #endregion
     }
 }

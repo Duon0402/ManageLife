@@ -7,6 +7,7 @@ using System.Reflection;
 
 namespace ManageLife.Helpers
 {
+    //TODO: Tạm thời bỏ không dùng, sẽ cải tiến sau
     public static class AjaxHelper
     {
         public static string GetActionUrl<TController>(Expression<Func<TController, object>> action) where TController : Controller

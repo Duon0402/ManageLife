@@ -1,14 +1,13 @@
-﻿using ManageLife.Base;
-
-namespace ManageLife.Entities
+﻿namespace ManageLife.Models
 {
-    public class UserEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
+    public class UserModel
     {
+        public string Id { get; set; } = null!;
         public string UserName { get; set; } = null!;
         public string? Email { get; set; }
         public string HashPassword { get; set; } = null!;
         public string? FullName { get; set; }
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
 
         public string SecurityStamp { get; set; } = null!;
 
@@ -19,8 +18,5 @@ namespace ManageLife.Entities
         public string? DeletedUser { get; set; }
         public DateTime? DeletedTime { get; set; }
         public bool IsDeleted { get; set; }
-
-        public ICollection<UserRoleEntity> UserRoles { get; set; } = new List<UserRoleEntity>();
-        public ICollection<UserPermissionEntity> UserPermissions { get; set; } = new List<UserPermissionEntity>();
     }
 }

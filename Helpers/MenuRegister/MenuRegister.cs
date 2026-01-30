@@ -46,7 +46,8 @@ namespace ManageLife.Helpers
                 }),
                 new MenuItem("User Management", "fa-solid fa-user",new List<MenuItem>
                 {
-                    new MenuItem<PermissionController>("Permission", x => x.Index(), "fa-solid fa-key")
+                    new MenuItem<PermissionController>("Permission", x => x.Index(), "fa-solid fa-key"),
+                    new MenuItem<UserController>("User", x => x.Index(), "fa-solid fa-user"),
                 })
             };
         }

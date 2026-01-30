@@ -8,6 +8,9 @@ namespace ManageLife.Helpers
     {
         public AutoMapperProfiles()
         {
+            // User
+            CreateMap<UserEntity, UserModel>().ReverseMap();
+
             // Exception
             CreateMap<ExceptionItemEntity, ExceptionItemModel>().ReverseMap();
 
