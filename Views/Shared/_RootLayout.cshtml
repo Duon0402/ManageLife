@@ -24,7 +24,8 @@
         new ResourceLink("~/js/ajaxService.js"),
         new ResourceLink("~/js/toast.js"),
         new ResourceLink("~/js/loading.js"),
-        new ResourceLink("~/js/site.js")
+        new ResourceLink("~/js/site.js"),
+        new ResourceLink("~/js/message.js")
     );
 }
 <!DOCTYPE html>
@@ -52,7 +53,7 @@
 </head>
 <body>
     @RenderBody()
-
+    @await Html.PartialAsync("_MessageModal")
     @if (Options.HasBottomScripts)
     {
         foreach (var item in Options.ScriptBottomLinks)
