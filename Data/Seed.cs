@@ -10,50 +10,79 @@ namespace ManageLife.Data
     {
         public static async Task SeedData(AppDbContext context)
         {
-            if (!await context.Roles.AnyAsync())
+            using var transaction = await context.Database.BeginTransactionAsync();
+            try
             {
-                var adminRole = new RoleEntity()
+                var adminRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == RoleConst.Admin);
+                if (adminRole == null)
                 {
-                    Id = IdHeper.NewId(),
-                    Name = RoleConst.Admin,
-                    Description = "Quản trị viên",
-                    CreatedUser = SystemUsers.System,
-                    CreatedTime = DateTimeHelper.Now(),
-                };
-                var userRole = new RoleEntity()
+                    adminRole = new RoleEntity
+                    {
+                        Id = IdHeper.NewId(),
+                        Code = RoleConst.Admin,
+                        Name = "Admin",
+                        Description = "Quản trị viên",
+                        CreatedUser = SystemUsers.System,
+                        CreatedTime = DateTimeHelper.Now()
+                    };
+                    context.Roles.Add(adminRole);
+                }
+
+                var userRole = await context.Roles.FirstOrDefaultAsync(x => x.Code == RoleConst.User);
+                if (userRole == null)
                 {
-                    Id = IdHeper.NewId(),
-                    Name = RoleConst.User,
-                    Description = "Người dùng",
-                    CreatedUser = SystemUsers.System,
-                    CreatedTime = DateTimeHelper.Now(),
-                };
-
-                await context.Roles.AddRangeAsync(adminRole, userRole);
-
-                var adminUser = new UserEntity
-                {
-                    Id = IdHeper.NewId(),
-                    UserName = "admin",
-                    Email = "duongdangtruong.it@gmail.com",
-                    FullName = "Administrator",
-                    HashPassword = PasswordHelper.HashPassword("D@ngDuong04022002"),
-                    IsActive = true,
-                    CreatedUser = SystemUsers.System,
-                    CreatedTime = DateTimeHelper.Now(),
-                };
-
-                await context.Users.AddAsync(adminUser);
-
-                var adminUserRole = new UserRoleEntity
-                {
-                    UserId = adminUser.Id,
-                    RoleId = adminRole.Id
-                };
-
-                await context.UserRoles.AddAsync(adminUserRole);
+                    userRole = new RoleEntity
+                    {
+                        Id = IdHeper.NewId(),
+                        Code = RoleConst.User,
+                        Name = "User",
+                        Description = "Người dùng",
+                        CreatedUser = SystemUsers.System,
+                        CreatedTime = DateTimeHelper.Now()
+                    };
+                    context.Roles.Add(userRole);
+                }
 
                 await context.SaveChangesAsync();
+
+                var adminUser = await context.Users.FirstOrDefaultAsync(x => x.UserName == "admin");
+                if (adminUser == null)
+                {
+                    adminUser = new UserEntity
+                    {
+                        Id = IdHeper.NewId(),
+                        UserName = "admin",
+                        Email = "admin@system.local",
+                        FullName = "Administrator",
+                        HashPassword = PasswordHelper.HashPassword(
+                            Environment.GetEnvironmentVariable("ADMIN_DEFAULT_PASSWORD") ?? "D@ngDuong0402"
+                        ),
+                        IsActive = true,
+                        CreatedUser = SystemUsers.System,
+                        CreatedTime = DateTimeHelper.Now()
+                    };
+                    context.Users.Add(adminUser);
+                    await context.SaveChangesAsync();
+                }
+
+                var hasRole = await context.UserRoles.AnyAsync(x => x.UserId == adminUser.Id && x.RoleId == adminRole.Id);
+
+                if (!hasRole)
+                {
+                    context.UserRoles.Add(new UserRoleEntity
+                    {
+                        UserId = adminUser.Id,
+                        RoleId = adminRole.Id
+                    });
+                    await context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
         }
     }

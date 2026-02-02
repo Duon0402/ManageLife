@@ -4,6 +4,7 @@ namespace ManageLife.Entities
 {
     public class RoleEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
     {
+        public string Code { get; set; } = null!;
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
 
