@@ -47,6 +47,7 @@ namespace ManageLife.Helpers
                 new MenuItem("User Management", "fa-solid fa-user",new List<MenuItem>
                 {
                     new MenuItem<UserController>("User", x => x.Index(), "fa-solid fa-user"),
+                    new MenuItem<RoleController>("Role", x => x.Index(), "fa-solid fa-shield"),
                 })
             };
         }

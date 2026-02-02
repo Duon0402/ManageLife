@@ -8,6 +8,10 @@ namespace ManageLife.Helpers
     {
         public AutoMapperProfiles()
         {
+            // Role
+            CreateMap<RoleEntity, RoleModel>().ReverseMap();
+            CreateMap<RoleEntity, CreateRoleRequest>().ReverseMap();
+
             // User
             CreateMap<UserEntity, UserModel>().ReverseMap();
 

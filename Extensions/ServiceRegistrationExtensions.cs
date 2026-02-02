@@ -8,6 +8,7 @@ namespace ManageLife.Extensions
     {
         public static IServiceCollection AddApplicationCustomServices(this IServiceCollection services)
         {
+            services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ITranslationContext, TranslationContext>();
             services.AddScoped<ILanguageContext, LanguageContext>();
             services.AddScoped<IExceptionItemService, ExceptionItemService>();

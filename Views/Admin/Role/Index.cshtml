@@ -1,0 +1,138 @@
+﻿@{
+    Options.Title = "Role";
+    Options.Breadcrumb.Add("/admin/role", "Role");
+}
+<style>
+    #tblRole_wrapper .dt-search label {
+        display: none;
+    }
+</style>
+
+<div class="role-wrap">
+    <table id="tblRole" class="display w-100 table-bordered"></table>
+</div>
+@await Html.PartialAsync("~/Views/Admin/Role/_RoleModal.cshtml")
+
+<script>
+    let roleTable = null;
+
+    $(function () {
+        roleTable = initTable("#tblRole");
+        loadData();
+    });
+
+    function loadData() {
+        getListUsersAsync();
+    }
+
+    async function getListUsersAsync() {
+        ajaxService.get('/Admin/Role/GetListRoles', null, {
+            onSuccess: function (response) {
+                if (response.isOk()) {
+                    const data = response.data || [];
+
+                    roleTable.clear();
+                    roleTable.rows.add(data);
+                    roleTable.draw();
+
+                } else {
+                    showToast(response.message || 'Error', 'Thông báo', 'error');
+                }
+            },
+            onError: function () {
+                showToast('Không thể tải danh sách user', 'Thông báo', 'error');
+            }
+        });
+    }
+
+    function initTable(selector) {
+        return $(selector).DataTable({
+            buttons: [
+                {
+                    text: '<i class="fa-solid fa-plus"></i>',
+                    className: 'btn btn-sm btn-outline-secondary',
+                    titleAttr: 'Thêm mới',
+                    action: function () {
+                        openCreateRoleModal();
+                    }
+                }
+            ],
+            layout: {
+                topEnd: [
+                    'buttons',
+                    'search'
+                ],
+            },
+            scrollY: 'calc(100vh - 395px)',
+            scrollCollapse: true,
+            destroy: true,
+            data: [],
+            paging: false,
+            info: false,
+            ordering: false,
+            searching: true,
+            autoWidth: false,
+            columns: [
+                { title: "ID", data: "id" },
+                { title: "Name", data: "name" },
+                { title: "Description", data: "description", defaultContent: "" },
+            ]
+        });
+    }
+
+    function openCreateRoleModal() {
+        openRoleModal(null);
+    }
+
+    function openEditRoleModal(id) {
+        openRoleModal(id);
+    }
+
+    function openRoleModal(id) {
+        const isEdit = id !== null;
+
+        resetRoleForm();
+
+        if (isEdit) {
+            $('#roleModalTitle').text('Cập nhật Role');
+            // loadRoleDetail(id);
+        } else {
+            $('#roleModalTitle').text('Thêm mới Role');
+        }
+
+        $('#roleModal').modal('show');
+    }
+
+    function resetRoleForm() {
+        $('#roleId').val('');
+        $('#roleName').val('');
+        $('#roleDescription').val('');
+    }
+
+    function submitRole() {
+        const id = $('#roleId').val();
+        const isEdit = !!id;
+
+        const payload = {
+            id: id || null,
+            name: $('#roleName').val(),
+            description: $('#roleDescription').val()
+        };
+
+        const url = isEdit
+            ? '/Admin/Role/UpdateRole'
+            : '/Admin/Role/CreateRole';
+
+        ajaxService.post(url, payload, {
+            onSuccess: function (res) {
+                if (res.isOk()) {
+                    showToast('Lưu thành công', 'Thông báo', 'success');
+                    $('#roleModal').modal('hide');
+                    loadData();
+                } else {
+                    showToast(res.message, 'Lỗi', 'error');
+                }
+            }
+        });
+    }
+</script>
