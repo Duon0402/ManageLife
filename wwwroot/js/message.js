@@ -41,9 +41,6 @@ const messageConfig = {
 
 function showMessage({ type, message, title, onConfirm, onCancel }) {
     const cfg = messageConfig[type];
-
-    console.log(cfg);
-
     if (!cfg) throw "Unsupported message type";
 
     $("#messageIcon").attr("class", cfg.icon);

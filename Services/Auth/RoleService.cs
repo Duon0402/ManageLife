@@ -57,6 +57,41 @@ namespace ManageLife.Services
             }
         }
 
+        public async Task<Result> DeleteRoleAsync(DeleteRoleRequest request)
+        {
+            string msg;
+            try
+            {
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                var entity = await _repoRole.FirstOrDefaultAsync(x => x.Id == request.RoleId && x.IsDeleted == false);
+                if (entity == null)
+                {
+                    msg = "Không tìm thấy Role";
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var b = await _repoRole.DeleteAsync(entity);
+                if (!b)
+                {
+                    msg = "Không thể xóa Role";
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                return Result.Exception(msg, ex);
+            }
+        }
+
         public async Task<Result<List<RoleModel>>> GetListRolesAsync()
         {
             string msg;

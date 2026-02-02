@@ -77,6 +77,23 @@
                 { title: "Code", data: "code" },
                 { title: "Name", data: "name" },
                 { title: "Description", data: "description", defaultContent: "" },
+                                {
+                    title: "",
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: "text-center",
+                    width: "120px",
+                    render: function (data) {
+                        return `
+                            <button class="btn btn-sm btn-outline-danger btn-delete"
+                                    data-id="${data.id}"
+                                    title="Xóa">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        `;
+                    }
+                }
             ]
         });
     }
@@ -135,6 +152,37 @@
                 } else {
                     showToast(res.message, 'Lỗi', 'error');
                 }
+            }
+        });
+    }
+
+    $('#tblRole').on('click', '.btn-delete', function () {
+        const id = $(this).data('id');
+        confirmDeleteRole(id);
+    });
+
+    function confirmDeleteRole(id) {
+        message.confirm(
+            "Bạn có chắc chắn muốn xoá role này?",
+            () => {
+                deleteRole(id);
+            },
+            "Xác nhận xoá"
+        );
+    }
+
+    function deleteRole(id) {
+        ajaxService.post('/Admin/Role/DeleteRole', { roleId: id }, {
+            onSuccess: function (res) {
+                if (res.isOk()) {
+                    showToast('Xóa thành công', 'Thông báo', 'success');
+                    loadData();
+                } else {
+                    showToast(res.message, 'Lỗi', 'error');
+                }
+            },
+            onError: function () {
+                showToast('Không thể xóa role', 'Lỗi', 'error');
             }
         });
     }

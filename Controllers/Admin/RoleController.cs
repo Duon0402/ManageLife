@@ -36,5 +36,13 @@ namespace ManageLife.Controllers.Admin
             var rs = await _service.CreateRoleAsync(request);
             return rs;
         }
+
+        [DeletePermission]
+        [HttpPost]
+        public async Task<Result> DeleteRole([FromBody] DeleteRoleRequest request)
+        {
+            var rs = await _service.DeleteRoleAsync(request);
+            return rs;
+        }
     }
 }
