@@ -28,5 +28,13 @@ namespace ManageLife.Controllers.Admin
             var rs = await _userService.GetListUsersAsync();
             return rs;
         }
+
+        [HttpPost]
+        [ViewPermission]
+        public async Task<Result<UserModel>> GetUserById([FromBody] GetUserIdRequest request)
+        {
+            var rs = await _userService.GetUserIdAsync(request);
+            return rs;
+        }
     }
 }

@@ -2,6 +2,7 @@
 using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.Admin
@@ -9,16 +10,27 @@ namespace ManageLife.Controllers.Admin
     public class PermissionController : WebAdminControllerBase
     {
         private readonly IPermissionService _service;
+        private readonly IUserService _userService;
 
-        public PermissionController(AppDbContext context, IPermissionService service, ILogger? logger = null) : base(context, logger)
+        public PermissionController(AppDbContext context, IPermissionService service, IUserService userService, ILogger? logger = null) : base(context, logger)
         {
             _service = service;
+            _userService = userService;
         }
 
         [AccessPagePermission]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(string userId)
         {
-            return View();
+            var viewModel = new AdminPermissionViewModel();
+            var rsUser = await _userService.GetUserIdAsync(new GetUserIdRequest { UserId = userId });
+
+            if (rsUser.IsOk() && rsUser.Data != null)
+            {
+                viewModel.UserId = rsUser.Data.Id;
+                viewModel.UserName = rsUser.Data.UserName;
+            }
+
+            return View(viewModel);
         }
 
         [HttpPost]

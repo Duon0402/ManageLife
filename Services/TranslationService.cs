@@ -63,7 +63,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
-                var cacheItem = CacheItems.Translations(language.Code);
+                var cacheItem = CacheSettings.Translations(language.Code);
                 await _cache.RemoveAsync(cacheItem);
 
                 return Result.Ok();
@@ -120,7 +120,7 @@ namespace ManageLife.Services
                     return Result.Error<Dictionary<string, string>>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var cacheItem = CacheItems.Translations(request.LanguageCode);
+                var cacheItem = CacheSettings.Translations(request.LanguageCode);
 
                 dictionary = await _cache.TryGetValueAsync<Dictionary<string, string>>(cacheItem);
 

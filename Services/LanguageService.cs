@@ -190,7 +190,7 @@ namespace ManageLife.Services
             string msg;
             try
             {
-                var cacheItem = CacheItems.Languages();
+                var cacheItem = CacheSettings.Languages();
                 var cached = await _cache.TryGetValueAsync<List<LanguageModel>>(cacheItem);
                 if (cached != null)
                     return Result.Ok(cached);

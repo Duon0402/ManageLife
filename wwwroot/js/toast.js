@@ -1,4 +1,16 @@
-﻿function showToast(message, title = 'Thông báo', type = 'info', duration = 3000) {
+﻿//TODO: Cải tiến thêm các default vào
+//const toastType = {
+//    success: 'success',
+//    info: 'info',
+//    error: 'error',
+//    warning: 'warning'
+//}
+
+//const toastConfig = {
+
+//}
+
+function showToast(message, title = 'Thông báo', type = 'info', duration = 3000) {
     const config = {
         success: { color: '#28a745', icon: 'bi-check-circle-fill' },
         error: { color: '#dc3545', icon: 'bi-x-circle-fill' },

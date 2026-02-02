@@ -1,12 +1,7 @@
-﻿
-using ManageLife.Base;
-
-namespace ManageLife.Entities
+﻿namespace ManageLife.Entities
 {
     public class UserRoleEntity
     {
-        public UserPermissionStatus Status { get; set; } = UserPermissionStatus.Grant;
-
         public string UserId { get; set; } = null!;
         public UserEntity User { get; set; } = null!;
 

@@ -86,6 +86,9 @@
     $('#tblUser').on('click', '.btn-permission', function () {
         const table = $('#tblUser').DataTable();
         const rowData = table.row($(this).closest('tr')).data();
-        console.log("Row Data:", rowData);
+
+        if (!rowData?.id) return;
+
+        window.location.href = `/admin/permission?userId=${rowData.id}`;
     });
 </script>

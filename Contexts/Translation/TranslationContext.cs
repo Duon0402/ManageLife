@@ -37,7 +37,7 @@ namespace ManageLife.Contexts
         {
             languageCode ??= _languageContext.GetCurrentLanguage();
 
-            var cacheItem = CacheItems.Translations(languageCode);
+            var cacheItem = CacheSettings.Translations(languageCode);
 
             if (!HttpContext.Items.TryGetValue(cacheItem.Key, out var dictObj))
             {

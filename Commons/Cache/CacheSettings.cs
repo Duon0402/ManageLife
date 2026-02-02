@@ -2,7 +2,7 @@
 
 namespace ManageLife.Commons
 {
-    public static class CacheItems
+    public static class CacheSettings
     {
         private const string _prefix = "manage_life:";
 

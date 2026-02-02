@@ -20,7 +20,7 @@ namespace ManageLife.Services
         private readonly UserRefreshTokenRepository _refreshRepo;
         private readonly ITokenService _tokenService;
 
-        public UserService(AppDbContext context, IConfiguration config, ITokenService tokenService) : base(context)
+        public UserService(AppDbContext context, ITokenService tokenService) : base(context)
         {
             _userRepo = new UserRepository(_context);
             _roleRepo = new RoleRepository(_context);
@@ -313,6 +313,35 @@ namespace ManageLife.Services
             {
                 string msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 return Result.Exception<List<UserModel>>(msg, ex);
+            }
+        }
+
+        public async Task<Result<UserModel>> GetUserIdAsync(GetUserIdRequest request)
+        {
+            string msg;
+            try
+            {
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error<UserModel>(Result.DATA_INVALID.Code, msg);
+                }
+
+                var entity = await _userRepo.FirstOrDefaultAsync(x => x.Id == request.UserId && x.IsDeleted == false);
+                if (entity == null)
+                {
+                    msg = "User không tồn tại";
+                    return Result.Error<UserModel>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var model = entity.MapTo<UserModel>();
+                return Result.Ok(model);
+            }
+            catch (Exception ex)
+            {
+                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                return Result.Exception<UserModel>(msg, ex);
             }
         }
         #endregion

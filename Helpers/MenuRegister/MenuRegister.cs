@@ -20,7 +20,7 @@ namespace ManageLife.Helpers
 
         public async Task<List<MenuItem>> GetListMenuItemsAsync()
         {
-            var cacheItem = CacheItems.MenuItems();
+            var cacheItem = CacheSettings.MenuItems();
             var baseMenu = await _cache.TryGetValueAsync<List<MenuItem>>(cacheItem);
             if (baseMenu == null)
             {
@@ -46,7 +46,6 @@ namespace ManageLife.Helpers
                 }),
                 new MenuItem("User Management", "fa-solid fa-user",new List<MenuItem>
                 {
-                    new MenuItem<PermissionController>("Permission", x => x.Index(), "fa-solid fa-key"),
                     new MenuItem<UserController>("User", x => x.Index(), "fa-solid fa-user"),
                 })
             };

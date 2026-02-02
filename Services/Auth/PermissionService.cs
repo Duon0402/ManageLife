@@ -65,7 +65,7 @@ namespace ManageLife.Services
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var cacheItem = CacheItems.Permissions(request.UserId);
+                var cacheItem = CacheSettings.Permissions(request.UserId);
 
                 var cachedPermissions = await _cache.TryGetValueAsync<List<PermissionModel>>(cacheItem);
                 if (cachedPermissions.IsNotEmpty())
@@ -73,25 +73,36 @@ namespace ManageLife.Services
                     return Result.Ok(cachedPermissions);
                 }
 
-                var permissionIds = await _repoUserPermission.Query(true)
-                    .Where(up => up.UserId == request.UserId)
-                    .Select(up => up.PermissionId)
-                    .Concat(
-                        _repoUserRole.Query(true)
-                            .Where(ur => ur.UserId == request.UserId
-                                      && ur.Status == UserPermissionStatus.Grant)
-                            .Join(
-                                _repoRolePermission.Query(true),
-                                ur => ur.RoleId,
-                                rp => rp.RoleId,
-                                (ur, rp) => rp.PermissionId
-                            )
-                    )
-                    .Distinct()
-                    .ToListAsync();
-
                 var permissions = await _repoPermission.Query(true)
-                    .Where(p => permissionIds.Contains(p.Id))
+                    .Where(p =>
+                        _repoUserPermission.Query(true)
+                            .Any(up =>
+                                up.UserId == request.UserId &&
+                                up.PermissionId == p.Id &&
+                                up.Status == UserPermissionStatus.Grant
+                            )
+
+                        ||
+
+                        (
+                            !_repoUserPermission.Query(true)
+                                .Any(up =>
+                                    up.UserId == request.UserId &&
+                                    up.PermissionId == p.Id &&
+                                    up.Status == UserPermissionStatus.Deny
+                                )
+                            &&
+                            _repoUserRole.Query(true)
+                                .Where(ur => ur.UserId == request.UserId)
+                                .Join(
+                                    _repoRolePermission.Query(true),
+                                    ur => ur.RoleId,
+                                    rp => rp.RoleId,
+                                    (ur, rp) => rp.PermissionId
+                                )
+                                .Any(pid => pid == p.Id)
+                        )
+                    )
                     .ToListAsync();
 
                 var models = permissions.IsNotEmpty()
@@ -190,7 +201,7 @@ namespace ManageLife.Services
 
                 if (clearPermissionCache && userAdminIds.IsNotEmpty())
                 {
-                    var cacheItems = userAdminIds.SelectDistinctToList(id => CacheItems.Permissions(id));
+                    var cacheItems = userAdminIds.SelectDistinctToList(id => CacheSettings.Permissions(id));
 
                     await _cache.RemoveAsync(cacheItems);
                 }
@@ -215,30 +226,44 @@ namespace ManageLife.Services
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var rsAssignedPermissions = await GetAssignedPermissionsByUserIdAsync(new GetAssignedPermissionsByUserIdRequest
-                {
-                    UserId = request.UserId
-                });
+                var permissions = await _repoPermission.Query(true)
+                    .Where(p =>
+                        !(
+                            _repoUserPermission.Query(true)
+                                .Any(up =>
+                                    up.UserId == request.UserId &&
+                                    up.PermissionId == p.Id &&
+                                    up.Status == UserPermissionStatus.Grant
+                                )
 
-                if (rsAssignedPermissions.IsError())
-                {
-                    msg = rsAssignedPermissions.Message;
-                    return Result.Error<List<PermissionModel>>(rsAssignedPermissions.Code, msg);
-                }
+                            ||
+                            (
+                                !_repoUserPermission.Query(true)
+                                    .Any(up =>
+                                        up.UserId == request.UserId &&
+                                        up.PermissionId == p.Id &&
+                                        up.Status == UserPermissionStatus.Deny
+                                    )
+                                &&
+                                _repoUserRole.Query(true)
+                                    .Where(ur => ur.UserId == request.UserId)
+                                    .Join(
+                                        _repoRolePermission.Query(true),
+                                        ur => ur.RoleId,
+                                        rp => rp.RoleId,
+                                        (ur, rp) => rp.PermissionId
+                                    )
+                                    .Any(pid => pid == p.Id)
+                            )
+                        )
+                    )
+                    .ToListAsync();
 
-                var rsAllPermissions = await GetListPermissionsAsync();
-                if (rsAssignedPermissions.IsError())
-                {
-                    msg = rsAllPermissions.Message;
-                    return Result.Error<List<PermissionModel>>(rsAllPermissions.Code, msg);
-                }
+                var models = permissions.IsNotEmpty()
+                    ? permissions.MapToList<PermissionModel>()
+                    : new List<PermissionModel>();
 
-                var assignedPermissions = rsAssignedPermissions.Data ?? new List<PermissionModel>();
-                var allPermissions = rsAllPermissions.Data ?? new List<PermissionModel>();
-                var assignedCodes = new HashSet<string>(assignedPermissions.Select(p => p.Code));
-                var unassignedPermissions = allPermissions.Where(p => p.Code.NotIn(assignedCodes)).ToList();
-
-                return Result.Ok(unassignedPermissions);
+                return Result.Ok(models);
             }
             catch (Exception ex)
             {
@@ -249,6 +274,7 @@ namespace ManageLife.Services
 
         public async Task<Result> AssignPermissionsAsync(AssignPermissionsRequest request)
         {
+            //TODO: Hoàn thành code phần gán quyền và gỡ quyền
             string msg;
             try
             {
@@ -265,16 +291,41 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var user = await _repoUser.GetAsync(x => x.Id == request.UserId);
-                if (user == null)
+                var userExists = await _repoUser.FirstOrDefaultAsync(x => x.Id == request.UserId && x.IsDeleted == false);
+                if (userExists == null)
                 {
                     msg = "Không tìm thấy người dùng cần gán quyền";
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                //var cacheKeyItem = CacheKey.Permissions(request.UserId, TimeSpan.FromMinutes(30));
+                var inputPermissionSet = request.PermissionIds
+                    .Distinct()
+                    .ToHashSet();
 
-                //await _cache.RemoveAsync(cacheKeyItem.Key);
+                var rolePermissionIds = await _repoUserRole.Query(true)
+                    .Where(ur => ur.UserId == request.UserId)
+                    .Join(
+                        _repoRolePermission.Query(true),
+                        ur => ur.RoleId,
+                        rp => rp.RoleId,
+                        (ur, rp) => rp.PermissionId
+                    )
+                    .Distinct()
+                    .ToListAsync();
+
+                var rolePermissionSet = rolePermissionIds.ToHashSet();
+
+                var userPermissions = await _repoUserPermission.Query()
+                    .Where(up => up.UserId == request.UserId)
+                    .ToListAsync();
+
+                var userPermissionDict = userPermissions
+                    .ToDictionary(x => x.PermissionId);
+
+
+
+                //var cacheItem = CacheSettings.Permissions(request.UserId);
+                //await _cache.RemoveAsync(cacheItem);
 
                 return Result.Ok();
             }

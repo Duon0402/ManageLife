@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Extensions
 {
-    //TODO: Cải tiến cho phần UI (validate form + bootstrap)
+    //TODO: Cần cải tiến lại phần Validation này
     public static class ValidationExtensions
     {
         public static ValidationResultModel Validate<T>(this T instance)
