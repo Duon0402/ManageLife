@@ -1,22 +1,20 @@
 ﻿using LinqKit;
 using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 
 namespace ManageLife.Services
 {
-    public class ExceptionItemService : ServiceBase, IExceptionItemService
+    public class ExceptionItemService : IExceptionItemService
     {
-        private readonly ExceptionItemRepository _repo;
+        private readonly IExceptionItemRepository _repo;
 
-        public ExceptionItemService(AppDbContext context) : base(context)
+        public ExceptionItemService(IExceptionItemRepository repo)
         {
-            _repo = new ExceptionItemRepository(context);
+            _repo = repo;
         }
 
         public async Task<Result> CreateExceptionItemAsync(CreateExceptionItemRequest request)
@@ -98,7 +96,7 @@ namespace ManageLife.Services
                     return Result.Error<ExceptionItemModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
 
                 if (entity == null)
                 {
@@ -161,7 +159,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
 
                 if (entity == null)
                 {

@@ -1,19 +1,18 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
+using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.Client
 {
-    [Route("filestorage")]
     public class FileStorageController : WebClientControllerBase
     {
-        private readonly TelegramFileService _telegramFileService;
+        private readonly ITelegramFileService _telegramFileService;
 
-        public FileStorageController(AppDbContext context, IConfiguration config, ILogger? logger = null) : base(context, logger)
+        public FileStorageController(AppDbContext context, ITelegramFileService telegramFileService, IConfiguration config, ILogger? logger = null) : base(context, logger)
         {
-            _telegramFileService = new TelegramFileService(context, config);
+            _telegramFileService = telegramFileService;
         }
 
         public IActionResult Index()
@@ -21,14 +20,14 @@ namespace ManageLife.Controllers.Client
             return View();
         }
 
-        [HttpPost("upload")]
+        [HttpPost]
         public async Task<Result<FileModel>> Upload(IFormFile file)
         {
             var result = await _telegramFileService.UploadFileAsync(file);
             return result;
         }
 
-        [HttpGet("get-file-url")]
+        [HttpGet]
         public async Task<Result<string>> GetFileUrl(string fileId)
         {
             var result = await _telegramFileService.GetFileUrlByFileIdAsync(fileId);

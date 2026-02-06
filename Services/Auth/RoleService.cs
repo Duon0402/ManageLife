@@ -1,23 +1,21 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
 {
-    public class RoleService : ServiceBase, IRoleService
+    public class RoleService : IRoleService
     {
-        private readonly RoleRepository _repoRole;
-        private readonly UserRoleRepository _userRoleRepo;
+        private readonly IRoleRepository _repoRole;
+        private readonly IUserRoleRepository _userRoleRepo;
 
-        public RoleService(AppDbContext context) : base(context)
+        public RoleService(IRoleRepository repoRole, IUserRoleRepository userRoleRepo)
         {
-            _repoRole = new RoleRepository(context);
-            _userRoleRepo = new UserRoleRepository(context);
+            _repoRole = repoRole;
+            _userRoleRepo = userRoleRepo;
         }
 
         public async Task<Result> CreateRoleAsync(CreateRoleRequest request)
@@ -32,7 +30,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var roleExisted = await _repoRole.GetAsync(x => x.Name == request.Name.Trim() && x.IsDeleted == false);
+                var roleExisted = await _repoRole.FirstOrDefaultAsync(x => x.Name == request.Name.Trim() && x.IsDeleted == false);
                 if (roleExisted != null)
                 {
                     msg = $"Role [{request.Name}] đã tồn tại trong hệ thống";
@@ -153,7 +151,7 @@ namespace ManageLife.Services
                     return Result.Error<RoleModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repoRole.GetAsync(x => x.IsDeleted == false && x.Id == request.RoleId);
+                var entity = await _repoRole.FirstOrDefaultAsync(x => x.IsDeleted == false && x.Id == request.RoleId);
 
                 if (entity == null)
                 {

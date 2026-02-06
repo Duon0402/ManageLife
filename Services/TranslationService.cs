@@ -7,22 +7,23 @@ using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
 {
-    public class TranslationService : ServiceBase, ITranslationService
+    public class TranslationService : ITranslationService
     {
-        private readonly TranslationRepository _repo;
-        private readonly LanguageRespository _languageRepo;
+        private readonly ITranslationRepository _repo;
+        private readonly ILanguageRepository _languageRepo;
         private readonly ICacheService _cache;
+        private readonly AppDbContext _context;
 
-        public TranslationService(AppDbContext context, ICacheService cache) : base(context)
+        public TranslationService(ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, AppDbContext context)
         {
-            _repo = new TranslationRepository(context);
-            _languageRepo = new LanguageRespository(context);
+            _repo = repo;
+            _languageRepo = languageRepo;
             _cache = cache;
+            _context = context;
         }
 
         public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request)
@@ -38,7 +39,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var language = await _languageRepo.GetAsync(x => x.Id == request.LanguageId && x.IsDeleted == false);
+                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == request.LanguageId && x.IsDeleted == false);
 
                 if (language == null)
                 {
@@ -46,7 +47,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var existing = await _repo.GetAsync(x => x.LanguageId == language.Id && x.Key == request.Key);
+                var existing = await _repo.FirstOrDefaultAsync(x => x.LanguageId == language.Id && x.Key == request.Key);
                 if (existing != null)
                 {
                     msg = TranslationKey.Common.Message.DataExisted;
@@ -86,7 +87,7 @@ namespace ManageLife.Services
                     return Result.DATA_INVALID;
                 }
 
-                var entity = await _repo.GetAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
                 if (entity == null)
                 {
                     return Result.DATA_NOT_EXISTED;

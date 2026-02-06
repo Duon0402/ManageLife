@@ -1,22 +1,20 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 
 namespace ManageLife.Services
 {
-    public class LanguageService : ServiceBase, ILanguageService
+    public class LanguageService : ILanguageService
     {
-        private readonly LanguageRespository _repo;
+        private readonly ILanguageRepository _repo;
         private readonly ICacheService _cache;
 
-        public LanguageService(AppDbContext context, ICacheService cache) : base(context)
+        public LanguageService(ILanguageRepository repo, ICacheService cache)
         {
-            _repo = new LanguageRespository(context);
+            _repo = repo;
             _cache = cache;
         }
 
@@ -33,7 +31,7 @@ namespace ManageLife.Services
                     return Result.Ok(result);
                 }
 
-                var entity = await _repo.GetAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
 
                 if (entity == null)
                 {
@@ -63,7 +61,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var existing = await _repo.GetAsync(x => x.Code == request.Code && x.IsDeleted == false);
+                var existing = await _repo.FirstOrDefaultAsync(x => x.Code == request.Code && x.IsDeleted == false);
                 if (existing != null)
                 {
                     msg = TranslationKey.Common.Message.DataExisted;
@@ -100,7 +98,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
 
                 if (entity == null)
                 {
@@ -136,7 +134,7 @@ namespace ManageLife.Services
                     return Result.Error<LanguageModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
 
                 if (entity == null)
                 {
@@ -166,7 +164,7 @@ namespace ManageLife.Services
                     return Result.Error<LanguageModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
 
                 if (entity == null)
                 {
@@ -223,7 +221,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
 
                 if (entity == null)
                 {
@@ -231,7 +229,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var duplicate = await _repo.GetAsync(x => x.Code == request.Code && x.Id != request.Id && x.IsDeleted == false);
+                var duplicate = await _repo.FirstOrDefaultAsync(x => x.Code == request.Code && x.Id != request.Id && x.IsDeleted == false);
 
                 if (duplicate != null)
                 {

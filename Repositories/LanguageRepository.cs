@@ -5,10 +5,11 @@ using ManageLife.Interfaces;
 
 namespace ManageLife.Repositories
 {
-    public class SettingRepository : RepositoryBase<SettingEntity>, ISettingRepository
+    public class LanguageRepository : RepositoryBase<LanguageEntity>, ILanguageRepository
     {
-        public SettingRepository(AppDbContext context) : base(context)
+        public LanguageRepository(AppDbContext context) : base(context)
         {
         }
     }
 }
+

@@ -1,22 +1,20 @@
 ﻿using LinqKit;
 using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 
 namespace ManageLife.Services
 {
-    public class TodoTaskService : ServiceBase, ITodoTaskService
+    public class TodoTaskService : ITodoTaskService
     {
-        private readonly TodoTaskRepository _repo;
+        private readonly ITodoTaskRepository _repo;
 
-        public TodoTaskService(AppDbContext context) : base(context)
+        public TodoTaskService(ITodoTaskRepository repo)
         {
-            _repo = new TodoTaskRepository(context);
+            _repo = repo;
         }
 
         public async Task<Result> CreateTodoTask(CreateTodoTaskRequest request)
@@ -171,7 +169,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(x => x.Id == request.Id);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id);
                 //TODO: Hoàn thiện nốt phần UpdateTodoTask
                 return Result.Ok();
             }

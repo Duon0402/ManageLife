@@ -5,30 +5,39 @@ using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
 {
-    public class PermissionService : ServiceBase, IPermissionService
+    public class PermissionService : IPermissionService
     {
         private readonly ICacheService _cache;
-        private readonly PermissionRepository _repoPermission;
-        private readonly UserPermissionRepository _repoUserPermission;
-        private readonly UserRoleRepository _repoUserRole;
-        private readonly RoleRepository _repoRole;
-        private readonly UserRepository _repoUser;
-        private readonly RolePermissionRepository _repoRolePermission;
+        private readonly IPermissionRepository _repoPermission;
+        private readonly IUserPermissionRepository _repoUserPermission;
+        private readonly IUserRoleRepository _repoUserRole;
+        private readonly IRoleRepository _repoRole;
+        private readonly IUserRepository _repoUser;
+        private readonly IRolePermissionRepository _repoRolePermission;
+        private readonly AppDbContext _context;
 
-        public PermissionService(AppDbContext context, ICacheService cache) : base(context)
+        public PermissionService(
+            IPermissionRepository repoPermission,
+            IUserPermissionRepository repoUserPermission,
+            IRolePermissionRepository repoRolePermission,
+            IUserRoleRepository repoUserRole,
+            IRoleRepository repoRole,
+            IUserRepository repoUser,
+            ICacheService cache,
+            AppDbContext context)
         {
             _cache = cache;
-            _repoPermission = new PermissionRepository(context);
-            _repoUserPermission = new UserPermissionRepository(context);
-            _repoRolePermission = new RolePermissionRepository(context);
-            _repoUserRole = new UserRoleRepository(context);
-            _repoRole = new RoleRepository(context);
-            _repoUser = new UserRepository(context);
+            _repoPermission = repoPermission;
+            _repoUserPermission = repoUserPermission;
+            _repoRolePermission = repoRolePermission;
+            _repoUserRole = repoUserRole;
+            _repoRole = repoRole;
+            _repoUser = repoUser;
+            _context = context;
         }
 
         public async Task<Result<List<PermissionModel>>> GetListPermissionsAsync()

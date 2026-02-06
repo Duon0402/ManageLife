@@ -1,22 +1,20 @@
 ﻿using LinqKit;
 using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 
 namespace ManageLife.Services
 {
-    public class TodoListService : ServiceBase, ITodoListService
+    public class TodoListService : ITodoListService
     {
-        private readonly TodoListRepository _repo;
+        private readonly ITodoListRepository _repo;
 
-        public TodoListService(AppDbContext context) : base(context)
+        public TodoListService(ITodoListRepository repo)
         {
-            _repo = new TodoListRepository(context);
+            _repo = repo;
         }
 
         public async Task<Result> CreateToDoList(CreateToDoListRequest request)
@@ -195,7 +193,7 @@ namespace ManageLife.Services
             if (id.IsNotEmpty())
                 predicate = predicate.And(x => x.Id != id);
 
-            var entity = await _repo.GetAsync(predicate);
+            var entity = await _repo.FirstOrDefaultAsync(predicate);
             return entity != null;
         }
     }

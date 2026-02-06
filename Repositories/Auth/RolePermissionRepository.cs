@@ -1,10 +1,11 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Interfaces;
 
 namespace ManageLife.Repositories
 {
-    public class RolePermissionRepository : RepositoryBase<RolePermissionEntity>
+    public class RolePermissionRepository : RepositoryBase<RolePermissionEntity>, IRolePermissionRepository
     {
         public RolePermissionRepository(AppDbContext context) : base(context)
         {

@@ -3,28 +3,28 @@ using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Helpers;
+using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace ManageLife.Services
 {
-    public class TelegramFileService : ServiceBase
+    public class TelegramFileService : ServiceBase, ITelegramFileService
     {
         private readonly IConfiguration _config;
         private readonly string _botToken;
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
-        private readonly FileRepository _repo;
+        private readonly IFileRepository _repo;
 
-        public TelegramFileService(AppDbContext context, IConfiguration config) : base(context)
+        public TelegramFileService(AppDbContext context, IFileRepository repo, IConfiguration config) : base(context)
         {
             _config = config;
             _botToken = _config["TelegramSettings:BotToken"] ?? string.Empty;
             _chatId = _config["TelegramSettings:ChatIdFileStorage"];
             _botClient = new TelegramBotClient(_botToken);
-            _repo = new FileRepository(context);
+            _repo = repo;
         }
 
         public async Task<Result<FileModel>> UploadFileAsync(IFormFile file, string? caption = null)

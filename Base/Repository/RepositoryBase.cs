@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace ManageLife.Base
 {
-    public class RepositoryBase<T> : IReposityBase<T> where T : class
+    public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     {
         protected readonly AppDbContext _context;
 
@@ -35,18 +35,6 @@ namespace ManageLife.Base
             }
 
             return await query.Where(predicate).ToListAsync();
-        }
-
-        public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate,
-            params Expression<Func<T, object>>[] includes)
-        {
-            IQueryable<T> query = _context.Set<T>();
-            if (includes?.Any() == true)
-            {
-                query = includes.Aggregate(query, (current, include) => current.Include(include));
-            }
-
-            return await query.FirstOrDefaultAsync(predicate);
         }
 
         public async Task<T?> GetAsync(string key)

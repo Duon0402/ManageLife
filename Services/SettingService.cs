@@ -1,18 +1,16 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 
 namespace ManageLife.Services
 {
-    public class SettingService : ServiceBase, ISettingService
+    public class SettingService : ISettingService
     {
-        private readonly SettingRepository _repo;
+        private readonly ISettingRepository _repo;
 
-        public SettingService(AppDbContext context) : base(context)
+        public SettingService(ISettingRepository repo)
         {
-            _repo = new SettingRepository(context);
+            _repo = repo;
         }
 
         public Task<Result> CreateSettingAsync(CreateSettingRequest request)

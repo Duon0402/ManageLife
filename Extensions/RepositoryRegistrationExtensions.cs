@@ -1,4 +1,5 @@
-﻿using ManageLife.Repositories;
+﻿using ManageLife.Interfaces;
+using ManageLife.Repositories;
 
 namespace ManageLife.Extensions
 {
@@ -6,16 +7,25 @@ namespace ManageLife.Extensions
     {
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
-            services.AddScoped<ExceptionItemRepository>();
-            services.AddScoped<SettingRepository>();
-            services.AddScoped<TodoTaskRepository>();
-            services.AddScoped<TodoListRepository>();
-            services.AddScoped<TranslationRepository>();
-            services.AddScoped<LanguageRespository>();
-            services.AddScoped<UserRepository>();
-            services.AddScoped<RoleRepository>();
-            services.AddScoped<UserRoleRepository>();
-            services.AddScoped<UserRefreshTokenRepository>();
+            // Base repositories
+            services.AddScoped<IExceptionItemRepository, ExceptionItemRepository>();
+            services.AddScoped<IFileRepository, FileRepository>();
+            services.AddScoped<ILanguageRepository, LanguageRepository>();
+            services.AddScoped<ISettingRepository, SettingRepository>();
+            services.AddScoped<ITranslationRepository, TranslationRepository>();
+
+            // Auth repositories
+            services.AddScoped<IPermissionRepository, PermissionRepository>();
+            services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
+            services.AddScoped<IUserRefreshTokenRepository, UserRefreshTokenRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+
+            // Todo repositories
+            services.AddScoped<ITodoListRepository, TodoListRepository>();
+            services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
 
             return services;
         }

@@ -5,7 +5,6 @@ using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,19 +14,26 @@ using System.Text;
 
 namespace ManageLife.Services
 {
-    public class TokenService : ServiceBase, ITokenService
+    public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly UserRefreshTokenRepository _refreshRepo;
-        private readonly UserRepository _userRepo;
+        private readonly IUserRefreshTokenRepository _refreshRepo;
+        private readonly IUserRepository _userRepo;
+        private readonly AppDbContext _context;
 
-        public TokenService(AppDbContext context, IConfiguration config, IHttpContextAccessor httpContextAccessor) : base(context)
+        public TokenService(
+            IUserRefreshTokenRepository refreshRepo,
+            IUserRepository userRepo,
+            IConfiguration config,
+            IHttpContextAccessor httpContextAccessor,
+            AppDbContext context)
         {
             _config = config;
             _httpContextAccessor = httpContextAccessor;
-            _refreshRepo = new UserRefreshTokenRepository(context);
-            _userRepo = new UserRepository(context);
+            _refreshRepo = refreshRepo;
+            _userRepo = userRepo;
+            _context = context;
         }
 
         #region Access Token

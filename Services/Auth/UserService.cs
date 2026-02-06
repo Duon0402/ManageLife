@@ -6,27 +6,34 @@ using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
 namespace ManageLife.Services
 {
-    public class UserService : ServiceBase, IUserService
+    public class UserService : IUserService
     {
-        private readonly UserRepository _userRepo;
-        private readonly RoleRepository _roleRepo;
-        private readonly UserRoleRepository _userRoleRepo;
-        private readonly UserRefreshTokenRepository _refreshRepo;
+        private readonly IUserRepository _userRepo;
+        private readonly IRoleRepository _roleRepo;
+        private readonly IUserRoleRepository _userRoleRepo;
+        private readonly IUserRefreshTokenRepository _refreshRepo;
         private readonly ITokenService _tokenService;
+        private readonly AppDbContext _context;
 
-        public UserService(AppDbContext context, ITokenService tokenService) : base(context)
+        public UserService(
+            IUserRepository userRepo,
+            IRoleRepository roleRepo,
+            IUserRoleRepository userRoleRepo,
+            IUserRefreshTokenRepository refreshRepo,
+            ITokenService tokenService,
+            AppDbContext context)
         {
-            _userRepo = new UserRepository(_context);
-            _roleRepo = new RoleRepository(_context);
-            _userRoleRepo = new UserRoleRepository(_context);
-            _refreshRepo = new UserRefreshTokenRepository(_context);
+            _userRepo = userRepo;
+            _roleRepo = roleRepo;
+            _userRoleRepo = userRoleRepo;
+            _refreshRepo = refreshRepo;
             _tokenService = tokenService;
+            _context = context;
         }
 
         public async Task<Result> RegisterAsync(RegisterAccountRequest request)
@@ -43,14 +50,14 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var existedUser = await _userRepo.GetAsync(x => x.UserName == request.UserName);
+                var existedUser = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName);
                 if (existedUser != null)
                 {
                     msg = "Tên đăng nhập đã tồn tại";
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
-                var roleEntity = await _roleRepo.GetAsync(x => x.Name == "User" && x.IsDeleted == false);
+                var roleEntity = await _roleRepo.FirstOrDefaultAsync(x => x.Name == "User" && x.IsDeleted == false);
                 if (roleEntity == null)
                 {
                     msg = "Không thể đăng ký tài khoản";
@@ -129,7 +136,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var userEntity = await _userRepo.GetAsync(x => x.UserName == request.UserName && !x.IsDeleted);
+                var userEntity = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName && !x.IsDeleted);
                 if (userEntity == null)
                 {
                     msg = "Tên đăng nhập hoặc mật khẩu không đúng";
@@ -203,7 +210,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var tokenEntity = await _refreshRepo.GetAsync(r => r.RefreshToken == refreshToken && !r.IsRevoked);
+                var tokenEntity = await _refreshRepo.FirstOrDefaultAsync(r => r.RefreshToken == refreshToken && !r.IsRevoked);
 
                 if (tokenEntity == null)
                 {
@@ -251,14 +258,14 @@ namespace ManageLife.Services
                 }
 
                 var userId = GlobalHttpContext.User?.GetUserId();
-                var user = await _userRepo.GetAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
+                var user = await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
                 if (user == null)
                 {
                     msg = TranslationKey.Common.Message.DataInvalid;
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var tokenEntity = await _refreshRepo.GetAsync(x => x.RefreshToken == refreshToken && x.UserId == user.Id && x.IsRevoked == false);
+                var tokenEntity = await _refreshRepo.FirstOrDefaultAsync(x => x.RefreshToken == refreshToken && x.UserId == user.Id && x.IsRevoked == false);
 
                 if (tokenEntity == null)
                 {

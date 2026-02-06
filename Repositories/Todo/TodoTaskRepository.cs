@@ -1,10 +1,11 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Interfaces;
 
 namespace ManageLife.Repositories
 {
-    public class TodoTaskRepository : RepositoryBase<TodoTaskEntity>
+    public class TodoTaskRepository : RepositoryBase<TodoTaskEntity>, ITodoTaskRepository
     {
         public TodoTaskRepository(AppDbContext context) : base(context)
         {

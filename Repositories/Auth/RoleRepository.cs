@@ -1,10 +1,11 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Interfaces;
 
 namespace ManageLife.Repositories
 {
-	public class RoleRepository : RepositoryBase<RoleEntity>
+	public class RoleRepository : RepositoryBase<RoleEntity>, IRoleRepository
 	{
 		public RoleRepository(AppDbContext context) : base(context)
 		{

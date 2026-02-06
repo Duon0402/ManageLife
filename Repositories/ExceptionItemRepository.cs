@@ -1,13 +1,15 @@
 ﻿using ManageLife.Base;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Interfaces;
 
 namespace ManageLife.Repositories
 {
-    public class ExceptionItemRepository : RepositoryBase<ExceptionItemEntity>
+    public class ExceptionItemRepository : RepositoryBase<ExceptionItemEntity>, IExceptionItemRepository
     {
         public ExceptionItemRepository(AppDbContext context) : base(context)
         {
         }
     }
 }
+
