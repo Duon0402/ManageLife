@@ -9,7 +9,7 @@ namespace ManageLife.Helpers
         // TODO: Phải sửa lại DataTableHelper
         public static IHtmlContent DataTable<T>(this IHtmlHelper htmlHelper, DataTableColumnOptions options)
         {
-            return null;
+            return HtmlString.Empty;
         }
 
         public static IHtmlContent DataTable(this IHtmlHelper htmlHelper, DataTableColumnOptions options)

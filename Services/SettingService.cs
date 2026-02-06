@@ -40,7 +40,6 @@ namespace ManageLife.Services
 
         public async Task RegisterSettingsAsync(List<SettingModel> settings)
         {
-            bool b;
             try
             {
                 await Task.CompletedTask;
