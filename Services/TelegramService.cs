@@ -1,6 +1,5 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
@@ -9,13 +8,13 @@ using Telegram.Bot;
 
 namespace ManageLife.Services
 {
-    public class TelegramService : ServiceBase, ITelegramService
+    public class TelegramService : ITelegramService
     {
         private readonly IConfiguration _config;
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
 
-        public TelegramService(AppDbContext context, IConfiguration config) : base(context)
+        public TelegramService(IConfiguration config)
         {
             _config = config;
             var botToken = _config["TelegramSettings:BotToken"] ?? "";

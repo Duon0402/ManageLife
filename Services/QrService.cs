@@ -1,14 +1,13 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using QRCoder;
 
 namespace ManageLife.Services
 {
-    public class QrService : ServiceBase, IQrService
+    public class QrService : IQrService
     {
-        public QrService(AppDbContext context) : base(context)
+        public QrService()
         {
         }
 

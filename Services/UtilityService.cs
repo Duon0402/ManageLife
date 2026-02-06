@@ -1,17 +1,16 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 
 namespace ManageLife.Services
 {
-    public class UtilityService : ServiceBase, IUtilityService
+    public class UtilityService : IUtilityService
     {
         private readonly IExceptionItemService _exceptionItemService;
 
-        public UtilityService(AppDbContext context, IExceptionItemService service) : base(context)
+        public UtilityService(IExceptionItemService service)
         {
             _exceptionItemService = service;
         }

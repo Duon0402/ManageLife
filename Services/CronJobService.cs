@@ -1,19 +1,18 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Models.CronJob;
 
 namespace ManageLife.Services
 {
-    public class CronJobService : ServiceBase, ICronJobService
+    public class CronJobService : ICronJobService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
         private readonly string _apiKey;
         private readonly string _baseUrl;
 
-        public CronJobService(AppDbContext context, IConfiguration config, IHttpClientFactory httpClientFactory) : base(context)
+        public CronJobService(IConfiguration config, IHttpClientFactory httpClientFactory)
         {
             _config = config;
             _apiKey = _config["CronJob:ApiKey"] ?? throw new ArgumentNullException("ApiKey");

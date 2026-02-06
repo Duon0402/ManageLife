@@ -1,6 +1,5 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
@@ -10,7 +9,7 @@ using Telegram.Bot.Types;
 
 namespace ManageLife.Services
 {
-    public class TelegramFileService : ServiceBase, ITelegramFileService
+    public class TelegramFileService : ITelegramFileService
     {
         private readonly IConfiguration _config;
         private readonly string _botToken;
@@ -18,7 +17,7 @@ namespace ManageLife.Services
         private readonly TelegramBotClient _botClient;
         private readonly IFileRepository _repo;
 
-        public TelegramFileService(AppDbContext context, IFileRepository repo, IConfiguration config) : base(context)
+        public TelegramFileService(IFileRepository repo, IConfiguration config)
         {
             _config = config;
             _botToken = _config["TelegramSettings:BotToken"] ?? string.Empty;
