@@ -20,8 +20,10 @@ builder.Host.UseSerilog((context, services, loggerConfig) =>
     loggerConfig
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
-        .Enrich.FromLogContext();
+        .Enrich.FromLogContext()
+        .Enrich.With(new VietnamTimeEnricher());
 });
+
 // =============================================
 
 // Add services to the container.
