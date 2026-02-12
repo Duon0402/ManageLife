@@ -7,20 +7,25 @@ namespace ManageLife.Base
 {
     public class MenuItem
     {
-        protected MenuItem(string title, MenuItemType menuItemType, string? icon = null, List<MenuItem>? subItems = null, string? url = null, string? permissionCode = null)
+        // NOTE: Dùng [JsonConstructor] Serializer không chọn nhầm constructor của Group khi lấy từ Cache (tránh lỗi ArgumentException)
+        [JsonConstructor]
+        public MenuItem(string title, MenuItemType menuItemType, string? icon = null, List<MenuItem>? subItems = null, string? url = null, string? permissionCode = null)
         {
             Title = title;
             Url = url;
             Icon = icon;
-            SubItems = subItems ?? new List<MenuItem>();
             PermissionCode = permissionCode;
             MenuItemType = menuItemType;
+
+            SubItems = subItems ?? new List<MenuItem>();
+            if (menuItemType == MenuItemType.Group && SubItems.IsEmpty())
+            {
+                throw new ArgumentException("Group menu must contain at least one sub item.", nameof(subItems));
+            }
         }
 
         public MenuItem(string title, string icon, List<MenuItem> subItems) : this(title, MenuItemType.Group, icon, subItems)
         {
-            if (subItems.IsEmpty())
-                throw new ArgumentException("Group menu must contain at least one sub item.", nameof(subItems));
         }
 
         public string Title { get; set; }

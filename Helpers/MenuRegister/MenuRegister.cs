@@ -6,7 +6,6 @@ using ManageLife.Models;
 
 namespace ManageLife.Helpers
 {
-    // TODO: Thêm phần kiêm trả để ẩn menu Item nếu yêu cầu permission
     public class MenuRegister : IMenuRegister
     {
         private readonly ICacheService _cache;
