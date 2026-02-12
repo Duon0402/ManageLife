@@ -11,7 +11,7 @@ namespace ManageLife.Controllers.API
     {
         private readonly ITelegramService _service;
 
-        public TelegramApiController(AppDbContext context, ITelegramService service, ILogger? logger = null) : base(context, logger)
+        public TelegramApiController(AppDbContext context, ITelegramService service) : base(context)
         {
             _service = service;
         }

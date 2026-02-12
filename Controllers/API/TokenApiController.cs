@@ -10,7 +10,7 @@ namespace ManageLife.Controllers.API
     {
         private readonly ITokenService _tokenService;
 
-        public TokenApiController(AppDbContext context, ITokenService tokenService, ILogger? logger = null) : base(context, logger)
+        public TokenApiController(AppDbContext context, ITokenService tokenService) : base(context)
         {
             _tokenService = tokenService;
         }

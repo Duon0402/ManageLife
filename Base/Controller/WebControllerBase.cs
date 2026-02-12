@@ -5,13 +5,11 @@ namespace ManageLife.Base
 {
     public class WebControllerBase : Controller
     {
-		private readonly AppDbContext _context;
-		private readonly ILogger? _logger;
+        private readonly AppDbContext _context;
 
-        public WebControllerBase(AppDbContext context, ILogger? logger = null)
+        public WebControllerBase(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
     }
 }

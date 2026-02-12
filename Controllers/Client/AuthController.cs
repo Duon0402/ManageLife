@@ -12,7 +12,7 @@ namespace ManageLife.Controllers.Client
         private readonly IUserService _userService;
         private readonly ITokenService _tokenService;
 
-        public AuthController(AppDbContext context, IUserService userService, ITokenService tokenService, ILogger? logger = null) : base(context, logger)
+        public AuthController(AppDbContext context, IUserService userService, ITokenService tokenService) : base(context)
         {
             _userService = userService;
             _tokenService = tokenService;

@@ -9,7 +9,7 @@ namespace ManageLife.Controllers.Admin
     {
         private readonly ICronJobService _service;
 
-        public CronJobController(AppDbContext context, ICronJobService service, ILogger? logger = null) : base(context, logger)
+        public CronJobController(AppDbContext context, ICronJobService service) : base(context)
         {
             _service = service;
         }

@@ -10,7 +10,7 @@ namespace ManageLife.Controllers.Client
     {
         private readonly ITelegramFileService _telegramFileService;
 
-        public FileStorageController(AppDbContext context, ITelegramFileService telegramFileService, ILogger? logger = null) : base(context, logger)
+        public FileStorageController(AppDbContext context, ITelegramFileService telegramFileService) : base(context)
         {
             _telegramFileService = telegramFileService;
         }

@@ -8,8 +8,7 @@ namespace ManageLife.Base
     [Authorize]
     public abstract class WebAdminControllerBase : WebControllerBase
     {
-        public WebAdminControllerBase(AppDbContext context, ILogger? logger = null)
-            : base(context, logger) { }
+        public WebAdminControllerBase(AppDbContext context) : base(context) { }
 
         [NonAction]
         public override ViewResult View() => base.View(GetAdminViewPath());

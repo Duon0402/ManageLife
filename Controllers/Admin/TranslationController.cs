@@ -13,7 +13,7 @@ namespace ManageLife.Controllers.Admin
 
         private readonly ILanguageService _languageService;
 
-        public TranslationController(AppDbContext context, ITranslationService service, ILanguageService languageService, ILogger? logger = null) : base(context, logger)
+        public TranslationController(AppDbContext context, ITranslationService service, ILanguageService languageService) : base(context)
         {
             _service = service;
             _languageService = languageService;

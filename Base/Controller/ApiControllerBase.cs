@@ -8,12 +8,10 @@ namespace ManageLife.Base
     public class ApiControllerBase : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly ILogger? _logger;
 
-        public ApiControllerBase(AppDbContext context, ILogger? logger = null)
+        public ApiControllerBase(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
     }
 }

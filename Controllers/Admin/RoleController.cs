@@ -10,7 +10,7 @@ namespace ManageLife.Controllers.Admin
     {
         private readonly IRoleService _service;
 
-        public RoleController(AppDbContext context, IRoleService service, ILogger? logger = null) : base(context, logger)
+        public RoleController(AppDbContext context, IRoleService service) : base(context)
         {
             _service = service;
         }

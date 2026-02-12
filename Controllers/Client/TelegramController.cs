@@ -10,7 +10,7 @@ namespace ManageLife.Controllers.Client
     {
         private readonly ITelegramService _service;
 
-        public TelegramController(AppDbContext context, ITelegramService service, ILogger? logger = null) : base(context, logger)
+        public TelegramController(AppDbContext context, ITelegramService service) : base(context)
         {
             _service = service;
         }

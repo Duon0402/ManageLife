@@ -9,7 +9,7 @@ namespace ManageLife.Controllers.Client
     {
         private readonly IQrService _service;
 
-        public QrController(AppDbContext context, IQrService service, ILogger? logger = null) : base(context, logger)
+        public QrController(AppDbContext context, IQrService service) : base(context)
         {
             _service = service;
         }

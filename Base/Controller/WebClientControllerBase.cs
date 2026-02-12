@@ -5,7 +5,7 @@ namespace ManageLife.Base
 {
     public class WebClientControllerBase : WebControllerBase
     {
-        public WebClientControllerBase(AppDbContext context, ILogger? logger = null) : base(context, logger)
+        public WebClientControllerBase(AppDbContext context) : base(context)
         {
         }
 

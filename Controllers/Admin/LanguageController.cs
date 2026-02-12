@@ -10,7 +10,7 @@ namespace ManageLife.Controllers.Admin
     {
         private readonly ILanguageService _service;
 
-        public LanguageController(AppDbContext context, ILanguageService service, ILogger? logger = null) : base(context, logger)
+        public LanguageController(AppDbContext context, ILanguageService service) : base(context)
         {
             _service = service;
         }

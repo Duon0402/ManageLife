@@ -4,8 +4,25 @@ using ManageLife.Data;
 using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Middlewares;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ================== SERILOG ==================
+var logPath = Path.Combine(AppContext.BaseDirectory, "Logs");
+if (!Directory.Exists(logPath))
+{
+    Directory.CreateDirectory(logPath);
+}
+
+builder.Host.UseSerilog((context, services, loggerConfig) =>
+{
+    loggerConfig
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+});
+// =============================================
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -16,11 +33,19 @@ builder.Services.AddApplicationServices(builder.Configuration);
 // Cấu hình Kestrel (request body limit)
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = long.MaxValue;
+    options.Limits.MaxRequestBodySize = null;
 });
 
 var app = builder.Build();
-GlobalHttpContext.Configure(app.Services.GetRequiredService<IHttpContextAccessor>());
+
+// ====== Serilog request logging ======
+app.UseSerilogRequestLogging();
+// =====================================
+
+GlobalHttpContext.Configure(
+    app.Services.GetRequiredService<IHttpContextAccessor>()
+);
+
 // ======= SEED DATA =========
 using (var scope = app.Services.CreateScope())
 {
@@ -30,7 +55,9 @@ using (var scope = app.Services.CreateScope())
     // ======= REGISTER PERMISSIONS =========
     var services = scope.ServiceProvider;
     await services.RegisterPermissionsAsync(typeof(Program).Assembly);
+    // ======================================
 }
+// ===========================
 
 // Configure MapperBase
 var mapper = app.Services.GetRequiredService<IMapper>();
@@ -40,7 +67,6 @@ MapperBase.Configure(mapper);
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

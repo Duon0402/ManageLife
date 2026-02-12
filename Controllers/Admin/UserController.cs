@@ -10,7 +10,7 @@ namespace ManageLife.Controllers.Admin
     {
         private readonly IUserService _userService;
 
-        public UserController(AppDbContext context, IUserService userService, ILogger? logger = null) : base(context, logger)
+        public UserController(AppDbContext context, IUserService userService) : base(context)
         {
             _userService = userService;
         }

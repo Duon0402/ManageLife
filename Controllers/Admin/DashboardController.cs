@@ -6,7 +6,7 @@ namespace ManageLife.Controllers.Admin
 {
     public class DashboardController : WebAdminControllerBase
     {
-        public DashboardController(AppDbContext context, ILogger? logger = null) : base(context, logger)
+        public DashboardController(AppDbContext context) : base(context)
         {
         }
 

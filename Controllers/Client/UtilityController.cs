@@ -11,7 +11,7 @@ namespace ManageLife.Controllers.Client
     {
         private readonly IUtilityService _service;
 
-        public UtilityController(AppDbContext context, IUtilityService service, ILogger? logger = null) : base(context, logger)
+        public UtilityController(AppDbContext context, IUtilityService service) : base(context)
         {
             _service = service;
         }

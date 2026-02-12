@@ -12,7 +12,7 @@ namespace ManageLife.Controllers.Admin
         private readonly IPermissionService _service;
         private readonly IUserService _userService;
 
-        public PermissionController(AppDbContext context, IPermissionService service, IUserService userService, ILogger? logger = null) : base(context, logger)
+        public PermissionController(AppDbContext context, IPermissionService service, IUserService userService) : base(context)
         {
             _service = service;
             _userService = userService;

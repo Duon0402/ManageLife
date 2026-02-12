@@ -7,7 +7,7 @@ namespace ManageLife.Controllers.Client
     public class HomeController : WebClientControllerBase
     {
 
-        public HomeController(AppDbContext context, ILogger? logger = null) : base(context, logger)
+        public HomeController(AppDbContext context) : base(context)
         {
         }
 

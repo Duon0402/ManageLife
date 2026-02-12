@@ -1,4 +1,5 @@
-﻿using ManageLife.Data;
+﻿using ManageLife.Base;
+using ManageLife.Data;
 using ManageLife.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
@@ -91,6 +92,10 @@ namespace ManageLife.Extensions
 
             var redis = ConnectionMultiplexer.Connect(redisConfig);
             services.AddSingleton<IConnectionMultiplexer>(redis);
+            #endregion
+
+            #region SeriLog
+            services.AddScoped(typeof(IAppLogger<>), typeof(AppLogger<>));
             #endregion
 
             return services;
