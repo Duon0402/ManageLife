@@ -20,8 +20,7 @@ builder.Host.UseSerilog((context, services, loggerConfig) =>
     loggerConfig
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .Enrich.With(new VietnamTimeEnricher());
+        .Enrich.FromLogContext();
 });
 
 // =============================================
