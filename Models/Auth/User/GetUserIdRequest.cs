@@ -2,7 +2,7 @@
 
 namespace ManageLife.Models
 {
-    public class GetUserIdRequest
+    public class GetUserByIdRequest
     {
         [Required(ErrorMessage = ("UserId is required"))]
         public string UserId { get; set; } = null!;

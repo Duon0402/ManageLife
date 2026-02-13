@@ -11,18 +11,24 @@ namespace ManageLife.Controllers.Admin
     {
         private readonly IPermissionService _service;
         private readonly IUserService _userService;
+        private readonly IRoleService _roleService;
 
-        public PermissionController(AppDbContext context, IPermissionService service, IUserService userService) : base(context)
+        public PermissionController(AppDbContext context, IPermissionService service, IUserService userService, IRoleService roleService) : base(context)
         {
             _service = service;
             _userService = userService;
+            _roleService = roleService;
         }
 
         [AccessPagePermission]
-        public async Task<IActionResult> Index(string userId)
+        public async Task<IActionResult> IndexByUser(string userId)
         {
-            var viewModel = new AdminPermissionViewModel();
-            var rsUser = await _userService.GetUserIdAsync(new GetUserIdRequest { UserId = userId });
+            var viewModel = new AdminPermissionViewModel
+            {
+                TargetType = PermissionTargetType.User
+            };
+
+            var rsUser = await _userService.GetUserByIdAsync(new GetUserByIdRequest { UserId = userId });
 
             if (rsUser.IsOk() && rsUser.Data != null)
             {
@@ -30,7 +36,25 @@ namespace ManageLife.Controllers.Admin
                 viewModel.UserName = rsUser.Data.UserName;
             }
 
-            return View(viewModel);
+            return View("Index", viewModel);
+        }
+
+        [AccessPagePermission]
+        public async Task<IActionResult> IndexByRole(string roleId)
+        {
+            var viewModel = new AdminPermissionViewModel
+            {
+                TargetType = PermissionTargetType.Role
+            };
+
+            var rsRole = await _roleService.GetRoleByIdAsync(new GetRoleByIdRequest { RoleId = roleId });
+
+            if (rsRole.IsOk() && rsRole.Data != null)
+            {
+                viewModel.RoleId = rsRole.Data.Id;
+                viewModel.RoleName = rsRole.Data.Name;
+            }
+            return View("Index", viewModel);
         }
 
         [HttpPost]
@@ -62,6 +86,22 @@ namespace ManageLife.Controllers.Admin
         public async Task<Result> UnassignPermissions([FromBody] UnassignPermissionsRequest request)
         {
             var rs = await _service.UnassignPermissionsAsync(request);
+            return rs;
+        }
+
+        [HttpPost]
+        [ViewPermission]
+        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByRoleId([FromBody] GetAssignedPermissionsByRoleIdRequest request)
+        {
+            var rs = await _service.GetAssignedPermissionsByRoleIdAsync(request);
+            return rs;
+        }
+
+        [HttpPost]
+        [ViewPermission]
+        public async Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleId([FromBody] GetUnAssignedPermissionsByRoleIdRequest request)
+        {
+            var rs = await _service.GetUnAssignedPermissionsByRoleIdAsync(request);
             return rs;
         }
     }

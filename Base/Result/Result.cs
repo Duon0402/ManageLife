@@ -1,6 +1,4 @@
-﻿using ManageLife.Commons;
-
-namespace ManageLife.Base
+﻿namespace ManageLife.Base
 {
     public class Result
     {
@@ -8,7 +6,13 @@ namespace ManageLife.Base
         public string Message { get; }
         public string? ErrorContent { get; }
 
-        protected Result(string code, string message, string? errorContent = null)
+        public Result()
+        {
+            Code = "00";
+            Message = "Ok";
+        }
+
+        public Result(string code, string message, string? errorContent = null)
         {
             Code = code;
             Message = message;
@@ -37,14 +41,13 @@ namespace ManageLife.Base
         public static Result<T> Exception<T>(string message, Exception ex)
             => new("99", message, default!, ex.ToString());
 
-        // CRUD
-        public static readonly Result DATA_NOT_CREATE = new Result("01", TranslationKey.Common.Message.CreateError);
-        public static readonly Result DATA_NOT_UPDATE = new Result("02", TranslationKey.Common.Message.UpdateError);
-        public static readonly Result DATA_NOT_DELETE = new Result("03", TranslationKey.Common.Message.DeleteError);
-        public static readonly Result DATA_EXISTED = new Result("04", TranslationKey.Common.Message.DataExisted);
-        public static readonly Result DATA_NOT_EXISTED = new Result("05", TranslationKey.Common.Message.DataNotExisted);
-        public static readonly Result DATA_VALID = new Result("06", TranslationKey.Common.Message.DataValid);
-        public static readonly Result DATA_INVALID = new Result("07", TranslationKey.Common.Message.DataInvalid);
+        public static readonly Result DATA_NOT_CREATE = new("01", "Tạo dữ liệu thất bại");
+        public static readonly Result DATA_NOT_UPDATE = new("02", "Cập nhật dữ liệu thất bại");
+        public static readonly Result DATA_NOT_DELETE = new("03", "Xóa dữ liệu thất bại");
+        public static readonly Result DATA_EXISTED = new("04", "Dữ liệu đã tồn tại");
+        public static readonly Result DATA_NOT_EXISTED = new("05", "Dữ liệu không tồn tại");
+        public static readonly Result DATA_VALID = new("06", "Dữ liệu hợp lệ");
+        public static readonly Result DATA_INVALID = new("07", "Dữ liệu không hợp lệ");
         // TODO: Bổ sung các common
     }
 
@@ -52,7 +55,12 @@ namespace ManageLife.Base
     {
         public T Data { get; }
 
-        internal Result(string code, string message, T data = default!, string? errorContent = null)
+        public Result() : base()
+        {
+            Data = default!;
+        }
+
+        public Result(string code, string message, T data = default!, string? errorContent = null)
             : base(code, message, errorContent)
         {
             Data = data;

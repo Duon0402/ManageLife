@@ -1,29 +1,57 @@
 ﻿@model AdminPermissionViewModel
 @{
     Options.Title = "Permission";
-    Options.Breadcrumb.AddRange(
-        new List<BreadcrumbItem>
-        {
-            new BreadcrumbItem("/admin/user/", "User"),
-            new BreadcrumbItem("/admin/permission/", "Permission", true),
-        }
-    );
     Options.UseFormData = true;
-    Options.EnableBackButton("/admin/user");
+    if (Model.TargetType == PermissionTargetType.User)
+    {
+        Options.Breadcrumb.AddRange(
+        new List<BreadcrumbItem>
+            {
+                    new BreadcrumbItem("/admin/user/", "User"),
+                    new BreadcrumbItem("/admin/permission/", "Permission", true),
+            }
+        );
+        Options.EnableBackButton("/admin/user");
+    }
+    else
+    {
+        Options.Breadcrumb.AddRange(
+            new List<BreadcrumbItem>
+            {
+            new BreadcrumbItem("/admin/role/", "Role"),
+            new BreadcrumbItem("/admin/permission/", "Permission", true),
+            }
+        );
+        Options.EnableBackButton("/admin/role");
+    }
 }
 
 @section FormData {
     <div class="col-4">
         <div class="row gx-2 align-items-center">
-            <div class="col-auto">
-                <label class="col-form-label">Username</label>
-            </div>
-            <div class="col">
-                <input type="text" class="form-control" value="@Model.UserName" readonly>
-            </div>
+            @if (Model.TargetType == PermissionTargetType.User)
+            {
+                <div class="col-auto">
+                    <label class="col-form-label">Username</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" value="@Model.UserName" readonly>
+                </div>
+            }
+            else
+            {
+                <div class="col-auto">
+                    <label class="col-form-label">Role</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" value="@Model.RoleName" readonly>
+                </div>
+            }
         </div>
 
+        <input type="hidden" id="targetType" value="@((int)Model.TargetType)" />
         <input type="hidden" id="userId" value="@Model.UserId" />
+        <input type="hidden" id="roleId" value="@Model.RoleId" />
     </div>
 }
 
@@ -56,7 +84,12 @@
     $(function () {
         initTables();
         loadData();
-    });``
+    });
+
+    const PermissionTargetType = {
+        User: 1,
+        Role: 2
+    };
 
     function initTables() {
         tblUnassigned = initPermissionTable("#tblUnassigned");
@@ -64,12 +97,23 @@
     }
 
     async function loadData() {
+        const targetType = Number($("#targetType").val());
         const userId = $("#userId").val();
-        if (!userId) return;
+        const roleId = $("#roleId").val();
+
+        let objectId;
+
+        if (targetType === PermissionTargetType.User) {
+            objectId = userId;
+        } else if (targetType === PermissionTargetType.Role) {
+            objectId = roleId;
+        } else {
+            return;
+        }
 
         const [unassigned, assigned] = await Promise.all([
-            getUnassignedPermissionsByUserIdAsync(userId),
-            getAssignedPermissionsByUserIdAsync(userId)
+            getUnassignedPermissionsAsync(objectId, targetType),
+            getAssignedPermissionsAsync(objectId, targetType)
         ]);
 
         if (!unassigned?.isOk() || !assigned?.isOk()) {
@@ -81,31 +125,52 @@
         tblAssigned.clear().rows.add(assigned.data).draw();
     }
 
-    async function getUnassignedPermissionsByUserIdAsync(userId) {
-        return await ajaxService.post('/Admin/Permission/GetUnassignedPermissionsByUserId', { userId: userId }, { showToast: false })
+    async function getUnassignedPermissionsAsync(objectId, targetType) {
+        if(targetType === PermissionTargetType.User) {
+            return await ajaxService.post('/Admin/Permission/GetUnassignedPermissionsByUserId', { userId: objectId }, { showToast: false })
+        } else {
+            return await ajaxService.post('/Admin/Permission/GetUnassignedPermissionsByRoleId', { roleId: objectId }, { showToast: false })
+        }
     }
 
-    async function getAssignedPermissionsByUserIdAsync(userId) {
-        return await ajaxService.post('/Admin/Permission/GetAssignedPermissionsByUserId', { userId: userId }, { showToast: false })
+    async function getAssignedPermissionsAsync(objectId, targetType) {
+        if(targetType === PermissionTargetType.User) {
+            return await ajaxService.post('/Admin/Permission/GetAssignedPermissionsByUserId', { userId: objectId }, { showToast: false })
+        } else {
+            return await ajaxService.post('/Admin/Permission/GetAssignedPermissionsByRoleId', { roleId: objectId }, { showToast: false })
+        }
     };
 
     function assignPermissions() {
+        const targetType = Number($("#targetType").val());
         const userId = $("#userId").val();
-        const permissionIds = getSelectedPermissionIds(tblUnassigned);
+        const roleId = $("#roleId").val();
+        let objectId;
 
+        if (targetType === PermissionTargetType.User) {
+            objectId = userId;
+        } else if (targetType === PermissionTargetType.Role) {
+            objectId = roleId;
+        } else {
+            return;
+        }
+
+        const permissionIds = getSelectedPermissionIds(tblUnassigned);
         if (permissionIds.length === 0) {
             showToast("Chưa chọn permission nào", "Thông báo", "warning");
             return;
         }
 
         const request = {
-            UserId: userId,
+            ObjectId: objectId,
+            TargetType: targetType,
             PermissionIds: permissionIds
         }
 
         ajaxService.post('/Admin/Permission/AssignPermissions', request, {
             onSuccess: function (response) {
                 if (response.isOk()) {
+                    loadData();
                     showToast("Success", "Thông báo", "success");
                 } else {
                     showToast(response.message || 'Error', 'Thông báo', 'error');
@@ -115,22 +180,35 @@
     }
 
     function unassignPermissions() {
+        const targetType = Number($("#targetType").val());
         const userId = $("#userId").val();
-        const permissionIds = getSelectedPermissionIds(tblAssigned);
+        const roleId = $("#roleId").val();
+        let objectId;
 
+        if (targetType === PermissionTargetType.User) {
+            objectId = userId;
+        } else if (targetType === PermissionTargetType.Role) {
+            objectId = roleId;
+        } else {
+            return;
+        }
+
+        const permissionIds = getSelectedPermissionIds(tblAssigned);
         if (permissionIds.length === 0) {
             showToast("Chưa chọn permission nào", "Thông báo", "warning");
             return;
         }
 
         const request = {
-            UserId: userId,
+            ObjectId: objectId,
+            TargetType: targetType,
             PermissionIds: permissionIds
         }
 
         ajaxService.post('/Admin/Permission/UnassignPermissions', request, {
             onSuccess: function (response) {
                 if (response.isOk()) {
+                    loadData();
                     showToast("Success", "Thông báo", "success");
                 } else {
                     showToast(response.message || 'Error', 'Thông báo', 'error');

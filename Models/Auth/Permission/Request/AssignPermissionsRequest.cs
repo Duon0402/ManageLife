@@ -1,11 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.ViewModels;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
     public class AssignPermissionsRequest
     {
-        [Required(ErrorMessage = "UserId is required")]
-        public string UserId { get; set; } = null!;
+        [Required]
+        public string ObjectId { get; set; } = null!;
+        public PermissionTargetType TargetType { get; set; }
         public List<string> PermissionIds { get; set; } = new List<string>();
     }
 }

@@ -31,9 +31,9 @@ namespace ManageLife.Controllers.Admin
 
         [HttpPost]
         [ViewPermission]
-        public async Task<Result<UserModel>> GetUserById([FromBody] GetUserIdRequest request)
+        public async Task<Result<UserModel>> GetUserById([FromBody] GetUserByIdRequest request)
         {
-            var rs = await _userService.GetUserIdAsync(request);
+            var rs = await _userService.GetUserByIdAsync(request);
             return rs;
         }
     }

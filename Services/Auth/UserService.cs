@@ -323,7 +323,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<UserModel>> GetUserIdAsync(GetUserIdRequest request)
+        public async Task<Result<UserModel>> GetUserByIdAsync(GetUserByIdRequest request)
         {
             string msg;
             try

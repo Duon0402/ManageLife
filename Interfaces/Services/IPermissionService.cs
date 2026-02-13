@@ -11,5 +11,7 @@ namespace ManageLife.Interfaces
         Task<Result> AssignPermissionsAsync(AssignPermissionsRequest request);
         Task<Result> UnassignPermissionsAsync(UnassignPermissionsRequest request);
         Task<Result> SyncPermissionsAsync(List<string> permissionCodes);
+        Task<Result<List<PermissionModel>>> GetAssignedPermissionsByRoleIdAsync(GetAssignedPermissionsByRoleIdRequest request);
+        Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleIdAsync(GetUnAssignedPermissionsByRoleIdRequest request);
     }
 }

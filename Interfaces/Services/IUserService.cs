@@ -15,7 +15,7 @@ namespace ManageLife.Interfaces
 
         #region Admin
         Task<Result<List<UserModel>>> GetListUsersAsync();
-        Task<Result<UserModel>> GetUserIdAsync(GetUserIdRequest request);
+        Task<Result<UserModel>> GetUserByIdAsync(GetUserByIdRequest request);
         #endregion
     }
 }

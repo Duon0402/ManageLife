@@ -86,6 +86,10 @@
                     width: "120px",
                     render: function (data) {
                         return `
+                            <button class="btn btn-sm btn-outline-primary btn-permission"
+                                    title="Permission">
+                                <i class="fa-solid fa-key"></i>
+                            </button>
                             <button class="btn btn-sm btn-outline-danger btn-delete"
                                     data-id="${data.id}"
                                     title="Xóa">
@@ -186,4 +190,13 @@
             }
         });
     }
+
+    $('#tblRole').on('click', '.btn-permission', function () {
+        const table = $('#tblRole').DataTable();
+        const rowData = table.row($(this).closest('tr')).data();
+
+        if (!rowData?.id) return;
+
+        window.location.href = `/admin/permission/indexbyrole?roleId=${rowData.id}`;
+    });
 </script>
