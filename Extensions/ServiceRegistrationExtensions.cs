@@ -1,5 +1,6 @@
 ﻿using ManageLife.Contexts;
 using ManageLife.Interfaces;
+using ManageLife.Interfaces.Services;
 using ManageLife.Services;
 
 namespace ManageLife.Extensions
@@ -22,6 +23,7 @@ namespace ManageLife.Extensions
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<IPermissionGuard, PermissionGuard>();
             services.AddScoped<ITranslationService, TranslationService>();
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ICronJobService, CronJobService>();

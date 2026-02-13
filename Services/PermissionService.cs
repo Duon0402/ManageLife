@@ -3,9 +3,9 @@ using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
@@ -19,6 +19,7 @@ namespace ManageLife.Services
         private readonly IRoleRepository _repoRole;
         private readonly IUserRepository _repoUser;
         private readonly IAppLogger<PermissionService> _logger;
+        private readonly IPermissionGuard _permissionGuard;
         private readonly IRolePermissionRepository _repoRolePermission;
         private readonly AppDbContext _context;
 
@@ -31,6 +32,7 @@ namespace ManageLife.Services
             IUserRepository repoUser,
             ICacheService cache,
             IAppLogger<PermissionService> logger,
+            IPermissionGuard permissionGuard,
             AppDbContext context)
         {
             _cache = cache;
@@ -41,6 +43,7 @@ namespace ManageLife.Services
             _repoRole = repoRole;
             _repoUser = repoUser;
             _logger = logger;
+            _permissionGuard = permissionGuard;
             _context = context;
         }
 
@@ -299,6 +302,14 @@ namespace ManageLife.Services
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
 
+            var currentUserId = GlobalHttpContext.GetUserId();
+            var guardResult = await _permissionGuard.ValidateAsync(request.TargetType, request.ObjectId, currentUserId);
+            if (guardResult.IsError())
+            {
+                _logger.Debug(guardResult.Message);
+                return guardResult;
+            }
+
             var rs = new Result();
             switch (request.TargetType)
             {
@@ -331,6 +342,14 @@ namespace ManageLife.Services
                 msg = "Danh sách quyền không được để trống";
                 _logger.Debug(msg);
                 return Result.Error(Result.DATA_INVALID.Code, msg);
+            }
+
+            var currentUserId = GlobalHttpContext.GetUserId();
+            var guardResult = await _permissionGuard.ValidateAsync(request.TargetType, request.ObjectId, currentUserId);
+            if (guardResult.IsError())
+            {
+                _logger.Debug(guardResult.Message);
+                return guardResult;
             }
 
             var rs = new Result();

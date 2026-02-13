@@ -57,7 +57,7 @@ namespace ManageLife.Helpers
 
             HashSet<string> userPermissions = new(StringComparer.OrdinalIgnoreCase);
 
-            if (!userId.IsEmpty())
+            if (userId.IsNotEmpty())
             {
                 var req = new GetAssignedPermissionsByUserIdRequest { UserId = userId };
                 var res = await _permissionService.GetAssignedPermissionsByUserIdAsync(req);

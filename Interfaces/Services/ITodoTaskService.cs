@@ -1,7 +1,7 @@
 ﻿using ManageLife.Base;
 using ManageLife.Models;
 
-namespace ManageLife.Interfaces
+namespace ManageLife.Interfaces.Services
 {
     public interface ITodoTaskService
     {

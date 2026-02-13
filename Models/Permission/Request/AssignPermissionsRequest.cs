@@ -1,4 +1,4 @@
-﻿using ManageLife.ViewModels;
+﻿using ManageLife.Commons;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models

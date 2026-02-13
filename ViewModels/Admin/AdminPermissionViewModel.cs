@@ -1,4 +1,6 @@
-﻿namespace ManageLife.ViewModels
+﻿using ManageLife.Commons;
+
+namespace ManageLife.ViewModels
 {
     public class AdminPermissionViewModel
     {
@@ -11,11 +13,5 @@
         // Role
         public string? RoleId { get; set; }
         public string? RoleName { get; set; }
-    }
-
-    public enum PermissionTargetType
-    {
-        User = 1,
-        Role = 2
     }
 }
