@@ -1,86 +1,155 @@
 ﻿@{
     Options.Title = "Language";
-    Options.UseFormData = true;
     Options.Breadcrumb.Add("/language", "Language");
 }
 
-<div class="mb-3">
-    <button class="btn btn-primary" id="btnLoad">Load danh sách</button>
-</div>
+<style>
+    #tblLanguage_wrapper .dt-search label {
+        display: none;
+    }
+</style>
 
-<div class="card mb-3 p-3">
-    <h5>Thêm ngôn ngữ</h5>
-    <div class="row g-2">
-        <div class="col-md-3">
-            <input type="text" class="form-control" id="txtCode" placeholder="Code (VD: en-US)" />
-        </div>
-        <div class="col-md-5">
-            <input type="text" class="form-control" id="txtName" placeholder="Tên ngôn ngữ" />
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-success w-100" id="btnCreate">Thêm mới</button>
-        </div>
-    </div>
+<div class="user-wrap">
+    <table id="tblLanguage" class="display w-100 table-bordered"></table>
 </div>
-
-<table class="table table-bordered" id="tblLanguages">
-    <thead>
-        <tr>
-            <th>Code</th>
-            <th>Tên</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+@await Html.PartialAsync("~/Views/Admin/Language/_LanguageModal.cshtml")
 
 <script>
-    function loadLanguages() {
+    let table = null;
+    let languageModalMode = 'create';
+    let editingLanguageId = null;
+
+    $(function () {
+        table = initTable("#tblLanguage");
+        loadData();
+    });
+
+    function loadData() {
+        GetListLanguagesAsync();
+    }
+
+    async function GetListLanguagesAsync() {
         ajaxService.get('/Admin/Language/GetListLanguages', null, {
             onSuccess: function (response) {
                 if (response.isOk()) {
-                    const tbody = $('#tblLanguages tbody');
-                    tbody.empty();
+                    const data = response.data || [];
+                    table.clear();
+                    table.rows.add(data);
+                    table.draw();
 
-                    response.data.forEach(l => {
-                        const row = `
-                                    <tr>
-                                        <td>${l.code}</td>
-                                        <td>${l.name}</td>
-                                    </tr>
-                                `;
-                        tbody.append(row);
-                    });
                 } else {
-                    showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
+                    showToast(response.message || 'Error', 'Thông báo', 'error');
                 }
+            },
+            onError: function () {
+                showToast('Không thể tải danh sách user', 'Thông báo', 'error');
             }
+        });
+    }
+
+    function initTable(selector) {
+        return $(selector).DataTable({
+            buttons: [
+                {
+                    text: '<i class="fa-solid fa-plus"></i>',
+                    className: 'btn btn-sm btn-outline-secondary',
+                    titleAttr: 'Thêm mới',
+                    action: function () {
+                        createLanguage();
+                    }
+                }
+            ],
+            layout: {
+                topEnd: [
+                    'buttons',
+                    'search'
+                ],
+            },
+            scrollY: 'calc(100vh - 395px)',
+            scrollCollapse: true,
+            destroy: true,
+            data: [],
+            paging: false,
+            info: false,
+            ordering: false,
+            searching: true,
+            autoWidth: true,
+            columns: [
+                { title: "ID", data: "id", visible: false },
+                { title: "Code", data: "code" },
+                { title: "Name", data: "name"},
+                {
+                    title: "",
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: "text-center",
+                    width: "120px",
+                    render: function (row) {
+                        return `
+                            <button class="btn btn-sm btn-outline-primary btn-edit"
+                                    data-id="${row.id}"
+                                    title="Sửa">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-delete"
+                                    data-id="${row.id}"
+                                    title="Xóa">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        `;
+                    }
+                }
+            ]
         });
     }
 
     function createLanguage() {
-        const req = {
-            code: $("#txtCode").val(),
-            name: $("#txtName").val()
-        };
-
-        ajaxService.post('/Admin/Language/CreateLanguage', req, {
-            onSuccess: function (response) {
-                if (response.isOk()) {
-                    showToast("Thêm thành công", "Thông báo", "success");
-                    loadLanguages();
-                    $("#txtCode").val('');
-                    $("#txtName").val('');
-                } else {
-                    showToast(response.message || 'Thêm thất bại', 'Thông báo', 'error');
-                }
-            }
-        });
+        openLanguageModal(null);
     }
 
-    $(function () {
-        $("#btnLoad").click(loadLanguages);
-        $("#btnCreate").click(createLanguage);
+    function editLanguage(language) {
+        openLanguageModal(language);
+    }
 
-        loadLanguages();
+
+    function openLanguageModal(data = null) {
+        resetLanguageForm();
+        if (data) {
+            languageModalMode = 'edit';
+            editingLanguageId = data.id;
+
+            $('#languageModalLabel').text('Cập nhật ngôn ngữ');
+            $('#txtCode').val(data.code);
+            $('#txtName').val(data.name);
+
+            console.log('OPEN MODAL - EDIT', data);
+        } else {
+            languageModalMode = 'create';
+            editingLanguageId = null;
+
+            $('#languageModalLabel').text('Thêm ngôn ngữ');
+
+            console.log('OPEN MODAL - CREATE');
+        }
+
+        $('#languageModal').modal('show');
+    }
+
+    function resetLanguageForm() {
+        $('#txtCode').val('');
+        $('#txtName').val('');
+    }
+
+    // Edit
+    $('#tblLanguage').on('click', '.btn-edit', function () {
+        const rowData = table.row($(this).closest('tr')).data();
+        editLanguage(rowData);
+    });
+
+    // Delete
+    $('#tblLanguage').on('click', '.btn-delete', function () {
+        const rowData = table.row($(this).closest('tr')).data();
+        console.log("DELETE language:", rowData);
     });
 </script>
