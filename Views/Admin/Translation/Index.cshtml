@@ -60,12 +60,12 @@
 
                     response.data.forEach(t => {
                         const row = `
-                                    <tr>
-                                        <td>${t.key}</td>
-                                        <td>${t.value}</td>
-                                        <td>${t.languageName}</td>
-                                    </tr>
-                                `;
+                                        <tr>
+                                            <td>${t.key}</td>
+                                            <td>${t.value}</td>
+                                            <td>${t.languageName}</td>
+                                        </tr>
+                                    `;
                         tbody.append(row);
                     });
                 } else {
@@ -102,5 +102,6 @@
         $("#btnCreate").click(createTranslation);
 
         loadTranslations();
+        new App.AdminTranslationPage();
     });
 </script>

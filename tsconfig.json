@@ -1,0 +1,23 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "ES6",
+    "outFile": "wwwroot/js/app.js"
+  },
+  "types": [
+    "jquery",
+    "bootstrap"
+  ],
+  "include": [
+    "Clients/Core/**/*.ts",
+    "Clients/Pages/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "wwwroot"
+  ]
+}
