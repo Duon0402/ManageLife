@@ -5,8 +5,8 @@ namespace App {
         name: string;
     }
 
-    export class AdminLanguagePage extends App.BasePage {
-        private gridBuilder: App.GridBuilder<LanguageModel>;
+    export class AdminLanguagePage extends BasePage {
+        private gridBuilder: GridBuilder<LanguageModel>;
         private table: DataTables.Api;
 
         protected initialize(): void {
@@ -19,25 +19,25 @@ namespace App {
         }
 
         private loadData(): void {
-            App.LoadingService.show();
-            App.ApiService.get('/Admin/Language/GetListLanguages').then(response => {
-                App.LoadingService.hide();
+            LoadingService.show();
+            ApiService.get('/Admin/Language/GetListLanguages').then(response => {
+                LoadingService.hide();
                 if (response.isOk()) {
                     const data = response.data || [];
                     this.table.clear();
                     this.table.rows.add(data);
                     this.table.draw();
                 } else {
-                    App.ToastService.error(response.message || 'Error');
+                    ToastService.error(response.message || 'Error');
                 }
             }).catch(() => {
-                App.LoadingService.hide();
-                App.ToastService.error('Không thể tải danh sách user');
+                LoadingService.hide();
+                ToastService.error('Không thể tải danh sách user');
             });
         }
 
         private initGrid(): void {
-            this.gridBuilder = new App.GridBuilder<LanguageModel>('#tblLanguage')
+            this.gridBuilder = new GridBuilder<LanguageModel>('#tblLanguage')
                 .addColumn({ field: 'id', title: 'ID', visible: false })
                 .addColumn({ field: 'code', title: 'Code' })
                 .addColumn({ field: 'name', title: 'Name' })
@@ -107,26 +107,26 @@ namespace App {
             }
         }
 
-        private async saveLanguage(submission: App.IFormSubmission<LanguageModel>): Promise<void> {
+        private async saveLanguage(submission: IFormSubmission<LanguageModel>): Promise<void> {
             const url = submission.mode === 'create'
                 ? '/Admin/Language/Create'
                 : '/Admin/Language/Update';
 
-            App.LoadingService.show();
+            LoadingService.show();
 
             try {
-                const response = await App.ApiService.post(url, submission.data);
-                App.LoadingService.hide();
+                const response = await ApiService.post(url, submission.data);
+                LoadingService.hide();
 
                 if (response.isOk()) {
-                    App.ToastService.success(submission.mode === 'create' ? 'Thêm thành công' : 'Cập nhật thành công');
+                    ToastService.success(submission.mode === 'create' ? 'Thêm thành công' : 'Cập nhật thành công');
                     this.loadData();
                 } else {
-                    App.ToastService.error(response.message || 'Lỗi khi lưu');
+                    ToastService.error(response.message || 'Lỗi khi lưu');
                 }
             } catch (error) {
-                App.LoadingService.hide();
-                App.ToastService.error('Lỗi hệ thống');
+                LoadingService.hide();
+                ToastService.error('Lỗi hệ thống');
             }
         }
 
@@ -135,20 +135,20 @@ namespace App {
                 return;
             }
 
-            App.LoadingService.show();
-            App.ApiService.post('/Admin/Language/Delete', { id: language.id })
+            LoadingService.show();
+            ApiService.post('/Admin/Language/Delete', { id: language.id })
                 .then(response => {
-                    App.LoadingService.hide();
+                    LoadingService.hide();
                     if (response.isOk()) {
-                        App.ToastService.success('Xóa thành công');
+                        ToastService.success('Xóa thành công');
                         this.loadData();
                     } else {
-                        App.ToastService.error(response.message || 'Xóa thất bại');
+                        ToastService.error(response.message || 'Xóa thất bại');
                     }
                 })
                 .catch(() => {
-                    App.LoadingService.hide();
-                    App.ToastService.error('Lỗi hệ thống');
+                    LoadingService.hide();
+                    ToastService.error('Lỗi hệ thống');
                 });
         }
     }
