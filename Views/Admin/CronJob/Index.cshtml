@@ -3,59 +3,23 @@
     Options.Breadcrumb.Add("/cronjob", "CronJob");
 }
 
-<table id="cronJobsTable" class="table table-striped">
-    <thead>
-        <tr>
-            <th>Job ID</th>
-            <th>Tiêu đề</th>
-            <th>Trạng thái</th>
-            <th>URL</th>
-        </tr>
-    </thead>
-    <tbody>
-    </tbody>
-</table>
-
-
-@{
-    var loadUrl = AjaxHelper.GetActionUrl<CronJobController>(x => x.GetListCronJobs());
-
-    var optionsBuilder = new DataTableColumnOptionsBuilder()
-        .Data("Name")
-        .AriaTitle("Name")
-        .Build();
-
-    Html.DataTable(optionsBuilder);
-}
+<div id="admin-cronjob-page">
+    <table id="cronJobsTable" class="table table-striped w-100">
+        <thead>
+            <tr>
+                <th>Job ID</th>
+                <th>Tiêu đề</th>
+                <th>Trạng thái</th>
+                <th>URL</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
 
 <script>
-    function loadCronJobs() {
-        ajaxService.get('@loadUrl', null, {
-            onSuccess: function (response) {
-                if (response.isOk()) {
-                    const tbody = $('#cronJobsTable tbody');
-                    tbody.empty();
-
-                    response.data.forEach(job => {
-                        const statusText = job.enabled ? 'Hoạt động' : 'Tạm dừng';
-                        const row = `
-                                            <tr>
-                                                <td>${job.jobId}</td>
-                                                <td>${job.title}</td>
-                                                <td>${statusText}</td>
-                                                <td>${job.url}</td>
-                                            </tr>
-                                        `;
-                        tbody.append(row);
-                    });
-                } else {
-                    showToast(response.message || 'Lấy danh sách thất bại', 'Thông báo', 'error');
-                }
-            }
-        });
-    }
-
-    $(document).ready(function () {
-        loadCronJobs();
+    $(function () {
+        new App.AdminCronJobPage("#admin-cronjob-page");
     });
 </script>

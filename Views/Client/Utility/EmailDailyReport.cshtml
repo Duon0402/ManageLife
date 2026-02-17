@@ -2,7 +2,7 @@
     Options.Title = "Daily Report Email";
 }
 
-<div class="container-fluid">
+<div class="container-fluid" id="utility-email-page">
     <div class="row">
         <div class="col-lg-6 col-12 mb-lg-0 mb-3">
             <div class="card my-3 h-100">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 <div class="card-footer d-flex justify-content-center">
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="genEmail()">
+                    <button type="button" class="btn btn-sm btn-outline-primary">
                         <i class="fa-solid fa-envelope me-2"></i>
                         <span>Generate Email</span>
                     </button>
@@ -52,7 +52,7 @@
                         <div class="col-12 mb-3">
                             <label for="emailTo" class="form-label d-flex justify-content-between align-items-center">
                                 <span>Email To</span>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy" onclick="copyField('#emailTo')">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy">
                                     <i class="fa-regular fa-copy"></i>
                                 </button>
                             </label>
@@ -63,7 +63,7 @@
                         <div class="col-12 mb-3">
                             <label for="emailCc" class="form-label d-flex justify-content-between align-items-center">
                                 <span>Email CC</span>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy" onclick="copyField('#emailCc')">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy">
                                     <i class="fa-regular fa-copy"></i>
                                 </button>
                             </label>
@@ -74,7 +74,7 @@
                         <div class="col-12 mb-3">
                             <label for="subject" class="form-label d-flex justify-content-between align-items-center">
                                 <span>Subject</span>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy" onclick="copyField('#subject')">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy">
                                     <i class="fa-regular fa-copy"></i>
                                 </button>
                             </label>
@@ -85,7 +85,7 @@
                         <div class="col-12 mb-3">
                             <label for="body" class="form-label d-flex justify-content-between align-items-center">
                                 <span>Body</span>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy" onclick="copyField('#body')">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Copy">
                                     <i class="fa-regular fa-copy"></i>
                                 </button>
                             </label>
@@ -101,73 +101,7 @@
 </div>
 
 <script>
-    $(document).ready(function () {
-        var currentDate = new Date();
-        var nextDate = new Date(currentDate);
-
-        if (currentDate.getDay() === 6) {
-            nextDate.setDate(currentDate.getDate() + 2);
-        } else {
-            nextDate.setDate(currentDate.getDate() + 1);
-        }
-
-        $('#currentBusinessDay').datepicker({
-            format: 'dd/mm/yyyy',
-            autoclose: true,
-            todayHighlight: true,
-            clearBtn: true
-        }).datepicker('setDate', currentDate);
-
-        $('#nextBusinessDay').datepicker({
-            format: 'dd/mm/yyyy',
-            autoclose: true,
-            todayHighlight: true,
-            clearBtn: true,
-            startDate: currentDate
-        }).datepicker('setDate', nextDate);
+    $(function () {
+        new App.UtilityEmailPage("#utility-email-page");
     });
-
-    function copyField(selector) {
-        const text = $(selector).val()?.trim();
-
-        if (!text) {
-            showToast('Không có nội dung để copy!', 'Thông báo', 'warning');
-            return;
-        }
-
-        navigator.clipboard.writeText(text)
-            .then(() => showToast('Copy thành công!', 'Thông báo', 'success'))
-            .catch(() => showToast('Copy thất bại!', 'Thông báo', 'error'));
-    }
-
-    async function genEmail() {
-        const currentBusinessDay = $('#currentBusinessDay').datepicker('getUTCDate');
-        const nextBusinessDay = $('#nextBusinessDay').datepicker('getUTCDate');
-        const todayWorkResults = $('#todayWorkResults').val().trim();
-        const plannedWorkTomorrow = $('#plannedWorkTomorrow').val().trim();
-        const suggestions = $('#suggestions').val().trim();
-
-        var request = {
-            currentBusinessDay,
-            nextBusinessDay,
-            todayWorkResults,
-            plannedWorkTomorrow,
-            suggestions
-        };
-
-        await ajaxService.post('/Utility/GenerateEmailDailyReport', request, {
-            showToast: true,
-            onSuccess: function (res) {
-                if (res.isOk()) {
-                    $('#emailTo').val(res.data.emailTo);
-                    $('#emailCc').val(res.data.emailCc);
-                    $('#subject').val(res.data.subject);
-                    $('#body').val(res.data.body);
-                }
-                else {
-                    showToast(res.message || 'Error', 'Thông báo', 'error');
-                }
-            }
-        });
-    }
 </script>

@@ -373,7 +373,17 @@ namespace App {
                 config.ajax = {
                     url: this.dataSource.url,
                     type: this.dataSource.method || 'GET',
-                    dataSrc: this.dataSource.dataSrc || ''
+                    dataSrc: (res: any) => {
+                        if (res && res.code === Constants.ApiCode.SUCCESS) {
+                            const ds = this.dataSource?.dataSrc || 'data';
+                            if (typeof ds === 'function') {
+                                return ds(res);
+                            }
+                            return ds === '' ? res : res[ds as string];
+                        }
+                        console.error('Grid AJAX error:', res);
+                        return [];
+                    }
                 };
                 delete config.data;
             }

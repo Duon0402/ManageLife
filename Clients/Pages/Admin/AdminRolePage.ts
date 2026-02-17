@@ -1,29 +1,27 @@
 namespace App {
-    interface LanguageModel {
+    interface RoleModel {
         id: number;
         code: string;
         name: string;
+        description: string;
     }
 
-    export class AdminLanguagePage extends BasePage {
-        private gridBuilder: GridBuilder<LanguageModel>;
+    export class AdminRolePage extends BasePage {
+        private gridBuilder: GridBuilder<RoleModel>;
 
         protected initialize(): void {
             this.initGrid();
         }
 
-        protected bindEvents(): void {
-            // Event binding is now handled by GridBuilder and GridFormBuilder
-        }
-
         private initGrid(): void {
-            this.gridBuilder = new GridBuilder<LanguageModel>('#tblLanguage')
+            this.gridBuilder = new GridBuilder<RoleModel>('#tblRole')
                 .setDataSource({
-                    url: '/Admin/Language/GetListLanguages'
+                    url: '/Admin/Role/GetListRoles'
                 })
                 .addColumn({ field: 'id', title: 'ID', visible: false })
                 .addColumn({ field: 'code', title: 'Code' })
                 .addColumn({ field: 'name', title: 'Name' })
+                .addColumn({ field: 'description', title: 'Description' })
                 .addToolbarButton({
                     icon: 'fa-plus',
                     className: 'btn btn-sm btn-outline-secondary',
@@ -31,16 +29,18 @@ namespace App {
                     onClick: () => this.gridBuilder.getFormBuilder()?.showCreate()
                 })
                 .addActionButton({
-                    icon: 'fa-pen-to-square',
+                    icon: 'fa-key',
                     className: 'btn-outline-primary',
-                    title: 'Sửa',
-                    onClick: (data) => this.gridBuilder.getFormBuilder()?.showEdit(data)
+                    title: 'Permission',
+                    onClick: (data) => {
+                        window.location.href = `/admin/permission/indexbyrole?roleId=${data.id}`;
+                    }
                 })
                 .addActionButton({
                     icon: 'fa-trash',
                     className: 'btn-outline-danger',
                     title: 'Xóa',
-                    onClick: (data) => this.deleteLanguage(data)
+                    onClick: (data) => this.deleteRole(data)
                 })
                 .setOptions({
                     scrollY: 'calc(100vh - 395px)',
@@ -49,11 +49,11 @@ namespace App {
                     info: false,
                     ordering: false,
                     searching: true,
-                    autoWidth: true
+                    autoWidth: false
                 })
                 .setForm({
-                    createTitle: 'Thêm ngôn ngữ',
-                    editTitle: 'Cập nhật ngôn ngữ',
+                    createTitle: 'Thêm mới Role',
+                    editTitle: 'Cập nhật Role',
                     saveButtonText: 'Lưu',
                     cancelButtonText: 'Hủy',
                     showDeleteButton: true,
@@ -68,32 +68,37 @@ namespace App {
                             label: 'Code',
                             type: 'text',
                             required: true,
-                            placeholder: 'Nhập mã ngôn ngữ (vd: en, vi)'
+                            placeholder: 'Nhập mã Role'
                         },
                         {
                             name: 'name',
                             label: 'Name',
                             type: 'text',
                             required: true,
-                            placeholder: 'Nhập tên ngôn ngữ'
+                            placeholder: 'Nhập tên Role'
+                        },
+                        {
+                            name: 'description',
+                            label: 'Description',
+                            type: 'textarea',
+                            placeholder: 'Nhập mô tả'
                         }
                     ]
                 });
 
             this.gridBuilder.build();
 
-            // Set up form save handler
             const formBuilder = this.gridBuilder.getFormBuilder();
             if (formBuilder) {
-                formBuilder.onSave((submission) => this.saveLanguage(submission));
-                formBuilder.onDelete((data) => this.deleteLanguage(data));
+                formBuilder.onSave((submission) => this.saveRole(submission));
+                formBuilder.onDelete((data) => this.deleteRole(data));
             }
         }
 
-        private async saveLanguage(submission: IFormSubmission<LanguageModel>): Promise<void> {
+        private async saveRole(submission: IFormSubmission<RoleModel>): Promise<void> {
             const url = submission.mode === 'create'
-                ? '/Admin/Language/Create'
-                : '/Admin/Language/Update';
+                ? '/Admin/Role/CreateRole'
+                : '/Admin/Role/UpdateRole';
 
             LoadingService.show();
 
@@ -113,13 +118,13 @@ namespace App {
             }
         }
 
-        private deleteLanguage(language: LanguageModel): void {
-            if (!confirm('Bạn có chắc chắn muốn xóa ngôn ngữ này?')) {
+        private deleteRole(role: RoleModel): void {
+            if (!confirm('Bạn có chắc chắn muốn xoá role này?')) {
                 return;
             }
 
             LoadingService.show();
-            ApiService.post('/Admin/Language/Delete', { id: language.id })
+            ApiService.post('/Admin/Role/DeleteRole', { roleId: role.id })
                 .then(response => {
                     LoadingService.hide();
                     if (response.isOk()) {

@@ -3,92 +3,12 @@
     Options.Breadcrumb.Add("/user", "User");
 }
 
-<div class="user-wrap">
+<div class="user-wrap" id="admin-user-page">
     <table id="tblUser" class="display w-100 table-bordered"></table>
 </div>
+
 <script>
-    let userTable = null;
-
     $(function () {
-        userTable = initTable("#tblUser");
-        loadData();
-    });
-
-    function loadData() {
-        getListUsersAsync();
-    }
-
-    async function getListUsersAsync() {
-        ajaxService.get('/Admin/User/GetListUsers', null, {
-            onSuccess: function (response) {
-                if (response.isOk()) {
-                    const data = response.data || [];
-
-                    userTable.clear();
-                    userTable.rows.add(data);
-                    userTable.draw();
-
-                } else {
-                    showToast(response.message || 'Error', 'Thông báo', 'error');
-                }
-            },
-            onError: function () {
-                showToast('Không thể tải danh sách user', 'Thông báo', 'error');
-            }
-        });
-    }
-
-    function initTable(selector) {
-        return $(selector).DataTable({
-            scrollY: 'calc(100vh - 395px)',
-            scrollCollapse: true,
-            destroy: true,
-            data: [],
-            paging: false,
-            info: false,
-            ordering: false,
-            searching: true,
-            autoWidth: false,
-            columns: [
-                { title: "ID", data: "id" },
-                { title: "User Name", data: "userName" },
-                { title: "Full Name", data: "fullName", defaultContent: "" },
-                { title: "Email", data: "email", defaultContent: "" },
-                {
-                    title: "Active",
-                    data: "isActive",
-                    render: function (data) {
-                        return data
-                            ? '<span class="badge bg-success">Active</span>'
-                            : '<span class="badge bg-secondary">Inactive</span>';
-                    }
-                },
-                {
-                    title: "",
-                    data: null,
-                    orderable: false,
-                    searchable: false,
-                    className: "text-center",
-                    width: "120px",
-                    render: function () {
-                        return `
-                            <button class="btn btn-sm btn-outline-primary btn-permission"
-                                    title="Permission">
-                                <i class="fa-solid fa-key"></i>
-                            </button>
-                        `;
-                    }
-                }
-            ]
-        });
-    }
-
-    $('#tblUser').on('click', '.btn-permission', function () {
-        const table = $('#tblUser').DataTable();
-        const rowData = table.row($(this).closest('tr')).data();
-
-        if (!rowData?.id) return;
-
-        window.location.href = `/admin/permission/indexbyuser?userId=${rowData.id}`;
+        new App.AdminUserPage("#admin-user-page");
     });
 </script>

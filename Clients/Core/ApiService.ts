@@ -20,8 +20,8 @@ namespace App {
                 contentType: Constants.Defaults.CONTENT_TYPE,
                 dataType: Constants.Defaults.DATA_TYPE,
                 processData: true,
-                showLoading: true,
-                showToast: true
+                showLoading: false,
+                showToast: false
             };
         }
 

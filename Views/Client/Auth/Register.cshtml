@@ -2,7 +2,7 @@
     Options.Title = "Register";
 }
 
-<div class="container d-flex justify-content-center align-items-center">
+<div class="container d-flex justify-content-center align-items-center" id="auth-register-page">
     <div class="card" style="width: 100%; max-width: 400px;">
         <div class="card-body">
             <h5 class="card-title text-center">Register</h5>
@@ -26,24 +26,7 @@
 </div>
 
 <script>
-    $("#registerForm").submit(function (event) {
-        event.preventDefault();
-
-        const formData = {
-            userName: $("#username").val(),
-            password: $("#password").val(),
-            confirmPassword: $("#confirmPassword").val(),
-        };
-
-        ajaxService.post('/Auth/Register', formData, {
-            onSuccess: function (response) {
-                if (response.isOk()) {
-                    window.location.href = '/'
-                }
-                else {
-                    showToast(response.message, 'Thông báo', 'error');
-                }
-            },
-        });
+    $(function () {
+        new App.AuthRegisterPage("#auth-register-page");
     });
 </script>

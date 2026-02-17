@@ -3,7 +3,7 @@
     Options.Title = title;
 }
 
-<div class="container d-flex justify-content-center align-items-center">
+<div class="container d-flex justify-content-center align-items-center" id="auth-login-page">
     <div class="card" style="width: 100%; max-width: 400px;">
         <div class="card-body">
             <h5 class="card-title text-center">@title</h5>
@@ -25,31 +25,7 @@
 </div>
 
 <script>
-    $("#loginForm").submit(function (event) {
-        event.preventDefault();
-
-        const formData = {
-            userName: $("#username").val(),
-            password: $("#password").val()
-        };
-
-        ajaxService.post('/auth/login', formData, {
-            onSuccess: function (response) {
-                if (response.isOk()) {
-
-                    const params = new URLSearchParams(window.location.search);
-                    let returnUrl = params.get("returnUrl");
-
-                    if (!returnUrl) {
-                        returnUrl = sessionStorage.getItem("returnUrl") || "/";
-                    }
-                    sessionStorage.removeItem("returnUrl");
-
-                    window.location.href = returnUrl;
-                } else {
-                    showToast(response.message, 'Thông báo', 'error');
-                }
-            }
-        });
+    $(function () {
+        new App.AuthLoginPage("#auth-login-page");
     });
 </script>

@@ -55,7 +55,7 @@
     </div>
 }
 
-<div class="permission-wrap">
+<div class="permission-wrap" id="admin-permission-page">
     <div class="d-flex w-100 h-100 justify-content-between">
         <div class="permission-panel border rounded p-2" style="width: calc(50% - 40px);">
             <div class="fw-bold mb-2 text-center border-1 border-bottom">
@@ -64,10 +64,10 @@
             <table id="tblUnassigned" class="display w-100 table-bordered"></table>
         </div>
         <div class="d-flex flex-column justify-content-center align-items-center gap-3" style="width: 80px;">
-            <button id="btnAssign" class="btn btn-outline-primary" onclick="assignPermissions()">
+            <button id="btnAssign" class="btn btn-outline-primary">
                 <i class="fa-solid fa-angles-right"></i>
             </button>
-            <button id="btnUnassign" class="btn btn-outline-danger" onclick="unassignPermissions()">
+            <button id="btnUnassign" class="btn btn-outline-danger">
                 <i class="fa-solid fa-angles-left"></i>
             </button>
         </div>
@@ -82,179 +82,6 @@
 
 <script>
     $(function () {
-        initTables();
-        loadData();
+        new App.AdminPermissionPage("#admin-permission-page", @Json.Serialize(Model));
     });
-
-    const PermissionTargetType = {
-        User: 1,
-        Role: 2
-    };
-
-    function initTables() {
-        tblUnassigned = initPermissionTable("#tblUnassigned");
-        tblAssigned = initPermissionTable("#tblAssigned");
-    }
-
-    async function loadData() {
-        const targetType = Number($("#targetType").val());
-        const userId = $("#userId").val();
-        const roleId = $("#roleId").val();
-
-        let objectId;
-
-        if (targetType === PermissionTargetType.User) {
-            objectId = userId;
-        } else if (targetType === PermissionTargetType.Role) {
-            objectId = roleId;
-        } else {
-            return;
-        }
-
-        const [unassigned, assigned] = await Promise.all([
-            getUnassignedPermissionsAsync(objectId, targetType),
-            getAssignedPermissionsAsync(objectId, targetType)
-        ]);
-
-        if (!unassigned?.isOk() || !assigned?.isOk()) {
-            showToast("Load permission failed", "Thông báo", "error");
-            return;
-        }
-
-        tblUnassigned.clear().rows.add(unassigned.data).draw();
-        tblAssigned.clear().rows.add(assigned.data).draw();
-    }
-
-    async function getUnassignedPermissionsAsync(objectId, targetType) {
-        if(targetType === PermissionTargetType.User) {
-            return await ajaxService.post('/Admin/Permission/GetUnassignedPermissionsByUserId', { userId: objectId }, { showToast: false })
-        } else {
-            return await ajaxService.post('/Admin/Permission/GetUnassignedPermissionsByRoleId', { roleId: objectId }, { showToast: false })
-        }
-    }
-
-    async function getAssignedPermissionsAsync(objectId, targetType) {
-        if(targetType === PermissionTargetType.User) {
-            return await ajaxService.post('/Admin/Permission/GetAssignedPermissionsByUserId', { userId: objectId }, { showToast: false })
-        } else {
-            return await ajaxService.post('/Admin/Permission/GetAssignedPermissionsByRoleId', { roleId: objectId }, { showToast: false })
-        }
-    };
-
-    function assignPermissions() {
-        const targetType = Number($("#targetType").val());
-        const userId = $("#userId").val();
-        const roleId = $("#roleId").val();
-        let objectId;
-
-        if (targetType === PermissionTargetType.User) {
-            objectId = userId;
-        } else if (targetType === PermissionTargetType.Role) {
-            objectId = roleId;
-        } else {
-            return;
-        }
-
-        const permissionIds = getSelectedPermissionIds(tblUnassigned);
-        if (permissionIds.length === 0) {
-            showToast("Chưa chọn permission nào", "Thông báo", "warning");
-            return;
-        }
-
-        const request = {
-            ObjectId: objectId,
-            TargetType: targetType,
-            PermissionIds: permissionIds
-        }
-
-        ajaxService.post('/Admin/Permission/AssignPermissions', request, {
-            onSuccess: function (response) {
-                if (response.isOk()) {
-                    loadData();
-                    showToast("Success", "Thông báo", "success");
-                } else {
-                    showToast(response.message || 'Error', 'Thông báo', 'error');
-                }
-            }
-        })
-    }
-
-    function unassignPermissions() {
-        const targetType = Number($("#targetType").val());
-        const userId = $("#userId").val();
-        const roleId = $("#roleId").val();
-        let objectId;
-
-        if (targetType === PermissionTargetType.User) {
-            objectId = userId;
-        } else if (targetType === PermissionTargetType.Role) {
-            objectId = roleId;
-        } else {
-            return;
-        }
-
-        const permissionIds = getSelectedPermissionIds(tblAssigned);
-        if (permissionIds.length === 0) {
-            showToast("Chưa chọn permission nào", "Thông báo", "warning");
-            return;
-        }
-
-        const request = {
-            ObjectId: objectId,
-            TargetType: targetType,
-            PermissionIds: permissionIds
-        }
-
-        ajaxService.post('/Admin/Permission/UnassignPermissions', request, {
-            onSuccess: function (response) {
-                if (response.isOk()) {
-                    loadData();
-                    showToast("Success", "Thông báo", "success");
-                } else {
-                    showToast(response.message || 'Error', 'Thông báo', 'error');
-                }
-            }
-        })
-    }
-
-    function initPermissionTable(selector) {
-        return $(selector).DataTable({
-            scrollY: 'calc(100vh - 395px)',
-            scrollCollapse: true,
-            destroy: true,
-            data: [],
-            paging: false,
-            info: false,
-            ordering: false,
-            searching: true,
-            autoWidth: false,
-            columnDefs: [
-                {
-                    orderable: false,
-                    render: DataTable.render.select(),
-                    className: 'select-checkbox',
-                    defaultContent: '',
-                    targets: 0
-                }
-            ],
-            select: {
-                style: 'multi',
-                selector: 'td:first-child'
-            },
-            columns: [
-                { title: "", data: null },
-                { title: "Code", data: "code" },
-                { title: "Name", data: "name" },
-                {
-                    title: "Description",
-                    data: "description",
-                    defaultContent: ""
-                }
-            ]
-        });
-    }
-
-    function getSelectedPermissionIds(table) {
-        return table.rows({ selected: true }).data().toArray().map(r => r.id);
-    }
 </script>

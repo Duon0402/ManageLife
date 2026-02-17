@@ -13,7 +13,6 @@ namespace App {
 
     export class AdminTranslationPage extends BasePage<TranslationViewModel> {
         private gridBuilder: GridBuilder<TranslationModel>;
-        private table: DataTables.Api;
 
         protected initialize(): void {
             this.initGrid();
@@ -98,7 +97,7 @@ namespace App {
                     ]
                 });
 
-            this.table = this.gridBuilder.build();
+            this.gridBuilder.build();
 
             // Set up form save handler
             const formBuilder = this.gridBuilder.getFormBuilder();
@@ -122,9 +121,7 @@ namespace App {
                     LoadingService.hide();
                     if (response.isOk()) {
                         const data = response.data || [];
-                        this.table.clear();
-                        this.table.rows.add(data);
-                        this.table.draw();
+                        this.gridBuilder.reload(data);
                     } else {
                         ToastService.error(response.message || 'Lấy danh sách thất bại');
                     }

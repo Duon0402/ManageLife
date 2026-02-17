@@ -159,7 +159,7 @@
 
 </style>
 
-<div class="container mt-4">
+<div class="container mt-4" id="file-storage-page">
 	<div class="file-uploader">
 		<div class="uploader-header">
 			<h2 class="uploader-title">File Uploader</h2>
@@ -176,93 +176,8 @@
 	</div>
 </div>
 
-@section Scripts {
-	<script>
-		const fileList = $('.file-list');
-		const fileBrowseButton = $('.file-browse-button');
-		const fileBrowseInput = $('.file-browse-input');
-		const fileUploadBox = $('.file-upload-box');
-
-		fileUploadBox.on("drop", (e) => {
-		  e.preventDefault();
-		  handleSelectedFiles(e.originalEvent.dataTransfer.files)
-		  fileUploadBox.addClass('active');
-		  fileUploadBox.find('.file-instruction').text('Release to upload or');
-		});
-
-		fileUploadBox.on("dragover", (e) => {
-		  e.preventDefault();
-		  fileUploadBox.addClass('active');
-		  fileUploadBox.find('.file-instruction').text('Release to upload or');
-		});
-
-		fileUploadBox.on("dragleave", (e) => {
-		  e.preventDefault();
-		  fileUploadBox.removeClass('active');
-		  fileUploadBox.find('.file-instruction').text('Drag files here or');
-		});
-
-		fileBrowseInput.on('change', (e) => handleSelectedFiles(e.target.files));
-
-		fileBrowseButton.on('click', () => fileBrowseInput.click());
-
-		function handleSelectedFiles([...files]) {
-			if (files.length === 0) return;
-
-			files.forEach((file, index) => {
-				const $item = $(createFileItemHtml(file));
-				fileList.append($item);
-
-				const formData = new FormData();
-				formData.append('file', file);
-
-				ajaxService.upload('/filestorage/upload', formData, {
-					showLoading: false,
-					hideLoading: false,
-					onProgress: (percent) => {
-						$item.find('.file-progress').css('width', percent + '%');
-						$item.find('.file-status').text(`Uploading... ${percent}%`);
-					},
-					onSuccess: (res) => {
-						$item.find('.file-status').text('Completed');
-						$item.find('.file-progress').css('width', '100%');
-					},
-					onError: (err) => {
-						$item.find('.file-status').text('Failed');
-						$item.find('.file-progress').css('background', 'red');
-					}
-				});
-			});
-		}
-
-		function createFileItemHtml(file, index) {
-		  const { name, size } = file;
-		  const extention = name.split(".").pop();
-
-		  return `
-			<li class="file-item">
-			  <div class="file-extension">${extention}</div>
-			  <div class="file-content-wrapper">
-				<div class="file-content">
-				  <div class="file-details">
-					<h5 class="file-name">${name}</h5>
-					<div class="file-info">
-					  <small class="file-size">4 MB / ${size}</small>
-					  <small class="file-divider">-</i></small>
-					  <small class="file-status">Uploading...</small>
-					</div>
-				  </div>
-				  <button class="cancel-button">
-					<i class="fa-solid fa-xmark"></i>
-				  </button>
-				</div>
-				<div class="file-progress-bar">
-				  <div class="file-progress">
-				  </div>
-				</div>
-			  </div>
-			</li>
-		  `;
-		}
-	</script>
-}
+<script>
+    $(function () {
+        new App.FileStoragePage("#file-storage-page");
+    });
+</script>
