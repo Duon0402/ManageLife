@@ -51,4 +51,8 @@
 		<Folder Include="Migrations\" />
 	</ItemGroup>
 
+	<Target Name="CompileTypeScript" BeforeTargets="Build">
+		<Exec Command="npm run tsc" />
+	</Target>
+
 </Project>

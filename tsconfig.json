@@ -6,6 +6,7 @@
     "removeComments": false,
     "sourceMap": true,
     "target": "ES6",
+    "module": "none",
     "outFile": "wwwroot/js/app.js",
     "moduleResolution": "node",
     "skipLibCheck": true
