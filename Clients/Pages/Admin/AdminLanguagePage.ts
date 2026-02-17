@@ -5,140 +5,151 @@ namespace App {
         name: string;
     }
 
-    export class AdminLanguagePage extends BasePage {
+    export class AdminLanguagePage extends App.BasePage {
+        private gridBuilder: App.GridBuilder<LanguageModel>;
         private table: DataTables.Api;
-        private languageModalMode: 'create' | 'edit' = 'create';
-        private editingLanguageId: number | null = null;
 
         protected initialize(): void {
-            this.initTable();
+            this.initGrid();
             this.loadData();
         }
 
         protected bindEvents(): void {
-            this.root.find('#tblLanguage').on('click', '.btn-edit', (e) => {
-                const btn = $(e.currentTarget);
-                const rowData = this.table.row(btn.closest('tr')).data() as LanguageModel;
-                this.editLanguage(rowData);
-            });
-
-            this.root.find('#tblLanguage').on('click', '.btn-delete', (e) => {
-                const btn = $(e.currentTarget);
-                const rowData = this.table.row(btn.closest('tr')).data() as LanguageModel;
-                // Implement delete logic if needed, previously it just logged
-                console.log("DELETE language:", rowData);
-            });
-
-            // Modal buttons (assuming there is a save button in the modal, but the View logic didn't show it explicitly, maybe it's in the partial)
-            // The original View didn't show the save logic! It only showed open/reset.
-            // I will implement open/reset logic as per original view.
+            // Event binding is now handled by GridBuilder and GridFormBuilder
         }
 
         private loadData(): void {
-            LoadingService.show();
-            ApiService.get('/Admin/Language/GetListLanguages').then(response => {
-                LoadingService.hide();
+            App.LoadingService.show();
+            App.ApiService.get('/Admin/Language/GetListLanguages').then(response => {
+                App.LoadingService.hide();
                 if (response.isOk()) {
                     const data = response.data || [];
                     this.table.clear();
                     this.table.rows.add(data);
                     this.table.draw();
                 } else {
-                    ToastService.error(response.message || 'Error');
+                    App.ToastService.error(response.message || 'Error');
                 }
             }).catch(() => {
-                LoadingService.hide();
-                ToastService.error('Không thể tải danh sách user');
+                App.LoadingService.hide();
+                App.ToastService.error('Không thể tải danh sách user');
             });
         }
 
-        private initTable(): void {
-            this.table = this.root.find("#tblLanguage").DataTable({
-                buttons: [
-                    {
-                        text: '<i class="fa-solid fa-plus"></i>',
-                        className: 'btn btn-sm btn-outline-secondary',
-                        titleAttr: 'Thêm mới',
-                        action: () => {
-                            this.createLanguage();
+        private initGrid(): void {
+            this.gridBuilder = new App.GridBuilder<LanguageModel>('#tblLanguage')
+                .addColumn({ field: 'id', title: 'ID', visible: false })
+                .addColumn({ field: 'code', title: 'Code' })
+                .addColumn({ field: 'name', title: 'Name' })
+                .addToolbarButton({
+                    icon: 'fa-plus',
+                    className: 'btn btn-sm btn-outline-secondary',
+                    title: 'Thêm mới',
+                    onClick: () => this.gridBuilder.getFormBuilder()?.showCreate()
+                })
+                .addActionButton({
+                    icon: 'fa-pen-to-square',
+                    className: 'btn-outline-primary',
+                    title: 'Sửa',
+                    onClick: (data) => this.gridBuilder.getFormBuilder()?.showEdit(data)
+                })
+                .addActionButton({
+                    icon: 'fa-trash',
+                    className: 'btn-outline-danger',
+                    title: 'Xóa',
+                    onClick: (data) => this.deleteLanguage(data)
+                })
+                .setOptions({
+                    scrollY: 'calc(100vh - 395px)',
+                    scrollCollapse: true,
+                    paging: false,
+                    info: false,
+                    ordering: false,
+                    searching: true,
+                    autoWidth: true
+                })
+                .setForm({
+                    createTitle: 'Thêm ngôn ngữ',
+                    editTitle: 'Cập nhật ngôn ngữ',
+                    saveButtonText: 'Lưu',
+                    cancelButtonText: 'Hủy',
+                    showDeleteButton: true,
+                    fields: [
+                        {
+                            name: 'id',
+                            label: 'ID',
+                            type: 'hidden'
+                        },
+                        {
+                            name: 'code',
+                            label: 'Code',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Nhập mã ngôn ngữ (vd: en, vi)'
+                        },
+                        {
+                            name: 'name',
+                            label: 'Name',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Nhập tên ngôn ngữ'
                         }
-                    }
-                ],
-                layout: {
-                    topEnd: [
-                        'buttons',
-                        'search'
-                    ],
-                },
-                scrollY: 'calc(100vh - 395px)',
-                scrollCollapse: true,
-                destroy: true,
-                data: [],
-                paging: false,
-                info: false,
-                ordering: false,
-                searching: true,
-                autoWidth: true,
-                columns: [
-                    { title: "ID", data: "id", visible: false },
-                    { title: "Code", data: "code" },
-                    { title: "Name", data: "name" },
-                    {
-                        title: "",
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        className: "text-center",
-                        width: "120px",
-                        render: (data, type, row) => {
-                            return `
-                                <button class="btn btn-sm btn-outline-primary btn-edit"
-                                        data-id="${row.id}"
-                                        title="Sửa">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger btn-delete"
-                                        data-id="${row.id}"
-                                        title="Xóa">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            `;
-                        }
-                    }
-                ]
-            } as any);
+                    ]
+                });
+
+            this.table = this.gridBuilder.build();
+
+            // Set up form save handler
+            const formBuilder = this.gridBuilder.getFormBuilder();
+            if (formBuilder) {
+                formBuilder.onSave((submission) => this.saveLanguage(submission));
+                formBuilder.onDelete((data) => this.deleteLanguage(data));
+            }
         }
 
-        private createLanguage(): void {
-            this.openLanguageModal(null);
+        private async saveLanguage(submission: App.IFormSubmission<LanguageModel>): Promise<void> {
+            const url = submission.mode === 'create'
+                ? '/Admin/Language/Create'
+                : '/Admin/Language/Update';
+
+            App.LoadingService.show();
+
+            try {
+                const response = await App.ApiService.post(url, submission.data);
+                App.LoadingService.hide();
+
+                if (response.isOk()) {
+                    App.ToastService.success(submission.mode === 'create' ? 'Thêm thành công' : 'Cập nhật thành công');
+                    this.loadData();
+                } else {
+                    App.ToastService.error(response.message || 'Lỗi khi lưu');
+                }
+            } catch (error) {
+                App.LoadingService.hide();
+                App.ToastService.error('Lỗi hệ thống');
+            }
         }
 
-        private editLanguage(language: LanguageModel): void {
-            this.openLanguageModal(language);
-        }
-
-        private openLanguageModal(data: LanguageModel | null): void {
-            this.resetLanguageForm();
-            if (data) {
-                this.languageModalMode = 'edit';
-                this.editingLanguageId = data.id;
-
-                $('#languageModalLabel').text('Cập nhật ngôn ngữ');
-                $('#txtCode').val(data.code);
-                $('#txtName').val(data.name);
-            } else {
-                this.languageModalMode = 'create';
-                this.editingLanguageId = null;
-
-                $('#languageModalLabel').text('Thêm ngôn ngữ');
+        private deleteLanguage(language: LanguageModel): void {
+            if (!confirm('Bạn có chắc chắn muốn xóa ngôn ngữ này?')) {
+                return;
             }
 
-            $('#languageModal').modal('show');
-        }
-
-        private resetLanguageForm(): void {
-            $('#txtCode').val('');
-            $('#txtName').val('');
+            App.LoadingService.show();
+            App.ApiService.post('/Admin/Language/Delete', { id: language.id })
+                .then(response => {
+                    App.LoadingService.hide();
+                    if (response.isOk()) {
+                        App.ToastService.success('Xóa thành công');
+                        this.loadData();
+                    } else {
+                        App.ToastService.error(response.message || 'Xóa thất bại');
+                    }
+                })
+                .catch(() => {
+                    App.LoadingService.hide();
+                    App.ToastService.error('Lỗi hệ thống');
+                });
         }
     }
 }
