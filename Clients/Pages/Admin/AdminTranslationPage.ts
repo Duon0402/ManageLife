@@ -1,17 +1,111 @@
 namespace App {
+    interface TranslationModel {
+        id: number;
+        key: string;
+        value: string;
+        languageId: number;
+        languageName: string;
+    }
+
     interface TranslationViewModel {
         Languages: { Key: string; Value: string; }[];
     }
 
-    export class AdminTranslationPage extends BasePage<TranslationViewModel> {
+    export class AdminTranslationPage extends App.BasePage<TranslationViewModel> {
+        private gridBuilder: App.GridBuilder<TranslationModel>;
+        private table: DataTables.Api;
 
         protected initialize(): void {
+            this.initGrid();
             this.loadTranslations();
         }
 
         protected bindEvents(): void {
             this.root.find('#btnLoad').on('click', () => this.loadTranslations());
-            this.root.find('#btnCreate').on('click', () => this.createTranslation());
+        }
+
+        private initGrid(): void {
+            // Convert model languages to select options
+            const languageOptions: App.ISelectOption[] = (this.model.Languages || []).map(lang => ({
+                value: lang.Key,
+                text: lang.Value
+            }));
+
+            this.gridBuilder = new App.GridBuilder<TranslationModel>('#tblTranslations')
+                .addColumn({ field: 'key', title: 'Key' })
+                .addColumn({ field: 'value', title: 'Value' })
+                .addColumn({ field: 'languageName', title: 'Language' })
+                .addToolbarButton({
+                    icon: 'fa-plus',
+                    className: 'btn btn-sm btn-outline-secondary',
+                    title: 'Thêm mới',
+                    onClick: () => this.gridBuilder.getFormBuilder()?.showCreate()
+                })
+                .addActionButton({
+                    icon: 'fa-pen-to-square',
+                    className: 'btn-outline-primary',
+                    title: 'Sửa',
+                    onClick: (data) => this.gridBuilder.getFormBuilder()?.showEdit(data)
+                })
+                .addActionButton({
+                    icon: 'fa-trash',
+                    className: 'btn-outline-danger',
+                    title: 'Xóa',
+                    onClick: (data) => this.deleteTranslation(data)
+                })
+                .setOptions({
+                    scrollY: 'calc(100vh - 395px)',
+                    scrollCollapse: true,
+                    paging: false,
+                    info: false,
+                    ordering: true,
+                    searching: true,
+                    autoWidth: true
+                })
+                .setForm({
+                    createTitle: 'Thêm bản dịch',
+                    editTitle: 'Cập nhật bản dịch',
+                    saveButtonText: 'Lưu',
+                    cancelButtonText: 'Hủy',
+                    showDeleteButton: true,
+                    fields: [
+                        {
+                            name: 'id',
+                            label: 'ID',
+                            type: 'hidden'
+                        },
+                        {
+                            name: 'key',
+                            label: 'Key',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Nhập key (vd: common.save)'
+                        },
+                        {
+                            name: 'value',
+                            label: 'Value',
+                            type: 'textarea',
+                            required: true,
+                            placeholder: 'Nhập giá trị dịch'
+                        },
+                        {
+                            name: 'languageId',
+                            label: 'Language',
+                            type: 'select',
+                            required: true,
+                            options: languageOptions
+                        }
+                    ]
+                });
+
+            this.table = this.gridBuilder.build();
+
+            // Set up form save handler
+            const formBuilder = this.gridBuilder.getFormBuilder();
+            if (formBuilder) {
+                formBuilder.onSave((submission) => this.saveTranslation(submission));
+                formBuilder.onDelete((data) => this.deleteTranslation(data));
+            }
         }
 
         private loadTranslations(): void {
@@ -21,72 +115,70 @@ namespace App {
                 languageId: languageId
             };
 
-            LoadingService.show();
-            ApiService.post('/Admin/Translation/GetListTranslations', req, {
-                showLoading: false, // handled manually
+            App.LoadingService.show();
+            App.ApiService.post('/Admin/Translation/GetListTranslations', req, {
+                showLoading: false,
                 success: (response: any) => {
-                    LoadingService.hide();
+                    App.LoadingService.hide();
                     if (response.isOk()) {
-                        const tbody = this.root.find('#tblTranslations tbody');
-                        tbody.empty();
-
-                        (response.data || []).forEach((t: any) => {
-                            const row = `
-                                <tr>
-                                    <td>${t.key}</td>
-                                    <td>${t.value}</td>
-                                    <td>${t.languageName}</td>
-                                </tr>
-                            `;
-                            tbody.append(row);
-                        });
+                        const data = response.data || [];
+                        this.table.clear();
+                        this.table.rows.add(data);
+                        this.table.draw();
                     } else {
-                        ToastService.error(response.message || 'Lấy danh sách thất bại');
+                        App.ToastService.error(response.message || 'Lấy danh sách thất bại');
                     }
                 },
                 error: () => {
-                    LoadingService.hide();
-                    ToastService.error('Lỗi hệ thống');
+                    App.LoadingService.hide();
+                    App.ToastService.error('Lỗi hệ thống');
                 }
             });
         }
 
-        private createTranslation(): void {
-            const key = this.root.find("#txtKey").val();
-            const value = this.root.find("#txtValue").val();
-            const languageId = this.root.find("#ddlLanguageId").val();
+        private async saveTranslation(submission: App.IFormSubmission<TranslationModel>): Promise<void> {
+            const url = submission.mode === 'create'
+                ? '/Admin/Translation/Create'
+                : '/Admin/Translation/Update';
 
-            if (!key || !value || !languageId) {
-                ToastService.warning("Vui lòng nhập đầy đủ thông tin");
+            App.LoadingService.show();
+
+            try {
+                const response = await App.ApiService.post(url, submission.data);
+                App.LoadingService.hide();
+
+                if (response.isOk()) {
+                    App.ToastService.success(submission.mode === 'create' ? 'Thêm thành công' : 'Cập nhật thành công');
+                    this.loadTranslations();
+                } else {
+                    App.ToastService.error(response.message || 'Lỗi khi lưu');
+                }
+            } catch (error) {
+                App.LoadingService.hide();
+                App.ToastService.error('Lỗi hệ thống');
+            }
+        }
+
+        private deleteTranslation(translation: TranslationModel): void {
+            if (!confirm('Bạn có chắc chắn muốn xóa bản dịch này?')) {
                 return;
             }
 
-            const req = {
-                key: key,
-                value: value,
-                languageId: languageId
-            };
-
-            LoadingService.show();
-            ApiService.post('/Admin/Translation/CreateTranslation', req, {
-                showLoading: false,
-                success: (response: any) => {
-                    LoadingService.hide();
+            App.LoadingService.show();
+            App.ApiService.post('/Admin/Translation/Delete', { id: translation.id })
+                .then(response => {
+                    App.LoadingService.hide();
                     if (response.isOk()) {
-                        ToastService.success("Thêm thành công");
+                        App.ToastService.success('Xóa thành công');
                         this.loadTranslations();
-                        this.root.find("#txtKey").val('');
-                        this.root.find("#txtValue").val('');
-                        // keep language selection
                     } else {
-                        ToastService.error(response.message || 'Thêm thất bại');
+                        App.ToastService.error(response.message || 'Xóa thất bại');
                     }
-                },
-                error: () => {
-                    LoadingService.hide();
-                    ToastService.error('Lỗi hệ thống');
-                }
-            });
+                })
+                .catch(() => {
+                    App.LoadingService.hide();
+                    App.ToastService.error('Lỗi hệ thống');
+                });
         }
     }
 }
