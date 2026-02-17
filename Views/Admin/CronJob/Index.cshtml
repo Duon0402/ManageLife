@@ -19,6 +19,13 @@
 
 @{
     var loadUrl = AjaxHelper.GetActionUrl<CronJobController>(x => x.GetListCronJobs());
+
+    var optionsBuilder = new DataTableColumnOptionsBuilder()
+        .Data("Name")
+        .AriaTitle("Name")
+        .Build();
+
+    Html.DataTable(optionsBuilder);
 }
 
 <script>
@@ -32,13 +39,13 @@
                     response.data.forEach(job => {
                         const statusText = job.enabled ? 'Hoạt động' : 'Tạm dừng';
                         const row = `
-                                                <tr>
-                                                    <td>${job.jobId}</td>
-                                                    <td>${job.title}</td>
-                                                    <td>${statusText}</td>
-                                                    <td>${job.url}</td>
-                                                </tr>
-                                            `;
+                                            <tr>
+                                                <td>${job.jobId}</td>
+                                                <td>${job.title}</td>
+                                                <td>${statusText}</td>
+                                                <td>${job.url}</td>
+                                            </tr>
+                                        `;
                         tbody.append(row);
                     });
                 } else {
