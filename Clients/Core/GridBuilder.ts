@@ -27,8 +27,8 @@ namespace App {
         };
         private layout: IGridLayout | null = null;
         private tableInstance: DataTables.Api | null = null;
-        private formBuilder: GridFormBuilder<T> | null = null;
-        private formConfig: IGridModal<T> | null = null;
+        private formBuilder: App.GridFormBuilder<T> | null = null;
+        private formConfig: App.IGridModal<T> | null = null;
 
         constructor(selector: string) {
             this.selector = selector;
@@ -37,8 +37,8 @@ namespace App {
         /**
          * Add a column to the grid
          */
-        addColumn(config: IGridColumn<T> | GridColumnBuilder<T>): this {
-            if (config instanceof GridColumnBuilder) {
+        addColumn(config: IGridColumn<T> | App.GridColumnBuilder<T>): this {
+            if (config instanceof App.GridColumnBuilder) {
                 this.columns.push(config.build());
             } else {
                 // Ensure data property is set if field is provided
@@ -53,7 +53,7 @@ namespace App {
         /**
          * Add multiple columns at once
          */
-        addColumns(configs: Array<IGridColumn<T> | GridColumnBuilder<T>>): this {
+        addColumns(configs: Array<IGridColumn<T> | App.GridColumnBuilder<T>>): this {
             configs.forEach(config => this.addColumn(config));
             return this;
         }
@@ -145,7 +145,7 @@ namespace App {
         /**
          * Configure automatic modal form for create/edit operations
          */
-        setForm(config: IGridModal<T>): this {
+        setForm(config: App.IGridModal<T>): this {
             this.formConfig = config;
             return this;
         }
@@ -158,11 +158,11 @@ namespace App {
                 return;
             }
 
-            this.formBuilder = new GridFormBuilder<T>(this.formConfig);
+            this.formBuilder = new App.GridFormBuilder<T>(this.formConfig);
             this.formBuilder.build();
 
             // Set up save callback to handle form submission
-            this.formBuilder.onSave((submission: IFormSubmission<T>) => {
+            this.formBuilder.onSave((submission: App.IFormSubmission<T>) => {
                 return this.handleFormSave(submission);
             });
 
@@ -193,7 +193,7 @@ namespace App {
         /**
          * Handle form save submission
          */
-        private async handleFormSave(submission: IFormSubmission<T>): Promise<void> {
+        private async handleFormSave(submission: App.IFormSubmission<T>): Promise<void> {
             // This method should be overridden or handled by callbacks
             // You can emit events or call API services here
             console.log('Form submitted:', submission);
@@ -401,7 +401,7 @@ namespace App {
         /**
          * Get the form builder instance
          */
-        getFormBuilder(): GridFormBuilder<T> | null {
+        getFormBuilder(): App.GridFormBuilder<T> | null {
             return this.formBuilder;
         }
 

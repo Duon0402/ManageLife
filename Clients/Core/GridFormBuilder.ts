@@ -3,15 +3,15 @@ namespace App {
      * Builder for creating automatic CRUD forms/modals
      */
     export class GridFormBuilder<T = any> {
-        private config: IGridModal<T>;
+        private config: App.IGridModal<T>;
         private modalId: string;
         private $modal: JQuery | null = null;
         private currentMode: 'create' | 'edit' = 'create';
         private currentData: T | null = null;
-        private onSaveCallback: ((data: IFormSubmission<T>) => void | Promise<void>) | null = null;
+        private onSaveCallback: ((data: App.IFormSubmission<T>) => void | Promise<void>) | null = null;
         private onDeleteCallback: ((data: T) => void | Promise<void>) | null = null;
 
-        constructor(config: IGridModal<T>) {
+        constructor(config: App.IGridModal<T>) {
             this.config = {
                 size: 'md',
                 createTitle: 'Create New',
@@ -28,7 +28,7 @@ namespace App {
         /**
          * Set the save callback
          */
-        onSave(callback: (data: IFormSubmission<T>) => void | Promise<void>): this {
+        onSave(callback: (data: App.IFormSubmission<T>) => void | Promise<void>): this {
             this.onSaveCallback = callback;
             return this;
         }
@@ -115,7 +115,7 @@ namespace App {
         /**
          * Generate single field HTML
          */
-        private generateFieldHtml(field: IFormField<T>): string {
+        private generateFieldHtml(field: App.IFormField<T>): string {
             const fieldId = `${this.modalId}_${String(field.name)}`;
             const required = field.required ? 'required' : '';
             const readonly = field.readonly ? 'readonly' : '';
@@ -427,7 +427,7 @@ namespace App {
          */
         private async handleSave(): Promise<void> {
             if (!this.validateForm()) {
-                ToastService.warning('Please fill in all required fields');
+                App.ToastService.warning('Please fill in all required fields');
                 return;
             }
 
@@ -445,7 +445,7 @@ namespace App {
 
             // Call save callback
             if (this.onSaveCallback) {
-                const submission: IFormSubmission<T> = {
+                const submission: App.IFormSubmission<T> = {
                     data: formData,
                     mode: this.currentMode,
                     originalData: this.currentData || undefined

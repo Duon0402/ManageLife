@@ -11,8 +11,8 @@ namespace App {
         Languages: { Key: string; Value: string; }[];
     }
 
-    export class AdminTranslationPage extends BasePage<TranslationViewModel> {
-        private gridBuilder: GridBuilder<TranslationModel>;
+    export class AdminTranslationPage extends App.BasePage<TranslationViewModel> {
+        private gridBuilder: App.GridBuilder<TranslationModel>;
         private table: DataTables.Api;
 
         protected initialize(): void {
@@ -26,12 +26,12 @@ namespace App {
 
         private initGrid(): void {
             // Convert model languages to select options
-            const languageOptions: ISelectOption[] = (this.model.Languages || []).map(lang => ({
+            const languageOptions: App.ISelectOption[] = (this.model.Languages || []).map(lang => ({
                 value: lang.Key,
                 text: lang.Value
             }));
 
-            this.gridBuilder = new GridBuilder<TranslationModel>('#tblTranslations')
+            this.gridBuilder = new App.GridBuilder<TranslationModel>('#tblTranslations')
                 .addColumn({ field: 'key', title: 'Key' })
                 .addColumn({ field: 'value', title: 'Value' })
                 .addColumn({ field: 'languageName', title: 'Language' })
@@ -115,47 +115,47 @@ namespace App {
                 languageId: languageId
             };
 
-            LoadingService.show();
-            ApiService.post('/Admin/Translation/GetListTranslations', req, {
+            App.LoadingService.show();
+            App.ApiService.post('/Admin/Translation/GetListTranslations', req, {
                 showLoading: false,
                 success: (response: any) => {
-                    LoadingService.hide();
+                    App.LoadingService.hide();
                     if (response.isOk()) {
                         const data = response.data || [];
                         this.table.clear();
                         this.table.rows.add(data);
                         this.table.draw();
                     } else {
-                        ToastService.error(response.message || 'Lấy danh sách thất bại');
+                        App.ToastService.error(response.message || 'Lấy danh sách thất bại');
                     }
                 },
                 error: () => {
-                    LoadingService.hide();
-                    ToastService.error('Lỗi hệ thống');
+                    App.LoadingService.hide();
+                    App.ToastService.error('Lỗi hệ thống');
                 }
             });
         }
 
-        private async saveTranslation(submission: IFormSubmission<TranslationModel>): Promise<void> {
+        private async saveTranslation(submission: App.IFormSubmission<TranslationModel>): Promise<void> {
             const url = submission.mode === 'create'
                 ? '/Admin/Translation/Create'
                 : '/Admin/Translation/Update';
 
-            LoadingService.show();
+            App.LoadingService.show();
 
             try {
-                const response = await ApiService.post(url, submission.data);
-                LoadingService.hide();
+                const response = await App.ApiService.post(url, submission.data);
+                App.LoadingService.hide();
 
                 if (response.isOk()) {
-                    ToastService.success(submission.mode === 'create' ? 'Thêm thành công' : 'Cập nhật thành công');
+                    App.ToastService.success(submission.mode === 'create' ? 'Thêm thành công' : 'Cập nhật thành công');
                     this.loadTranslations();
                 } else {
-                    ToastService.error(response.message || 'Lỗi khi lưu');
+                    App.ToastService.error(response.message || 'Lỗi khi lưu');
                 }
             } catch (error) {
-                LoadingService.hide();
-                ToastService.error('Lỗi hệ thống');
+                App.LoadingService.hide();
+                App.ToastService.error('Lỗi hệ thống');
             }
         }
 
@@ -164,20 +164,20 @@ namespace App {
                 return;
             }
 
-            LoadingService.show();
-            ApiService.post('/Admin/Translation/Delete', { id: translation.id })
+            App.LoadingService.show();
+            App.ApiService.post('/Admin/Translation/Delete', { id: translation.id })
                 .then(response => {
-                    LoadingService.hide();
+                    App.LoadingService.hide();
                     if (response.isOk()) {
-                        ToastService.success('Xóa thành công');
+                        App.ToastService.success('Xóa thành công');
                         this.loadTranslations();
                     } else {
-                        ToastService.error(response.message || 'Xóa thất bại');
+                        App.ToastService.error(response.message || 'Xóa thất bại');
                     }
                 })
                 .catch(() => {
-                    LoadingService.hide();
-                    ToastService.error('Lỗi hệ thống');
+                    App.LoadingService.hide();
+                    App.ToastService.error('Lỗi hệ thống');
                 });
         }
     }
