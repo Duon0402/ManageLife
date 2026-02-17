@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using ManageLife.Base.Model.ViewOptions.DataTable.Ajax;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ManageLife.Base
 {
@@ -9,6 +10,25 @@ namespace ManageLife.Base
 
         public static bool IsNotEmpty<T>([NotNullWhen(true)] this IEnumerable<T>? collection)
             => collection != null && collection.Any();
+
+        public static DataTableAjaxDataSrcResult ConvertDataTableResult<T>(
+            this IEnumerable<T>? collection,
+            int draw = 0,
+            int? recordsFiltered = null,
+            int? recordsTotal = null,
+            string? error = null)
+        {
+            var list = collection?.ToList() ?? new List<T>();
+
+            return new DataTableAjaxDataSrcResult
+            {
+                Draw = draw,
+                RecordsTotal = recordsTotal ?? list.Count,
+                RecordsFiltered = recordsFiltered ?? list.Count,
+                Data = list.Cast<object>().ToList(),
+                Error = error
+            };
+        }
 
         public static List<TResult> SelectDistinctToList<TSource, TResult>(
             this IEnumerable<TSource> source,
