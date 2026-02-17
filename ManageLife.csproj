@@ -7,8 +7,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Clients\Core\Commons\**" />
+	  <Content Remove="Clients\Core\Commons\**" />
+	  <EmbeddedResource Remove="Clients\Core\Commons\**" />
+	  <None Remove="Clients\Core\Commons\**" />
+	  <TypeScriptCompile Remove="Clients\Core\Commons\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="13.0.1" />
-		<PackageReference Include="bootstrap" Version="5.3.3" />
 		<PackageReference Include="EPPlus" Version="6.2.19" />
 		<PackageReference Include="Hangfire.MySqlStorage" Version="2.0.3" />
 		<PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="6.1.7" />

@@ -1,5 +1,9 @@
 {
   "devDependencies": {
+    "@popperjs/core": "^2.11.8",
+    "@types/bootstrap": "^5.2.10",
+    "@types/datatables.net": "^1.10.28",
+    "@types/datatables.net-buttons": "^1.4.10",
     "@types/jquery": "^3.5.33"
   }
 }

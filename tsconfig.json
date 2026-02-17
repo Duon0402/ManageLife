@@ -6,13 +6,16 @@
     "removeComments": false,
     "sourceMap": true,
     "target": "ES6",
-    "outFile": "wwwroot/js/app.js"
+    "outFile": "wwwroot/js/app.js",
+    "moduleResolution": "node",
+    "skipLibCheck": true
   },
   "types": [
     "jquery",
     "bootstrap"
   ],
   "include": [
+    // NOTE: Phải sắp xếp đúng thứ tự để tránh lỗi khi biên dịch
     "Clients/Core/**/*.ts",
     "Clients/Pages/**/*.ts"
   ],
