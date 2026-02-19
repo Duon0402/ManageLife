@@ -1,187 +1,125 @@
 # ManageLife
 
 <p align="center">
+  <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/rocket.svg" width="50" height="50" />
+  <br />
   <strong>🚀 Ứng dụng quản lý cuộc sống cá nhân toàn diện</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/.NET-6.0-512bd4?style=for-the-badge&logo=.net" />
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" />
 </p>
 
 ---
 
 ## 📖 Giới thiệu
 
-**ManageLife** là một dự án cá nhân được xây dựng trên nền tảng **ASP.NET Core 6.0**, cung cấp các tiện ích hỗ trợ quản lý cuộc sống hàng ngày. Ứng dụng được thiết kế với kiến trúc rõ ràng, dễ mở rộng và tích hợp nhiều dịch vụ hiện đại.
+**ManageLife** là một nền tảng quản lý cuộc sống cá nhân hiện đại, được xây dựng trên **ASP.NET Core 6.0**. Dự án tập trung vào việc tối ưu hóa hiệu suất làm việc hàng ngày thông qua các công cụ tự động hóa, quản lý dữ liệu linh hoạt và giao diện người dùng thân thiện.
 
 ---
 
-## ✨ Tính năng chính
+## ✨ Tính năng nổi bật
 
-### 🔐 Hệ thống xác thực & phân quyền
-- Đăng ký, đăng nhập với JWT Token
-- Quản lý người dùng, vai trò (Role) và quyền hạn (Permission)
-- Hỗ trợ Refresh Token
+### 🏗️ UI Builder Hệ thống (Mới)
+- **Fluent Grid Builder**: Xây dựng các bảng dữ liệu (DataTables) mạnh mẽ chỉ với vài dòng code TypeScript.
+- **Dynamic Form Builder**: Tự động tạo form và modal quản lý dữ liệu (CRUD) từ cấu hình.
+- **ES Modules**: Kiến trúc Frontend hiện đại, dễ dàng bảo trì và mở rộng.
 
-### 📋 Quản lý công việc (Todo)
-- Tạo và quản lý danh sách công việc
-- Theo dõi tiến độ hoàn thành
+### 🔐 Bảo mật & Hệ thống
+- **Xác thực JWT**: Hệ thống đăng ký/đăng nhập an toàn với JWT và Refresh Token.
+- **Phân quyền linh hoạt**: Quản lý Roles và Permissions đến từng Action.
+- **Đa ngôn ngữ**: Hệ thống quản lý bản dịch (Localization) đa quốc gia.
 
-### 📁 Lưu trữ tệp (File Storage)
-- Upload file thông qua Telegram Bot
-- Lưu trữ và quản lý file cloud miễn phí
-- Hỗ trợ nhiều định dạng: ảnh, video, audio, tài liệu
-
-### 📊 Tiện ích khác
-- **Tạo mã QR**: Hỗ trợ tạo QR code
-- **Đa ngôn ngữ**: Hệ thống quản lý ngôn ngữ và bản dịch
-- **Email Report**: Gửi báo cáo tổng hợp qua email
-- **Cron Jobs**: Lên lịch và quản lý tác vụ tự động
-
-### 🛠 Trang quản trị (Admin)
-- Dashboard tổng quan
-- Quản lý ngôn ngữ & bản dịch
-- Quản lý Cron Jobs
+### 📧 Tiện ích thông minh
+- **Daily Email Report**: Tự động tổng hợp và tạo nội dung email báo cáo công việc hàng ngày chuyên nghiệp.
+- **Telegram File Storage**: Sử dụng Telegram API để lưu trữ file cloud không giới hạn dung lượng và hoàn toàn miễn phí.
+- **QR Code Tools**: Tạo mã QR nhanh chóng cho nhiều mục đích.
 
 ---
 
 ## 🛠 Công nghệ sử dụng
 
-| Công nghệ | Mô tả |
-|-----------|-------|
-| **ASP.NET Core 6.0** | Framework web chính |
-| **Entity Framework Core** | ORM cho Database |
-| **MySQL** | Cơ sở dữ liệu (Pomelo.EntityFrameworkCore.MySql) |
-| **Redis** | Caching (StackExchange.Redis) |
-| **JWT** | Xác thực người dùng |
-| **Telegram Bot API** | Lưu trữ file & thông báo |
-| **AutoMapper** | Object mapping |
-| **EPPlus** | Xuất Excel |
-| **QRCoder** | Tạo mã QR |
-| **Bootstrap 5** | UI Framework |
+| Lớp | Công nghệ |
+|:---|:---|
+| **Backend** | .NET 6, Entity Framework Core, Identity |
+| **Database** | MySQL (Pomelo), Redis (Caching) |
+| **Frontend Core** | TypeScript (ES Modules), jQuery, Bootstrap 5 |
+| **UI Components** | DataTables.net, Flatpickr, Toastr, Select2 |
+| **Integration** | Telegram Bot API, MailKit, EPPlus (Excel) |
 
 ---
 
 ## 📁 Cấu trúc dự án
 
-```
+```text
 ManageLife/
-├── Base/               # Các class cơ sở (BaseEntity, ServiceBase, ...)
-├── Commons/            # Hằng số, Enum, Helpers dùng chung
-├── Contexts/           # DbContext configuration
-├── Controllers/        # API & MVC Controllers
-│   ├── Admin/          # Controllers cho trang quản trị
-│   ├── API/            # RESTful API endpoints
-│   └── Client/         # Controllers cho client
-├── Data/               # Seed data
-├── Entities/           # Entity models (EF Core)
-│   ├── Auth/           # User, Role, Permission entities
-│   └── Todo/           # Todo entities
-├── Extensions/         # Extension methods
-├── Helpers/            # Utility helpers
-├── Interfaces/         # Service interfaces
-├── Middlewares/        # Custom middlewares (JWT Auth)
-├── Migrations/         # EF Core migrations
-├── Models/             # DTOs và Request/Response models
-├── Repositories/       # Data access layer
-├── Services/           # Business logic layer
-├── ViewModels/         # View models cho Razor Views
-├── Views/              # Razor Views (MVC)
-│   ├── Admin/          # Views trang quản trị
-│   ├── Client/         # Views trang client
-│   └── Shared/         # Shared layouts & partials
-└── wwwroot/            # Static files (CSS, JS, images)
+├── Base/               # Kiến trúc cốt lõi (BaseService, RepositoryBase)
+├── Clients/            # Mã nguồn Frontend (TypeScript)
+│   ├── Core/           # Fluent Builders (Grid, Form), Common Services
+│   └── Pages/          # Logic xử lý cho từng trang riêng biệt
+├── Controllers/        # Xử lý Request (Admin, API, Web Client)
+├── Entities/           # Database Models
+├── Interfaces/         # Định nghĩa các dịch vụ (Dependency Injection)
+├── Services/           # Logic nghiệp vụ chính
+├── Views/              # Giao diện Razor (Server-side rendering)
+├── wwwroot/            # Static assets (JS sau khi build, CSS, Libs)
+└── README.md           # Tài liệu dự án
 ```
 
 ---
 
-## 🚀 Hướng dẫn cài đặt
+## 🚀 Cài đặt nhanh
 
-### Yêu cầu hệ thống
+### 1. Yêu cầu
 - [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
-- MySQL Server
-- Redis Server (tuỳ chọn)
+- MySQL Server & Redis
 
-### Các bước cài đặt
+### 2. Cấu hình
+Cập nhật chuỗi kết nối trong `appsettings.json`:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "server=localhost;database=managelife;user=root;password=..."
+  },
+  "TelegramSettings": {
+    "BotToken": "your_bot_token",
+    "ChatId": "your_chat_id"
+  }
+}
+```
 
-1. **Clone repository**
-   ```bash
-   git clone https://github.com/your-username/ManageLife.git
-   cd ManageLife
-   ```
+### 3. Khởi chạy
+```bash
+# Cập nhật database
+dotnet ef database update
 
-2. **Cấu hình kết nối**
-   
-   Chỉnh sửa file `appsettings.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Your_MySQL_Connection_String"
-     },
-     "Redis": {
-       "EndPoints": "Your_Redis_Endpoint",
-       "Password": "Your_Redis_Password"
-     },
-     "Jwt": {
-       "Key": "Your_Secret_Key",
-       "Issuer": "ManageLife",
-       "Audience": "ManageLifeUsers"
-     },
-     "TelegramSettings": {
-       "BotToken": "Your_Telegram_Bot_Token",
-       "ChatId": "Your_Chat_Id"
-     }
-   }
-   ```
-
-3. **Chạy Migration**
-   ```bash
-   dotnet ef database update
-   ```
-
-4. **Khởi chạy ứng dụng**
-   ```bash
-   dotnet run
-   ```
-
-5. **Truy cập ứng dụng**
-   - Client: `https://localhost:5001`
-   - Admin: `https://localhost:5001/Admin`
+# Chạy ứng dụng
+dotnet run
+```
 
 ---
 
-## 📡 API Endpoints
+## 🗺 Lộ trình phát triển (Roadmap)
 
-| Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| POST | `/api/auth/login` | Đăng nhập |
-| POST | `/api/auth/register` | Đăng ký |
-| POST | `/api/auth/refresh-token` | Refresh token |
-| POST | `/api/file/upload` | Upload file |
-| GET | `/api/file/{id}` | Lấy file URL |
-
----
-
-## 🗺 Roadmap
-
-- [x] Hệ thống xác thực JWT
-- [x] Quản lý file với Telegram
-- [x] Tạo mã QR
-- [x] Đa ngôn ngữ
-- [ ] Quản lý tài chính (Thu chi)
-- [ ] Quản lý thời gian (Calendar)
-
+- [x] Chuyển đổi sang TypeScript ES Modules
+- [x] Hệ thống Fluent Grid Builder
+- [x] Tích hợp Daily Email Report
+- [ ] Quản lý Tài chính cá nhân (Finance tracking)
+- [ ] Chuyển đổi build system sang Vite
+- [ ] Ứng dụng di động (MAUI hoặc PWA)
 
 ---
 
 ## 👨‍💻 Tác giả
 
-**Đặng Trường Dương**
-
----
-
-## 📄 License
-
-Dự án này được phát triển cho mục đích cá nhân.
+**Đặng Trường Dương** - *Initial work* - [ManageLife](https://github.com/duong-dt)
 
 ---
 
 <p align="center">
-  <i>⭐ Nếu thấy hữu ích, hãy cho dự án một sao nhé!</i>
+  <i>⭐ Nếu bạn thấy dự án này thú vị, đừng quên nhấn Star nhé!</i>
 </p>
+
