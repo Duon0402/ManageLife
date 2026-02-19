@@ -3,8 +3,8 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Telegram.Bot.Types;
 using System.Text.Json;
+using Telegram.Bot.Types;
 
 namespace ManageLife.Controllers.API
 {
@@ -13,10 +13,12 @@ namespace ManageLife.Controllers.API
     public class TelegramApiController : ApiControllerBase
     {
         private readonly ITelegramService _service;
+        private readonly IAppLogger<TelegramApiController> _logger;
 
-        public TelegramApiController(ITelegramService service)
+        public TelegramApiController(ITelegramService service, IAppLogger<TelegramApiController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
         [HttpPost("send-message")]
@@ -51,7 +53,8 @@ namespace ManageLife.Controllers.API
             }
             catch (Exception ex)
             {
-                // Return 200 anyway to stop Telegram from retrying
+                var msg = "Đã có lỗi xảy ra khi xử lý webhook từ Telegram";
+                _logger.Error(ex, msg);
                 return Ok();
             }
         }

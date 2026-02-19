@@ -55,24 +55,29 @@ namespace ManageLife.Services
 
         public async Task HandleUpdateAsync(Update update)
         {
-            if (update.Message is not { } message)
-                return;
-
-            if (message.Text is not { } messageText)
-                return;
-
-            var chatId = message.Chat.Id;
-
-            _logger.Info("Received a '{messageText}' message in chat {chatId}.", messageText, chatId);
-
-            if (messageText.StartsWith("/"))
+            string msg;
+            try
             {
-                await HandleCommandAsync(chatId, messageText);
+                if (update.Message is not { } message)
+                    return;
+
+                if (message.Text is not { } messageText)
+                    return;
+
+                var chatId = message.Chat.Id;
+
+                msg = "Received a '{messageText}' message in chat {chatId}.";
+                _logger.Info(msg, messageText, chatId);
+
+                if (messageText.StartsWith("/"))
+                {
+                    await HandleCommandAsync(chatId, messageText);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Echo message or handle text
-                await _botClient.SendMessage(chatId, $"Bạn vừa nói: {messageText}");
+                msg = "Đã có lỗi xảy ra khi xử lý cập nhật từ Telegram";
+                _logger.Error(ex, msg);
             }
         }
 
@@ -150,6 +155,22 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 return Result.Exception("Lỗi khi đăng ký commands", ex);
+            }
+        }
+
+        public async Task<Result<List<BotCommand>>> GetListTelegramBotCommands()
+        {
+            string msg;
+            try
+            {
+                var commands = await _botClient.GetMyCommands();
+                return Result.Ok(commands.ToList());
+            }
+            catch (Exception ex)
+            {
+                msg = "Đã có lỗi xảy ra khi lấy danh sách commands";
+                _logger.Error(ex, msg);
+                return Result.Exception<List<BotCommand>>(msg, ex);
             }
         }
     }

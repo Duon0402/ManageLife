@@ -15,5 +15,7 @@ namespace ManageLife.Interfaces
         Task<Result<object>> GetWebhookStatusAsync();
 
         Task<Result> SetDefaultCommandsAsync();
+
+        Task<Result<List<BotCommand>>> GetListTelegramBotCommands();
     }
 }
