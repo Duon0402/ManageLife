@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +8,7 @@ namespace ManageLife.Controllers.Admin
     {
         private readonly ICronJobService _service;
 
-        public CronJobController(AppDbContext context, ICronJobService service) : base(context)
+        public CronJobController(ICronJobService service)
         {
             _service = service;
         }

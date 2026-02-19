@@ -1,7 +1,6 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
 using ManageLife.Contexts;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
@@ -20,8 +19,8 @@ namespace ManageLife.Services
         private readonly IUserRepository _repoUser;
         private readonly IAppLogger<PermissionService> _logger;
         private readonly IPermissionGuard _permissionGuard;
+        private readonly IUnitOfWork _uow;
         private readonly IRolePermissionRepository _repoRolePermission;
-        private readonly AppDbContext _context;
 
         public PermissionService(
             IPermissionRepository repoPermission,
@@ -33,7 +32,7 @@ namespace ManageLife.Services
             ICacheService cache,
             IAppLogger<PermissionService> logger,
             IPermissionGuard permissionGuard,
-            AppDbContext context)
+            IUnitOfWork uow)
         {
             _cache = cache;
             _repoPermission = repoPermission;
@@ -44,7 +43,7 @@ namespace ManageLife.Services
             _repoUser = repoUser;
             _logger = logger;
             _permissionGuard = permissionGuard;
-            _context = context;
+            _uow = uow;
         }
 
         public async Task<Result<List<PermissionModel>>> GetListPermissionsAsync()
@@ -134,9 +133,8 @@ namespace ManageLife.Services
 
         public async Task<Result> SyncPermissionsAsync(List<string> permissionCodes)
         {
-            using var uow = new UnitOfWork(_context);
             bool clearPermissionCache = false;
-
+            await _uow.BeginTransactionAsync();
             try
             {
                 var dbPermissions = await _repoPermission.GetAllAsync();
@@ -155,7 +153,7 @@ namespace ManageLife.Services
 
                 if (insertPermissions.IsNotEmpty())
                 {
-                    if (!await _repoPermission.BulkInsertAsync(insertPermissions, uow))
+                    if (!await _repoPermission.BulkInsertAsync(insertPermissions))
                         return Result.DATA_NOT_CREATE;
 
                     clearPermissionCache = true;
@@ -163,7 +161,7 @@ namespace ManageLife.Services
 
                 if (toDelete.IsNotEmpty())
                 {
-                    if (!await _repoPermission.BulkDeleteAsync(toDelete, uow))
+                    if (!await _repoPermission.BulkDeleteAsync(toDelete))
                         return Result.DATA_NOT_DELETE;
 
                     clearPermissionCache = true;
@@ -184,7 +182,7 @@ namespace ManageLife.Services
 
                         if (adminMappingsToDelete.IsNotEmpty())
                         {
-                            if (!await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete, uow))
+                            if (!await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete))
                                 return Result.DATA_NOT_DELETE;
 
                             clearPermissionCache = true;
@@ -199,7 +197,7 @@ namespace ManageLife.Services
                             PermissionId = p.Id
                         }).ToList();
 
-                        if (!await _repoRolePermission.BulkInsertAsync(rolePermissions, uow))
+                        if (!await _repoRolePermission.BulkInsertAsync(rolePermissions))
                             return Result.DATA_NOT_CREATE;
 
                         clearPermissionCache = true;
@@ -211,7 +209,7 @@ namespace ManageLife.Services
                     }
                 }
 
-                await uow.CommitAsync();
+                await _uow.CommitAsync();
 
                 if (clearPermissionCache && userAdminIds.IsNotEmpty())
                 {

@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.Client
@@ -7,7 +6,7 @@ namespace ManageLife.Controllers.Client
     public class HomeController : WebClientControllerBase
     {
 
-        public HomeController(AppDbContext context) : base(context)
+        public HomeController()
         {
         }
 

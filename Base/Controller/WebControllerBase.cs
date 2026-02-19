@@ -5,11 +5,8 @@ namespace ManageLife.Base
 {
     public class WebControllerBase : Controller
     {
-        private readonly AppDbContext _context;
-
-        public WebControllerBase(AppDbContext context)
+        public WebControllerBase()
         {
-            _context = context;
         }
     }
 }

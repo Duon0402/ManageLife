@@ -5,7 +5,7 @@ namespace ManageLife.Base
 {
     public class WebClientControllerBase : WebControllerBase
     {
-        public WebClientControllerBase(AppDbContext context) : base(context)
+        public WebClientControllerBase()
         {
         }
 

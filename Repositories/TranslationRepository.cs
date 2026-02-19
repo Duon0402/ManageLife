@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
     public class TranslationRepository : RepositoryBase<TranslationEntity>, ITranslationRepository
     {
-        public TranslationRepository(AppDbContext context) : base(context)
+        public TranslationRepository(IUnitOfWork uow) : base(uow)
         {
         }
     }

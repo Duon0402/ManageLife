@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
     public class TodoListRepository : RepositoryBase<TodoListEntity>, ITodoListRepository
     {
-        public TodoListRepository(AppDbContext context) : base(context)
+        public TodoListRepository(IUnitOfWork uow) : base(uow)
         {
         }
     }

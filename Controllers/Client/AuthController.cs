@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +11,7 @@ namespace ManageLife.Controllers.Client
         private readonly IUserService _userService;
         private readonly ITokenService _tokenService;
 
-        public AuthController(AppDbContext context, IUserService userService, ITokenService tokenService) : base(context)
+        public AuthController(IUserService userService, ITokenService tokenService)
         {
             _userService = userService;
             _tokenService = tokenService;

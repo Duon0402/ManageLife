@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.ViewModels;
@@ -13,7 +12,7 @@ namespace ManageLife.Controllers.Admin
 
         private readonly ILanguageService _languageService;
 
-        public TranslationController(AppDbContext context, ITranslationService service, ILanguageService languageService) : base(context)
+        public TranslationController(ITranslationService service, ILanguageService languageService)
         {
             _service = service;
             _languageService = languageService;

@@ -1,6 +1,5 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.ViewModels;
@@ -14,7 +13,7 @@ namespace ManageLife.Controllers.Admin
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
 
-        public PermissionController(AppDbContext context, IPermissionService service, IUserService userService, IRoleService roleService) : base(context)
+        public PermissionController(IPermissionService service, IUserService userService, IRoleService roleService)
         {
             _service = service;
             _userService = userService;

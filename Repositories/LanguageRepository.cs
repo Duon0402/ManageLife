@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
     public class LanguageRepository : RepositoryBase<LanguageEntity>, ILanguageRepository
     {
-        public LanguageRepository(AppDbContext context) : base(context)
+        public LanguageRepository(IUnitOfWork uow) : base(uow)
         {
         }
     }

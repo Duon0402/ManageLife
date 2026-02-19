@@ -8,11 +8,23 @@ namespace ManageLife.Base
 {
     public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     {
+        private readonly IUnitOfWork _uow;
         protected readonly AppDbContext _context;
 
-        public RepositoryBase(AppDbContext context)
+        public RepositoryBase(IUnitOfWork uow)
         {
-            _context = context;
+            _uow = uow;
+            _context = uow.Context;
+        }
+
+        protected async Task<bool> SaveChangesAsync()
+        {
+            if (_uow.AutoSave)
+            {
+                return await _context.SaveChangesAsync() > 0;
+            }
+
+            return true;
         }
 
         public IQueryable<T> Query(bool asNoTracking = false)
@@ -44,7 +56,7 @@ namespace ManageLife.Base
 
         #region CRUD
 
-        public async Task<bool> InsertAsync(T entity, IUnitOfWork? uow = null)
+        public async Task<bool> InsertAsync(T entity)
         {
             if (entity == null) return false;
 
@@ -52,13 +64,10 @@ namespace ManageLife.Base
 
             await _context.Set<T>().AddAsync(entity);
 
-            if (uow == null)
-                return await _context.SaveChangesAsync() > 0;
-
-            return true;
+            return await SaveChangesAsync();
         }
 
-        public async Task<bool> UpdateAsync(T entity, IUnitOfWork? uow = null)
+        public async Task<bool> UpdateAsync(T entity)
         {
             if (entity == null) return false;
 
@@ -66,13 +75,10 @@ namespace ManageLife.Base
 
             _context.Set<T>().Update(entity);
 
-            if (uow == null)
-                return await _context.SaveChangesAsync() > 0;
-
-            return true;
+            return await SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteAsync(T entity, IUnitOfWork? uow = null)
+        public async Task<bool> DeleteAsync(T entity)
         {
             if (entity == null) return false;
 
@@ -86,17 +92,14 @@ namespace ManageLife.Base
                 _context.Set<T>().Remove(entity); // hard delete
             }
 
-            if (uow == null)
-                return await _context.SaveChangesAsync() > 0;
-
-            return true;
+            return await SaveChangesAsync();
         }
 
         #endregion
 
         #region BULK
 
-        public async Task<bool> BulkInsertAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
+        public async Task<bool> BulkInsertAsync(IEnumerable<T> entities)
         {
             if (entities.IsEmpty()) return false;
 
@@ -105,13 +108,10 @@ namespace ManageLife.Base
 
             await _context.Set<T>().AddRangeAsync(entities);
 
-            if (uow == null)
-                return await _context.SaveChangesAsync() > 0;
-
-            return true;
+            return await SaveChangesAsync();
         }
 
-        public async Task<bool> BulkUpdateAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
+        public async Task<bool> BulkUpdateAsync(IEnumerable<T> entities)
         {
             if (entities.IsEmpty()) return false;
 
@@ -120,13 +120,10 @@ namespace ManageLife.Base
 
             _context.Set<T>().UpdateRange(entities);
 
-            if (uow == null)
-                return await _context.SaveChangesAsync() > 0;
-
-            return true;
+            return await SaveChangesAsync();
         }
 
-        public async Task<bool> BulkDeleteAsync(IEnumerable<T> entities, IUnitOfWork? uow = null)
+        public async Task<bool> BulkDeleteAsync(IEnumerable<T> entities)
         {
             if (entities.IsEmpty()) return false;
 
@@ -139,10 +136,7 @@ namespace ManageLife.Base
             else
                 _context.Set<T>().RemoveRange(entities);
 
-            if (uow == null)
-                return await _context.SaveChangesAsync() > 0;
-
-            return true;
+            return await SaveChangesAsync();
         }
 
         #endregion
@@ -188,7 +182,7 @@ namespace ManageLife.Base
 
         #endregion
 
-        public async Task<bool> DeleteAllAsync(IUnitOfWork? uow = null)
+        public async Task<bool> DeleteAllAsync()
         {
             var entities = await _context.Set<T>()
                 .AsNoTracking()
@@ -209,10 +203,7 @@ namespace ManageLife.Base
                 _context.Set<T>().RemoveRange(entities);
             }
 
-            if (uow == null)
-                return await _context.SaveChangesAsync() > 0;
-
-            return true;
+            return await SaveChangesAsync();
         }
 
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)

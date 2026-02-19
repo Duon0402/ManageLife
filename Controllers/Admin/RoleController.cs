@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +9,7 @@ namespace ManageLife.Controllers.Admin
     {
         private readonly IRoleService _service;
 
-        public RoleController(AppDbContext context, IRoleService service) : base(context)
+        public RoleController(IRoleService service)
         {
             _service = service;
         }

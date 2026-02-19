@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +9,7 @@ namespace ManageLife.Controllers.API
     {
         private readonly ITokenService _tokenService;
 
-        public TokenApiController(AppDbContext context, ITokenService tokenService) : base(context)
+        public TokenApiController(ITokenService tokenService)
         {
             _tokenService = tokenService;
         }

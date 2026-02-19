@@ -20,20 +20,20 @@ namespace ManageLife.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserRefreshTokenRepository _refreshRepo;
         private readonly IUserRepository _userRepo;
-        private readonly AppDbContext _context;
+        private readonly IUnitOfWork _uow;
 
         public TokenService(
             IUserRefreshTokenRepository refreshRepo,
             IUserRepository userRepo,
             IConfiguration config,
             IHttpContextAccessor httpContextAccessor,
-            AppDbContext context)
+            IUnitOfWork uow)
         {
             _config = config;
             _httpContextAccessor = httpContextAccessor;
             _refreshRepo = refreshRepo;
             _userRepo = userRepo;
-            _context = context;
+            _uow = uow;
         }
 
         #region Access Token
@@ -103,7 +103,7 @@ namespace ManageLife.Services
             bool b;
             try
             {
-                using var uow = new UnitOfWork(_context);
+                await _uow.BeginTransactionAsync();
 
                 if (refreshToken.IsEmpty())
                 {
@@ -126,7 +126,7 @@ namespace ManageLife.Services
                 }
 
                 tokenEntity.IsRevoked = true;
-                b = await _refreshRepo.UpdateAsync(tokenEntity, uow);
+                b = await _refreshRepo.UpdateAsync(tokenEntity);
                 if (!b)
                 {
                     ClearTokensCookie();
@@ -134,7 +134,7 @@ namespace ManageLife.Services
                     return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, msg);
                 }
 
-                var cleanupResult = await CleanupRefreshTokensAsync(tokenEntity.UserId, uow);
+                var cleanupResult = await CleanupRefreshTokensAsync(tokenEntity.UserId);
                 if (!cleanupResult.IsOk())
                 {
                     msg = "Không thể dọn dẹp token cũ";
@@ -150,7 +150,7 @@ namespace ManageLife.Services
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
                 };
 
-                b = await _refreshRepo.InsertAsync(newRefreshEntity, uow);
+                b = await _refreshRepo.InsertAsync(newRefreshEntity);
                 if (!b)
                 {
                     ClearTokensCookie();
@@ -158,7 +158,7 @@ namespace ManageLife.Services
                     return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
-                await uow.CommitAsync();
+                await _uow.CommitAsync();
 
                 var roles = await _userRepo.Query()
                     .Where(u => u.Id == tokenEntity.UserId)
@@ -231,7 +231,7 @@ namespace ManageLife.Services
 
                 if (entities.IsNotEmpty())
                 {
-                    b = await _refreshRepo.BulkDeleteAsync(entities, uow);
+                    b = await _refreshRepo.BulkDeleteAsync(entities);
 
                     if (!b)
                     {

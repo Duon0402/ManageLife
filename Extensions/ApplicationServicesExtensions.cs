@@ -98,6 +98,10 @@ namespace ManageLife.Extensions
             services.AddScoped(typeof(IAppLogger<>), typeof(AppLogger<>));
             #endregion
 
+            #region Unit of Work 
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            #endregion
+
             return services;
         }
     }

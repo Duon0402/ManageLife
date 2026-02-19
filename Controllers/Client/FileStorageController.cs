@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +9,7 @@ namespace ManageLife.Controllers.Client
     {
         private readonly ITelegramFileService _telegramFileService;
 
-        public FileStorageController(AppDbContext context, ITelegramFileService telegramFileService) : base(context)
+        public FileStorageController(ITelegramFileService telegramFileService)
         {
             _telegramFileService = telegramFileService;
         }

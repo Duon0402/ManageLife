@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
     public class PermissionRepository : RepositoryBase<PermissionEntity>, IPermissionRepository
     {
-        public PermissionRepository(AppDbContext context) : base(context)
+        public PermissionRepository(IUnitOfWork uow) : base(uow)
         {
         }
     }

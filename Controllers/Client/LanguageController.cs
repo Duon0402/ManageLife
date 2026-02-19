@@ -1,6 +1,5 @@
 ﻿using ManageLife.Base;
 using ManageLife.Contexts;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +11,7 @@ namespace ManageLife.Controllers.Client
         private readonly ILanguageService _service;
         private readonly ILanguageContext _languageContext;
 
-        public LanguageController(AppDbContext context, ILanguageService service, ILanguageContext languageContext) : base(context)
+        public LanguageController(ILanguageService service, ILanguageContext languageContext)
         {
             _service = service;
             _languageContext = languageContext;

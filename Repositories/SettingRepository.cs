@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
     public class SettingRepository : RepositoryBase<SettingEntity>, ISettingRepository
     {
-        public SettingRepository(AppDbContext context) : base(context)
+        public SettingRepository(IUnitOfWork uow) : base(uow)
         {
         }
     }

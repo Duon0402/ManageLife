@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
 	public class RoleRepository : RepositoryBase<RoleEntity>, IRoleRepository
 	{
-		public RoleRepository(AppDbContext context) : base(context)
+		public RoleRepository(IUnitOfWork uow) : base(uow)
 		{
 		}
 	}

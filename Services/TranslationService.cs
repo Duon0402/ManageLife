@@ -1,7 +1,6 @@
 ﻿using LinqKit;
 using ManageLife.Base;
 using ManageLife.Commons;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Helpers;
@@ -16,14 +15,14 @@ namespace ManageLife.Services
         private readonly ITranslationRepository _repo;
         private readonly ILanguageRepository _languageRepo;
         private readonly ICacheService _cache;
-        private readonly AppDbContext _context;
+        private readonly IUnitOfWork _uow;
 
-        public TranslationService(ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, AppDbContext context)
+        public TranslationService(ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, IUnitOfWork uow)
         {
             _repo = repo;
             _languageRepo = languageRepo;
             _cache = cache;
-            _context = context;
+            _uow = uow;
         }
 
         public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request)
@@ -217,6 +216,7 @@ namespace ManageLife.Services
         {
             string msg;
             bool b;
+            await _uow.BeginTransactionAsync();
             try
             {
                 var validation = request.Validate();
@@ -242,13 +242,12 @@ namespace ManageLife.Services
                     .Where(x => x.Language != null && (languages.Contains(x.Language.Name) || languages.Contains(x.Language.Code)))
                     .ToListAsync();
 
-                using var uow = new UnitOfWork(_context);
                 var insertEntities = new List<TranslationEntity>();
                 var updateEntities = new List<TranslationEntity>();
 
                 if (insertEntities.IsNotEmpty())
                 {
-                    b = await _repo.BulkInsertAsync(insertEntities, uow);
+                    b = await _repo.BulkInsertAsync(insertEntities);
                     if (!b)
                     {
                         msg = TranslationKey.Common.Message.CreateError;
@@ -258,7 +257,7 @@ namespace ManageLife.Services
 
                 if (updateEntities.IsNotEmpty())
                 {
-                    b = await _repo.BulkUpdateAsync(updateEntities, uow);
+                    b = await _repo.BulkUpdateAsync(updateEntities);
                     if (!b)
                     {
                         msg = TranslationKey.Common.Message.UpdateError;
@@ -266,7 +265,7 @@ namespace ManageLife.Services
                     }
                 }
 
-                await uow.CommitAsync();
+                await _uow.CommitAsync();
 
                 return Result.Ok();
             }

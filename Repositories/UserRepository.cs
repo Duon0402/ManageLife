@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
 	public class UserRepository : RepositoryBase<UserEntity>, IUserRepository
 	{
-		public UserRepository(AppDbContext context) : base(context)
+		public UserRepository(IUnitOfWork uow) : base(uow)
 		{
 		}
 	}

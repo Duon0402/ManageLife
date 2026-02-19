@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +9,7 @@ namespace ManageLife.Controllers.Admin
     {
         private readonly IUserService _userService;
 
-        public UserController(AppDbContext context, IUserService userService) : base(context)
+        public UserController(IUserService userService)
         {
             _userService = userService;
         }

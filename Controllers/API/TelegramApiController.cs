@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +10,7 @@ namespace ManageLife.Controllers.API
     {
         private readonly ITelegramService _service;
 
-        public TelegramApiController(AppDbContext context, ITelegramService service) : base(context)
+        public TelegramApiController(ITelegramService service)
         {
             _service = service;
         }

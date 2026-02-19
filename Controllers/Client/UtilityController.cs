@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +10,7 @@ namespace ManageLife.Controllers.Client
     {
         private readonly IUtilityService _service;
 
-        public UtilityController(AppDbContext context, IUtilityService service) : base(context)
+        public UtilityController(IUtilityService service)
         {
             _service = service;
         }

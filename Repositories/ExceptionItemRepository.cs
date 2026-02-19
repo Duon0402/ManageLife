@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
     public class ExceptionItemRepository : RepositoryBase<ExceptionItemEntity>, IExceptionItemRepository
     {
-        public ExceptionItemRepository(AppDbContext context) : base(context)
+        public ExceptionItemRepository(IUnitOfWork uow) : base(uow)
         {
         }
     }

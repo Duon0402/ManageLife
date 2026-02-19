@@ -7,7 +7,7 @@ namespace ManageLife.Repositories
 {
     public class UserRefreshTokenRepository : RepositoryBase<UserRefreshTokenEntity>, IUserRefreshTokenRepository
     {
-        public UserRefreshTokenRepository(AppDbContext context) : base(context)
+        public UserRefreshTokenRepository(IUnitOfWork uow) : base(uow)
         {
         }
     }

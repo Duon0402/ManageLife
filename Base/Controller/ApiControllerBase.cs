@@ -7,11 +7,8 @@ namespace ManageLife.Base
     [Route("api/[controller]")]
     public class ApiControllerBase : ControllerBase
     {
-        private readonly AppDbContext _context;
-
-        public ApiControllerBase(AppDbContext context)
+        public ApiControllerBase()
         {
-            _context = context;
         }
     }
 }

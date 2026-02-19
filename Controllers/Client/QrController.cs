@@ -1,5 +1,4 @@
 ﻿using ManageLife.Base;
-using ManageLife.Data;
 using ManageLife.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +8,7 @@ namespace ManageLife.Controllers.Client
     {
         private readonly IQrService _service;
 
-        public QrController(AppDbContext context, IQrService service) : base(context)
+        public QrController(IQrService service)
         {
             _service = service;
         }
