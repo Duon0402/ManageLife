@@ -27,7 +27,7 @@ namespace ManageLife.Extensions
             services.AddScoped<ITranslationService, TranslationService>();
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ICronJobService, CronJobService>();
-            services.AddScoped<TelegramFileService>(); // TODO: Bổ sung Interface cho TelegramFileService
+            services.AddScoped<ITelegramFileService, TelegramFileService>();
             return services;
         }
     }

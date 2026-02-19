@@ -1,8 +1,5 @@
 ﻿using ManageLife.Base;
-using ManageLife.Entities;
-using ManageLife.Helpers;
 using ManageLife.Models;
-using Telegram.Bot.Types;
 
 namespace ManageLife.Interfaces
 {
