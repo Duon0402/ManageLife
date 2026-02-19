@@ -8,8 +8,8 @@ namespace App {
     }
 
     interface EmailReportResponse {
-        emailTo: string;
-        emailCc: string;
+        emailTo: string[];
+        emailCc: string[];
         subject: string;
         body: string;
     }
@@ -20,14 +20,10 @@ namespace App {
         }
 
         protected bindEvents(): void {
-            this.root.find("[onclick='genEmail()']").removeAttr("onclick").on("click", () => this.genEmail());
-            this.root.find("[onclick^='copyField']").each((_, el) => {
-                const $el = $(el);
-                const onclick = $el.attr("onclick") || "";
-                const selector = onclick.match(/'([^']+)'/)?.[1];
-                if (selector) {
-                    $el.removeAttr("onclick").on("click", () => this.copyField(selector));
-                }
+            this.root.find(".btn-gen-email").on("click", () => this.genEmail());
+            this.root.find(".copy-btn").on("click", (e) => {
+                const target = $(e.currentTarget).data("target");
+                this.copyField(target);
             });
         }
 
@@ -86,8 +82,8 @@ namespace App {
                 LoadingService.hide();
 
                 if (res.isOk()) {
-                    this.root.find('#emailTo').val(res.data.emailTo);
-                    this.root.find('#EmailCc').val(res.data.emailCc);
+                    this.root.find('#emailTo').val(res.data.emailTo?.join(', ') || '');
+                    this.root.find('#EmailCc').val(res.data.emailCc?.join(', ') || '');
                     this.root.find('#subject').val(res.data.subject);
                     this.root.find('#body').val(res.data.body);
                 } else {
@@ -100,6 +96,7 @@ namespace App {
         }
 
         private copyField(selector: string): void {
+            if (!selector) return;
             const text = (this.root.find(selector).val() as string)?.trim();
 
             if (!text) {
