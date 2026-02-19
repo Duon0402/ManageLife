@@ -1,5 +1,6 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Controllers.Admin;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -53,7 +54,7 @@ namespace ManageLife.Helpers
 
         private async Task<List<MenuItem>> FilterMenuByPermissionAsync(List<MenuItem> allMenuItems)
         {
-            var userId = GlobalHttpContext.GetUserId();
+            var userId = UserContext.GetUserId();
 
             HashSet<string> userPermissions = new(StringComparer.OrdinalIgnoreCase);
 

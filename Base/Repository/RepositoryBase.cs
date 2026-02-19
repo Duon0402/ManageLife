@@ -1,6 +1,6 @@
 ﻿using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Data;
-using ManageLife.Helpers;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -161,7 +161,7 @@ namespace ManageLife.Base
                 if (canCreate.CreatedTime == default)
                     canCreate.CreatedTime = DateTimeHelper.UtcNow();
                 if (canCreate.CreatedUser.IsEmpty())
-                    canCreate.CreatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+                    canCreate.CreatedUser = UserContext.GetUserName() ?? SystemUsers.Unknown;
             }
         }
 
@@ -171,7 +171,7 @@ namespace ManageLife.Base
             {
                 canUpdate.UpdatedTime = DateTimeHelper.UtcNow();
                 if (canUpdate.UpdatedUser.IsEmpty())
-                    canUpdate.UpdatedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+                    canUpdate.UpdatedUser = UserContext.GetUserName() ?? SystemUsers.Unknown;
             }
         }
 
@@ -182,7 +182,7 @@ namespace ManageLife.Base
                 softDelete.IsDeleted = true;
                 softDelete.DeletedTime = DateTimeHelper.UtcNow();
                 if (softDelete.DeletedUser.IsEmpty())
-                    softDelete.DeletedUser = GlobalHttpContext.GetUserName() ?? SystemUsers.Unknown;
+                    softDelete.DeletedUser = UserContext.GetUserName() ?? SystemUsers.Unknown;
             }
         }
 

@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using ManageLife.Base;
+using ManageLife.Contexts;
 using ManageLife.Data;
 using ManageLife.Extensions;
-using ManageLife.Helpers;
 using ManageLife.Middlewares;
 using Serilog;
 
@@ -43,7 +43,7 @@ var app = builder.Build();
 app.UseSerilogRequestLogging();
 // =====================================
 
-GlobalHttpContext.Configure(
+UserContext.Configure(
     app.Services.GetRequiredService<IHttpContextAccessor>()
 );
 

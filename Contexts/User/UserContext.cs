@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 
-namespace ManageLife.Helpers
+namespace ManageLife.Contexts
 {
-    public static class GlobalHttpContext
+    public static class UserContext
     {
         private static IHttpContextAccessor? _httpContextAccessor;
 

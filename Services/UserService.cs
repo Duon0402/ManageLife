@@ -1,5 +1,6 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
@@ -257,7 +258,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var userId = GlobalHttpContext.User?.GetUserId();
+                var userId = UserContext.User?.GetUserId();
                 var user = await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
                 if (user == null)
                 {

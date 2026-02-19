@@ -1,9 +1,9 @@
 ﻿using ManageLife.Base;
 using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
-using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
@@ -302,7 +302,7 @@ namespace ManageLife.Services
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
 
-            var currentUserId = GlobalHttpContext.GetUserId();
+            var currentUserId = UserContext.GetUserId();
             var guardResult = await _permissionGuard.ValidateAsync(request.TargetType, request.ObjectId, currentUserId);
             if (guardResult.IsError())
             {
@@ -344,7 +344,7 @@ namespace ManageLife.Services
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
 
-            var currentUserId = GlobalHttpContext.GetUserId();
+            var currentUserId = UserContext.GetUserId();
             var guardResult = await _permissionGuard.ValidateAsync(request.TargetType, request.ObjectId, currentUserId);
             if (guardResult.IsError())
             {
