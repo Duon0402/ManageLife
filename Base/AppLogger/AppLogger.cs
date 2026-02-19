@@ -9,24 +9,24 @@ namespace ManageLife.Base
             _logger = logger;
         }
 
-        public void Debug(string message, object? data = null)
+        public void Info(string message, params object[] args)
         {
-            _logger.LogDebug("{Message} {@Data}", message, data);
+            _logger.LogInformation(message, args);
         }
 
-        public void Error(Exception ex, string message, object? data = null)
+        public void Debug(string message, params object[] args)
         {
-            _logger.LogError(ex, "{Message} {@Data}", message, data);
+            _logger.LogDebug(message, args);
         }
 
-        public void Info(string message, object? data = null)
+        public void Warning(string message, params object[] args)
         {
-            _logger.LogInformation("{Message} {@Data}", message, data);
+            _logger.LogWarning(message, args);
         }
 
-        public void Warning(string message, object? data = null)
+        public void Error(Exception ex, string message, params object[] args)
         {
-            _logger.LogWarning("{Message} {@Data}", message, data);
+            _logger.LogError(ex, message, args);
         }
     }
 }
