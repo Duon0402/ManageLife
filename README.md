@@ -115,7 +115,7 @@ dotnet run
 
 ## 👨‍💻 Tác giả
 
-**Đặng Trường Dương** - *Initial work* - [ManageLife](https://github.com/duong-dt)
+**Đặng Trường Dương** - *Initial work* - [ManageLife](https://github.com/Duon0402
 
 ---
 
