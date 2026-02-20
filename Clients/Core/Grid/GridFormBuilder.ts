@@ -471,9 +471,8 @@ namespace App {
             }
 
             // Confirm deletion
-            if (!confirm('Are you sure you want to delete this item?')) {
-                return;
-            }
+            const ok = await MessageService.confirm('Are you sure you want to delete this item?', 'Confirm');
+            if (!ok) return;
 
             await Promise.resolve(this.onDeleteCallback(this.currentData));
             this.hide();

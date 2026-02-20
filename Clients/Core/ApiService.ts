@@ -123,11 +123,13 @@ namespace App {
                             }
                         }
 
-                        if (jqXHR.responseJSON?.code === Constants.ApiCode.FORBIDDEN) {
-                            ToastService.error(Constants.Messages.FORBIDDEN, Constants.Messages.NOTIFICATION_TITLE);
-                        } else {
-                            const msg = jqXHR.responseJSON?.message || Constants.Messages.DEFAULT_ERROR;
-                            ToastService.error(msg, Constants.Messages.NOTIFICATION_TITLE);
+                        if (settings.showToast) {
+                            if (jqXHR.responseJSON?.code === Constants.ApiCode.FORBIDDEN) {
+                                ToastService.error(Constants.Messages.FORBIDDEN, Constants.Messages.NOTIFICATION_TITLE);
+                            } else {
+                                const msg = jqXHR.responseJSON?.message || Constants.Messages.DEFAULT_ERROR;
+                                ToastService.error(msg, Constants.Messages.NOTIFICATION_TITLE);
+                            }
                         }
 
                         reject(jqXHR);

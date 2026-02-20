@@ -156,10 +156,9 @@ namespace App {
             }
         }
 
-        private deleteTranslation(translation: TranslationModel): void {
-            if (!confirm('Bạn có chắc chắn muốn xóa bản dịch này?')) {
-                return;
-            }
+        private async deleteTranslation(translation: TranslationModel): Promise<void> {
+            const ok = await MessageService.confirm('Bạn có chắc chắn muốn xóa bản dịch này?', 'Xác nhận');
+            if (!ok) return;
 
             LoadingService.show();
             ApiService.post('/Admin/Translation/Delete', { id: translation.id })

@@ -118,10 +118,9 @@ namespace App {
             }
         }
 
-        private deleteRole(role: RoleModel): void {
-            if (!confirm('Bạn có chắc chắn muốn xoá role này?')) {
-                return;
-            }
+        private async deleteRole(role: RoleModel): Promise<void> {
+            const ok = await MessageService.confirm('Bạn có chắc chắn muốn xoá role này?', 'Xác nhận');
+            if (!ok) return;
 
             LoadingService.show();
             ApiService.post('/Admin/Role/DeleteRole', { roleId: role.id })

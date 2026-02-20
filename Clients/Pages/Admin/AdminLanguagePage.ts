@@ -113,26 +113,35 @@ namespace App {
             }
         }
 
-        private deleteLanguage(language: LanguageModel): void {
-            if (!confirm('Bạn có chắc chắn muốn xóa ngôn ngữ này?')) {
-                return;
-            }
-
-            LoadingService.show();
-            ApiService.post('/Admin/Language/Delete', { id: language.id })
-                .then(response => {
-                    LoadingService.hide();
-                    if (response.isOk()) {
-                        ToastService.success('Xóa thành công');
-                        this.gridBuilder.reload();
-                    } else {
-                        ToastService.error(response.message || 'Xóa thất bại');
+        private async deleteLanguage(language: LanguageModel): Promise<void> {
+            await MessageService.confirm(
+                'Bạn có chắc chắn muốn xóa ngôn ngữ này?',
+                'Xác nhận',
+                async () => {
+                    LoadingService.show();
+                    try {
+                        const response = await ApiService.post(
+                            '/Admin/Language/Delete',
+                            { id: language.id }
+                        );
+                        if (response.isOk()) {
+                            ToastService.success('Xóa thành công');
+                            this.gridBuilder.reload();
+                        }
+                        else {
+                            ToastService.error(
+                                response.message || 'Xóa thất bại'
+                            );
+                        }
                     }
-                })
-                .catch(() => {
-                    LoadingService.hide();
-                    ToastService.error('Lỗi hệ thống');
-                });
+                    catch {
+                        ToastService.error('Lỗi hệ thống');
+                    }
+                    finally {
+                        LoadingService.hide();
+                    }
+                }
+            );
         }
     }
 }
