@@ -27,6 +27,7 @@ namespace ManageLife.Data
         public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; } = default!;
         public DbSet<TodoListEntity> TodoLists { get; set; } = default!;
         public DbSet<TodoTaskEntity> TodoTasks { get; set; } = default!;
+        public DbSet<UserTelegramConnectionEntity> UserTelegramConnections { get; set; } = default!;
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -105,6 +106,35 @@ namespace ManageLife.Data
                 .WithOne(st => st.ParentTask)
                 .HasForeignKey(st => st.ParentTaskId)
                 .OnDelete(DeleteBehavior.Cascade);
+            #endregion
+
+            #region UserTelegramConnection
+
+            modelBuilder.Entity<UserTelegramConnectionEntity>(entity =>
+            {
+                entity.ToTable("UserTelegramConnections");
+
+                entity.HasKey(x => x.Id);
+
+                entity.HasIndex(x => x.ChatId)
+                    .IsUnique();
+
+                entity.HasIndex(x => x.UserId)
+                    .IsUnique();
+
+                entity.HasOne(x => x.User)
+                    .WithOne()
+                    .HasForeignKey<UserTelegramConnectionEntity>(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(x => x.ChatId)
+                    .IsRequired();
+
+                entity.Property(x => x.UserId)
+                    .IsRequired();
+
+            });
+
             #endregion
         }
     }

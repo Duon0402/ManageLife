@@ -5,10 +5,10 @@
     if (Model.TargetType == PermissionTargetType.User)
     {
         Options.Breadcrumb.AddRange(
-        new List<BreadcrumbItem>
+            new List<BreadcrumbItem>
             {
-                    new BreadcrumbItem("/admin/user/", "User"),
-                    new BreadcrumbItem("/admin/permission/", "Permission", true),
+                new BreadcrumbItem("/admin/user/", "User"),
+                new BreadcrumbItem("/admin/permission/", "Permission", true),
             }
         );
         Options.EnableBackButton("/admin/user");
@@ -18,8 +18,8 @@
         Options.Breadcrumb.AddRange(
             new List<BreadcrumbItem>
             {
-            new BreadcrumbItem("/admin/role/", "Role"),
-            new BreadcrumbItem("/admin/permission/", "Permission", true),
+                new BreadcrumbItem("/admin/role/", "Role"),
+                new BreadcrumbItem("/admin/permission/", "Permission", true),
             }
         );
         Options.EnableBackButton("/admin/role");

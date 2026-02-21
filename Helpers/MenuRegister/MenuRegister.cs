@@ -48,6 +48,7 @@ namespace ManageLife.Helpers
                 {
                     new MenuItem<UserController>("User", x => x.Index(), "fa-solid fa-user"),
                     new MenuItem<RoleController>("Role", x => x.Index(), "fa-solid fa-shield"),
+                    new MenuItem<UserTelegramConnectionController>("Telegram Connection", x => x.Index(), "fa-solid fa-arrow-right-arrow-left"),
                 })
             };
         }

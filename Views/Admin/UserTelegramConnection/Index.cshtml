@@ -1,0 +1,20 @@
+﻿@{
+    Options.Title = "User Telegram Connection";
+    Options.Breadcrumb.Add("/user-telegram-connection", "User Telegram Connection");
+}
+
+<style>
+    #tblConnections_wrapper .dt-search label {
+        display: none;
+    }
+</style>
+
+<div id="admin-user-telegram-connection">
+    <table class="table table-bordered" id="tblConnections"></table>
+</div>
+
+<script>
+    $(function () {
+        new App.AdminUserTelegramConnectionPage("#admin-user-telegram-connection");
+    });
+</script>

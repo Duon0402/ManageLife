@@ -8,6 +8,11 @@ namespace ManageLife.Helpers
     {
         public AutoMapperProfiles()
         {
+            // UserTelegramConnection
+            CreateMap<UserTelegramConnectionEntity, UserTelegramConnectionModel>().ReverseMap();
+            CreateMap<UserTelegramConnectionEntity, CreateUserTelegramConnectionRequest>().ReverseMap();
+            CreateMap<UserTelegramConnectionEntity, UpdateUserTelegramConnectionRequest>().ReverseMap();
+
             // Role
             CreateMap<RoleEntity, RoleModel>().ReverseMap();
             CreateMap<RoleEntity, CreateRoleRequest>().ReverseMap();
