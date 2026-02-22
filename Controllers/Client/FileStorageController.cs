@@ -22,7 +22,7 @@ namespace ManageLife.Controllers.Client
         [HttpPost]
         public async Task<Result<FileModel>> Upload(IFormFile file)
         {
-            var result = await _telegramFileService.UploadFileAsync(file);
+            var result = await _telegramFileService.SaveTempFileAsync(file);
             return result;
         }
 

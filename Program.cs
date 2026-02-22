@@ -4,6 +4,7 @@ using ManageLife.Contexts;
 using ManageLife.Data;
 using ManageLife.Extensions;
 using ManageLife.Middlewares;
+using ManageLife.Services;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +37,8 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = null;
 });
+
+builder.Services.AddHostedService<TelegramUploadWorker>();
 
 var app = builder.Build();
 

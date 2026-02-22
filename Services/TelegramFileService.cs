@@ -1,11 +1,8 @@
 ﻿using ManageLife.Base;
-using ManageLife.Commons;
 using ManageLife.Entities;
-using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Telegram.Bot;
-using Telegram.Bot.Types;
 
 namespace ManageLife.Services
 {
@@ -16,136 +13,158 @@ namespace ManageLife.Services
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
         private readonly IFileRepository _repo;
+        private readonly IAppLogger<TelegramFileService> _logger;
+        private readonly ITelegramUploadQueue _queue;
+        private readonly string _tempFolder = "temp";
 
-        public TelegramFileService(IFileRepository repo, IConfiguration config)
+        public TelegramFileService(IFileRepository repo, IConfiguration config, IAppLogger<TelegramFileService> logger, ITelegramUploadQueue queue)
         {
             _config = config;
-            _botToken = _config["TelegramSettings:BotToken"] ?? string.Empty;
-            _chatId = _config["TelegramSettings:ChatIdFileStorage"];
-            _botClient = new TelegramBotClient(_botToken);
             _repo = repo;
+            _logger = logger;
+            _queue = queue;
+            _botToken = _config["TelegramSettings:BotToken"]
+                ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured.");
+            _chatId = _config["TelegramSettings:ChatIdFileStorage"]
+                ?? throw new InvalidOperationException("TelegramSettings:ChatIdFileStorage is not configured.");
+            _botClient = new TelegramBotClient(_botToken);
+            Directory.CreateDirectory(_tempFolder);
         }
 
-        public async Task<Result<FileModel>> UploadFileAsync(IFormFile file, string? caption = null)
+        public async Task<Result<FileModel>> SaveTempFileAsync(IFormFile file, string? caption = null)
         {
             string msg;
-            bool b;
+            string? tempPath = null;
             try
             {
                 if (file == null || file.Length == 0)
                 {
                     msg = "File không hợp lệ";
+                    _logger.Debug(msg);
                     return Result.Error<FileModel>(Result.DATA_INVALID.Code, msg);
                 }
+                var id = IdHeper.NewId();
+                var extension = Path.GetExtension(file.FileName);
+                tempPath = Path.Combine(_tempFolder, id + extension);
 
-                if (_chatId == null)
+                await using var fs = new FileStream(
+                    tempPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 81920,
+                    useAsync: true);
+
+                await file.CopyToAsync(fs);
+
+                var model = new FileModel
                 {
-                    msg = "Không lấy được ChatId";
-                    return Result.Error<FileModel>(Result.DATA_INVALID.Code, msg);
-                }
+                    Id = id,
+                    FileName = file.FileName,
+                    FileType = file.ContentType,
+                    FileSize = file.Length,
+                    Extension = extension,
+                    TempPath = tempPath,
+                    Status = UploadStatus.Pending,
+                };
 
-                using var stream = file.OpenReadStream();
-                var inputFile = new InputFileStream(stream, file.FileName);
-                var fileType = TelegramFileTypeHelper.Detect(file);
-
-                var message = await SendFileToTelegramAsync(fileType, inputFile, caption);
-                if (message == null)
-                {
-                    msg = "Không nhận được thông tin Message từ Telegram";
-                    return Result.Error<FileModel>(Result.DATA_NOT_EXISTED.Code, msg);
-                }
-                var fileInfo = ExtractTelegramFileInfo(message);
-                if (fileInfo == null)
-                {
-                    msg = "Không nhận được thông tin File từ Telegram";
-                    return Result.Error<FileModel>(Result.DATA_NOT_EXISTED.Code, msg);
-                }
-
-                var model = GetFileModelFormTelegramMessage(file, fileInfo);
                 var entity = model.MapTo<FileEntity>();
-
-                b = await _repo.InsertAsync(entity);
+                var b = await _repo.InsertAsync(entity);
 
                 if (!b)
                 {
-                    msg = "Không thể lưu thông tin File";
+                    File.Delete(tempPath);
+                    msg = $"Không thể lưu DB file: {file.FileName}";
+                    _logger.Debug(msg);
                     return Result.Error<FileModel>(Result.DATA_NOT_CREATE.Code, msg);
                 }
-
+                await _queue.EnqueueAsync(model.Id);
                 return Result.Ok(model);
             }
             catch (Exception ex)
             {
-                msg = "Đã có lỗi xảy ra khi upload File";
+                if (tempPath != null && File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+                msg = $"Lỗi save temp file: {file.FileName}";
+                _logger.Error(ex, msg);
                 return Result.Exception<FileModel>(msg, ex);
             }
         }
 
-        public async Task<Result<string>> GetFileUrlByFileIdAsync(string fileId)
+        public Task<Result<string>> GetFileUrlByFileIdAsync(string fileId)
+        {
+            //TODO: Triển khai phần này nếu upload lên tele thì lấy ở tele không thì lấy ở local
+            throw new NotImplementedException();
+        }
+
+        public async Task<Result> UploadToTelegramAsync(string fileId)
         {
             string msg;
+            FileEntity? entity = null;
             try
             {
-                var file = await _botClient.GetFile(fileId);
-                var filePath = file?.FilePath;
-                if (file == null || filePath.IsEmpty())
+                entity = await _repo.GetAsync(fileId);
+                if (entity == null)
                 {
-                    msg = "Không tìm thấy File";
-                    return Result.Error<string>(Result.DATA_NOT_EXISTED.Code, msg);
+                    msg = $"File not found: {fileId}";
+                    _logger.Warning(msg);
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var fileUrl = $"https://api.telegram.org/file/bot{_botToken}/{file.FilePath}";
-                return Result.Ok(fileUrl);
+                if (entity.Status != UploadStatus.Pending)
+                {
+                    msg = $"File not in Pending state: {fileId}";
+                    _logger.Warning(msg);
+                    return Result.Ok();
+                }
+
+                if (!File.Exists(entity.TempPath))
+                {
+                    msg = $"Temp file not exists: {entity.TempPath}";
+                    entity.Status = UploadStatus.Failed;
+                    await _repo.UpdateAsync(entity);
+                    _logger.Warning(msg);
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                entity.Status = UploadStatus.Uploading;
+                await _repo.UpdateAsync(entity);
+                _logger.Info($"Uploading file: {entity.FileName}");
+
+                await using var stream =
+                    new FileStream(
+                        entity.TempPath,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.Read,
+                        bufferSize: 81920,
+                        useAsync: true);
+
+                var input = new Telegram.Bot.Types.InputFileStream(stream, entity.FileName);
+                Telegram.Bot.Types.Message message = await _botClient.SendDocument(chatId: _chatId!, document: input);
+                var telegramFileId = message.Document?.FileId;
+                if (telegramFileId.IsEmpty()) throw new Exception("Telegram FileId null");
+
+                entity.FileId = telegramFileId;
+                entity.Status = UploadStatus.Completed;
+                await _repo.UpdateAsync(entity);
+                File.Delete(entity.TempPath);
+                _logger.Info($"Upload success: {entity.FileName}");
+                return Result.Ok();
             }
             catch (Exception ex)
             {
-                msg = "Đã có lỗi xảy ra khi tải file";
-                return Result.Exception<string>(msg, ex);
+                if (entity != null)
+                {
+                    entity.Status = UploadStatus.Failed;
+                    await _repo.UpdateAsync(entity);
+                }
+                msg = $"Upload fail: {fileId}";
+                _logger.Error(ex, msg);
+                return Result.Exception(msg, ex);
             }
         }
-
-        #region Private Method
-        private async Task<Message> SendFileToTelegramAsync(TelegramFileType fileType, InputFileStream inputFile, string? caption)
-        {
-            return fileType switch
-            {
-                TelegramFileType.Photo => await _botClient.SendPhoto(_chatId!, inputFile, caption),
-                TelegramFileType.Video => await _botClient.SendVideo(_chatId!, inputFile, caption),
-                TelegramFileType.Audio => await _botClient.SendAudio(_chatId!, inputFile, caption),
-                TelegramFileType.Animation => await _botClient.SendAnimation(_chatId!, inputFile, caption),
-                _ => await _botClient.SendDocument(_chatId!, inputFile, caption)
-            };
-        }
-
-        private FileModel GetFileModelFormTelegramMessage(IFormFile file, object fileInfo)
-        {
-            var fileId = fileInfo.GetType().GetProperty("FileId")?.GetValue(fileInfo)?.ToString() ?? string.Empty;
-            var fileName = fileInfo.GetType().GetProperty("FileName")?.GetValue(fileInfo)?.ToString() ?? file.FileName;
-            var mime = fileInfo.GetType().GetProperty("MimeType")?.GetValue(fileInfo)?.ToString() ?? file.ContentType;
-            var size = (long?)fileInfo.GetType().GetProperty("FileSize")?.GetValue(fileInfo) ?? file.Length;
-            var extension = Path.GetExtension(file.FileName) ?? string.Empty;
-
-            var model = new FileModel
-            {
-                Id = IdHeper.NewId(),
-                FileId = fileId,
-                FileName = fileName,
-                FileType = mime,
-                FileSize = size,
-                Extension = extension
-            };
-
-            return model;
-        }
-
-        private object? ExtractTelegramFileInfo(Message message)
-        {
-            return (object?)message.Document
-                ?? (object?)message.Photo?.LastOrDefault()
-                ?? (object?)message.Video
-                ?? (object?)message.Audio
-                ?? (object?)message.Animation;
-        }
-        #endregion
     }
 }
