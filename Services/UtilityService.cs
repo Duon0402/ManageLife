@@ -39,7 +39,7 @@ namespace ManageLife.Services
                 var fullName = "Đặng Trường Dương";
                 var employeeCode = "002740";
                 var department = "Tổ Web - Phòng PTPM";
-                var supervisor = "Hoàng Đức Hưng";
+                var supervisor = "Nguyễn Văn Chiến";
 
                 var subject = string.Format(
                     EmailDailyReportTemplate.Subject,
