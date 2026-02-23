@@ -65,18 +65,13 @@ namespace ManageLife.Extensions
             services.AddDbContext<AppDbContext>(options =>
             {
                 string connectionString = config.GetConnectionString("DefaultConnection") ?? "";
-                var serverVersion = new MySqlServerVersion(new Version(5, 2, 1));
-
+                var serverVersion = ServerVersion.AutoDetect(connectionString);
                 options.UseMySql(connectionString, serverVersion, mysqlOptions =>
                 {
                     //NOTE: Tắt retry tự động tránh xung đột với UnitOfWork custom
                     mysqlOptions.EnableRetryOnFailure(0);
                 });
             });
-
-
-
-
             #endregion
 
             #region File Upload Limits
