@@ -73,6 +73,10 @@ namespace ManageLife.Extensions
                     mysqlOptions.EnableRetryOnFailure(0);
                 });
             });
+
+
+
+
             #endregion
 
             #region File Upload Limits

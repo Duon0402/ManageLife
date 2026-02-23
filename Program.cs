@@ -5,6 +5,7 @@ using ManageLife.Data;
 using ManageLife.Extensions;
 using ManageLife.Middlewares;
 using ManageLife.Services;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,6 @@ builder.Host.UseSerilog((context, services, loggerConfig) =>
         .ReadFrom.Services(services)
         .Enrich.FromLogContext();
 });
-
 // =============================================
 
 // Add services to the container.
@@ -41,6 +41,8 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddHostedService<TelegramUploadWorker>();
 
 var app = builder.Build();
+
+await app.ApplyMigrationsAsync();
 
 // ====== Serilog request logging ======
 app.UseSerilogRequestLogging();
