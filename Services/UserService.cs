@@ -181,9 +181,12 @@ namespace ManageLife.Services
 
                 await _uow.CommitAsync();
 
-                var roles = await _userRepo.Query()
-                    .Where(u => u.Id == userEntity.Id)
-                    .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
+                var roles = await _userRoleRepo.Query()
+                    .Where(ur => ur.UserId == userEntity.Id)
+                    .Join(_roleRepo.Query(),
+                        ur => ur.RoleId,
+                        r => r.Id,
+                        (ur, r) => r.Name)
                     .ToListAsync();
 
                 var accessToken = this._tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHeper.NewId(), roles);

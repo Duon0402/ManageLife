@@ -20,11 +20,15 @@ namespace ManageLife.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserRefreshTokenRepository _refreshRepo;
         private readonly IUserRepository _userRepo;
+        private readonly IRoleRepository _roleRepo;
+        private readonly IUserRoleRepository _userRoleRepo;
         private readonly IUnitOfWork _uow;
 
         public TokenService(
             IUserRefreshTokenRepository refreshRepo,
             IUserRepository userRepo,
+            IRoleRepository roleRepo,
+            IUserRoleRepository userRoleRepo,
             IConfiguration config,
             IHttpContextAccessor httpContextAccessor,
             IUnitOfWork uow)
@@ -33,6 +37,8 @@ namespace ManageLife.Services
             _httpContextAccessor = httpContextAccessor;
             _refreshRepo = refreshRepo;
             _userRepo = userRepo;
+            _roleRepo = roleRepo;
+            _userRoleRepo = userRoleRepo;
             _uow = uow;
         }
 
@@ -113,12 +119,20 @@ namespace ManageLife.Services
                 }
 
                 var tokenEntity = await _refreshRepo.Query()
-                    .Include(r => r.User)
                     .FirstOrDefaultAsync(r => r.RefreshToken == refreshToken &&
                                               r.ExpiryTime > DateTimeHelper.UtcNow() &&
                                               r.IsRevoked == false);
 
-                if (tokenEntity?.User == null || tokenEntity.User.IsDeleted || !tokenEntity.User.IsActive)
+                if (tokenEntity == null)
+                {
+                    ClearTokensCookie();
+                    msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
+                }
+
+                var user = await _userRepo.GetAsync(tokenEntity.UserId);
+
+                if (user == null || user.IsDeleted || !user.IsActive)
                 {
                     ClearTokensCookie();
                     msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
@@ -160,12 +174,17 @@ namespace ManageLife.Services
 
                 await _uow.CommitAsync();
 
-                var roles = await _userRepo.Query()
-                    .Where(u => u.Id == tokenEntity.UserId)
-                    .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
+                var roleIds = await _userRoleRepo.Query()
+                    .Where(ur => ur.UserId == tokenEntity.UserId)
+                    .Select(ur => ur.RoleId)
                     .ToListAsync();
 
-                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, tokenEntity.User.UserName, IdHeper.NewId(), roles);
+                var roles = await _roleRepo.Query()
+                    .Where(r => roleIds.Contains(r.Id))
+                    .Select(r => r.Name)
+                    .ToListAsync();
+
+                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, IdHeper.NewId(), roles);
 
                 SetTokensCookie(newAccessToken, newRefreshToken);
 

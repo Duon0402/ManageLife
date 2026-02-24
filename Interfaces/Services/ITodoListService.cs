@@ -1,7 +1,7 @@
 ﻿using ManageLife.Base;
 using ManageLife.Models;
 
-namespace ManageLife.Interfaces.Services
+namespace ManageLife.Interfaces
 {
     public interface ITodoListService
     {

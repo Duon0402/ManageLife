@@ -2,10 +2,10 @@
 
 namespace ManageLife.Entities
 {
-    public class UserTelegramConnectionEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
+    public class TodoListEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
     {
-        public long ChatId { get; set; } = default!;
-        public string UserId { get; set; } = default!;
+        public string Name { get; set; } = default!;
+        public string? Description { get; set; }
         public string CreatedUser { get; set; } = default!;
         public DateTime CreatedTime { get; set; }
         public string? UpdatedUser { get; set; }

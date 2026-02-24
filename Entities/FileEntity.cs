@@ -4,15 +4,15 @@ namespace ManageLife.Entities
 {
     public class FileEntity : EntityBase, ICanCreate
     {
-        public string FileName { get; set; } = null!;
+        public string FileName { get; set; } = default!;
 
-        public string FileType { get; set; } = null!;
+        public string FileType { get; set; } = default!;
 
         public long FileSize { get; set; }
 
-        public string Extension { get; set; } = null!;
+        public string Extension { get; set; } = default!;
 
-        // Telegram FileId (NULL khi chưa upload)
+        // Telegram FileId (default khi chưa upload)
         public string? FileId { get; set; }
 
         // Temp file path (xoá sau khi upload xong)
@@ -20,7 +20,7 @@ namespace ManageLife.Entities
 
         public UploadStatus Status { get; set; }
 
-        public string CreatedUser { get; set; } = null!;
+        public string CreatedUser { get; set; } = default!;
 
         public DateTime CreatedTime { get; set; }
     }

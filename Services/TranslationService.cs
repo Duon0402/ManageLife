@@ -126,9 +126,18 @@ namespace ManageLife.Services
 
                 if (dictionary.IsEmpty())
                 {
-                    dictionary = await _repo.Query().Include(t => t.Language)
-                        .Where(l => l.Language != null && l.Language.Code == request.LanguageCode)
-                        .ToDictionaryAsync(t => t.Key, t => t.Value);
+                    var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                    if (language != null)
+                    {
+                        var list = await _repo.Query()
+                            .Where(t => t.LanguageId == language.Id)
+                            .ToListAsync();
+                        dictionary = list.ToDictionary(t => t.Key, t => t.Value);
+                    }
+                    else
+                    {
+                        dictionary = new Dictionary<string, string>();
+                    }
 
                     if (dictionary.IsNotEmpty())
                     {
@@ -156,10 +165,18 @@ namespace ManageLife.Services
 
                 if (request?.LanguageCode.IsNotEmpty() == true)
                 {
-                    predicate = predicate.And(x => x.Language != null && x.Language.Code == request.LanguageCode);
+                    var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                    if (language != null)
+                    {
+                        predicate = predicate.And(x => x.LanguageId == language.Id);
+                    }
+                    else
+                    {
+                        return Result.Ok(new List<TranslationModel>());
+                    }
                 }
 
-                var entities = await _repo.Query(true).Include(x => x.Language).Where(predicate).ToListAsync();
+                var entities = await _repo.Query().Where(predicate).ToListAsync();
 
                 if (entities.IsNotEmpty())
                 {
@@ -191,10 +208,15 @@ namespace ManageLife.Services
                     return Result.Error<TranslationModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.Query()
-                    .Include(l => l.Language)
-                    .Where(x => x.Language!.Code == request.LanguageCode && x.Key == request.Key)
-                    .FirstOrDefaultAsync();
+                var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                if (language == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var entity = await _repo.FirstOrDefaultAsync(
+                    x => x.LanguageId == language.Id && x.Key == request.Key);
 
                 if (entity == null)
                 {
@@ -235,11 +257,13 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var languages = data.Select(x => x.Language);
+                var languagesList = data.Select(x => x.Language).ToList();
 
                 var existingEntities = await _repo.Query()
-                    .Include(x => x.Language)
-                    .Where(x => x.Language != null && (languages.Contains(x.Language.Name) || languages.Contains(x.Language.Code)))
+                    .Join(_languageRepo.Query().Where(l => languagesList.Contains(l.Name) || languagesList.Contains(l.Code)),
+                        t => t.LanguageId,
+                        l => l.Id,
+                        (t, l) => t)
                     .ToListAsync();
 
                 var insertEntities = new List<TranslationEntity>();
