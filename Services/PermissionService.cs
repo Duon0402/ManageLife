@@ -508,7 +508,6 @@ namespace ManageLife.Services
 
         private async Task<Result> AssignPermissionsToUserAsync(AssignPermissionsRequest request)
         {
-            //TODO: Hoàn thành code phần gán quyền và gỡ quyền
             string msg;
             try
             {
@@ -543,10 +542,50 @@ namespace ManageLife.Services
                 var userPermissionDict = userPermissions
                     .ToDictionary(x => x.PermissionId);
 
+                var toInsert = new List<UserPermissionEntity>();
+                var toUpdate = new List<UserPermissionEntity>();
 
+                foreach (var permId in inputPermissionSet)
+                {
+                    if (userPermissionDict.TryGetValue(permId, out var existingUp))
+                    {
+                        if (existingUp.Status == UserPermissionStatus.Deny)
+                        {
+                            existingUp.Status = UserPermissionStatus.Grant;
+                            toUpdate.Add(existingUp);
+                        }
+                    }
+                    else
+                    {
+                        toInsert.Add(new UserPermissionEntity
+                        {
+                            UserId = request.ObjectId,
+                            PermissionId = permId,
+                            Status = UserPermissionStatus.Grant
+                        });
+                    }
+                }
 
-                //var cacheItem = CacheSettings.Permissions(request.UserId);
-                //await _cache.RemoveAsync(cacheItem);
+                if (toInsert.IsNotEmpty())
+                {
+                    if (!await _repoUserPermission.BulkInsertAsync(toInsert))
+                    {
+                        msg = "Thêm quyền cho người dùng thất bại";
+                        return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
+                    }
+                }
+
+                if (toUpdate.IsNotEmpty())
+                {
+                    if (!await _repoUserPermission.BulkUpdateAsync(toUpdate))
+                    {
+                        msg = "Cập nhật quyền cho người dùng thất bại";
+                        return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
+                    }
+                }
+
+                var cacheItem = CacheSettings.Permissions(request.ObjectId);
+                await _cache.RemoveAsync(cacheItem);
 
                 return Result.Ok();
             }
@@ -614,7 +653,111 @@ namespace ManageLife.Services
 
         private async Task<Result> UnassignPermissionsFromUserAsync(UnassignPermissionsRequest request)
         {
-            throw new NotImplementedException();
+            string msg;
+            try
+            {
+                var userExists = await _repoUser.FirstOrDefaultAsync(x => x.Id == request.ObjectId && x.IsDeleted == false);
+                if (userExists == null)
+                {
+                    msg = "Không tìm thấy người dùng cần gỡ quyền";
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var inputPermissionSet = request.PermissionIds.Distinct().ToHashSet();
+
+                var rolePermissionIds = await _repoUserRole.Query(true)
+                    .Where(ur => ur.UserId == request.ObjectId)
+                    .Join(
+                        _repoRolePermission.Query(true),
+                        ur => ur.RoleId,
+                        rp => rp.RoleId,
+                        (ur, rp) => rp.PermissionId
+                    )
+                    .Distinct()
+                    .ToListAsync();
+
+                var rolePermissionSet = rolePermissionIds.ToHashSet();
+
+                var userPermissions = await _repoUserPermission.Query()
+                    .Where(up => up.UserId == request.ObjectId && inputPermissionSet.Contains(up.PermissionId))
+                    .ToListAsync();
+
+                var userPermissionDict = userPermissions.ToDictionary(x => x.PermissionId);
+
+                var toInsert = new List<UserPermissionEntity>();
+                var toUpdate = new List<UserPermissionEntity>();
+                var toDelete = new List<UserPermissionEntity>();
+
+                foreach (var permId in inputPermissionSet)
+                {
+                    var isFromRole = rolePermissionSet.Contains(permId);
+
+                    if (userPermissionDict.TryGetValue(permId, out var existingUp))
+                    {
+                        if (isFromRole)
+                        {
+                            if (existingUp.Status == UserPermissionStatus.Grant)
+                            {
+                                existingUp.Status = UserPermissionStatus.Deny;
+                                toUpdate.Add(existingUp);
+                            }
+                        }
+                        else
+                        {
+                            toDelete.Add(existingUp);
+                        }
+                    }
+                    else
+                    {
+                        if (isFromRole)
+                        {
+                            toInsert.Add(new UserPermissionEntity
+                            {
+                                UserId = request.ObjectId,
+                                PermissionId = permId,
+                                Status = UserPermissionStatus.Deny
+                            });
+                        }
+                    }
+                }
+
+                if (toDelete.IsNotEmpty())
+                {
+                    if (!await _repoUserPermission.BulkDeleteAsync(toDelete))
+                    {
+                        msg = "Gỡ quyền khỏi người dùng thất bại";
+                        return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                    }
+                }
+
+                if (toInsert.IsNotEmpty())
+                {
+                    if (!await _repoUserPermission.BulkInsertAsync(toInsert))
+                    {
+                        msg = "Ghi đè quyền của người dùng thất bại";
+                        return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
+                    }
+                }
+
+                if (toUpdate.IsNotEmpty())
+                {
+                    if (!await _repoUserPermission.BulkUpdateAsync(toUpdate))
+                    {
+                        msg = "Cập nhật quyền của người dùng thất bại";
+                        return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
+                    }
+                }
+
+                var cacheItem = CacheSettings.Permissions(request.ObjectId);
+                await _cache.RemoveAsync(cacheItem);
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                return Result.Exception(msg, ex);
+            }
         }
     }
 }
