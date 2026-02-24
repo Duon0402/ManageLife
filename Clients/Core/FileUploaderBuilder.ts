@@ -20,7 +20,7 @@ namespace App {
         private totalCount: number = 0;
 
         private callbacks = {
-            onUploadSuccess: (file: File, response: any) => { },
+            onUploadSuccess: (file: File, response: any) => { return null as any; },
             onUploadError: (file: File, error: any) => { }
         };
 
@@ -33,7 +33,7 @@ namespace App {
             };
         }
 
-        public onSuccess(callback: (file: File, res: any) => void): this {
+        public onSuccess(callback: (file: File, res: any) => Promise<void> | void): this {
             this.callbacks.onUploadSuccess = callback;
             return this;
         }
@@ -156,13 +156,21 @@ namespace App {
                         $progress.css('width', percent + '%');
                         $status.text(`Uploading... ${percent}%`);
                     }
-                }).then(res => {
+                }).then(async res => {
                     if (res.isOk()) {
-                        $status.text('Completed');
                         $progress.css('width', '100%');
                         this.uploadedCount++;
                         this.updateStatusCount();
-                        this.callbacks.onUploadSuccess(file, res);
+
+                        // If there's an async callback (like linking to album), show "Linking..."
+                        const callbackResult = this.callbacks.onUploadSuccess(file, res);
+                        if (callbackResult instanceof Promise) {
+                            $status.text('Linking...');
+                            await callbackResult;
+                        }
+
+                        $status.text('Completed');
+                        $status.addClass('text-success');
                     } else {
                         $status.text('Failed');
                         $progress.css('background', 'red');

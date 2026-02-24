@@ -105,7 +105,7 @@ namespace ManageLife.Services
 
             await _albumFileRepo.InsertAsync(link);
 
-            if (album.CoverPhotoId.IsNotEmpty())
+            if (album.CoverPhotoId.IsEmpty())
             {
                 album.CoverPhotoId = fileId;
                 await _albumRepo.UpdateAsync(album);

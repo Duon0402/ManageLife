@@ -28,13 +28,8 @@ namespace ManageLife.Controllers.Client
             {
                 return RedirectToAction("Index");
             }
-            
-            // Pass the album info to the view via ViewBag or strongly typed model. Simply using ViewBag for now.
-            ViewBag.AlbumId = albumResult.Data!.Id;
-            ViewBag.AlbumTitle = albumResult.Data.Title;
-            ViewBag.AlbumDescription = albumResult.Data.Description;
 
-            return View();
+            return View(albumResult.Data);
         }
 
         // --- API Endpoints ---

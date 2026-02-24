@@ -63,6 +63,10 @@
 		box-shadow: 0 12px 25px rgba(0,0,0,0.1);
 	}
 
+	.album-card:hover .album-overlay {
+		opacity: 1;
+	}
+
 	.album-cover {
 		height: 180px;
 		background-color: #f8f9fa;
@@ -100,6 +104,50 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.album-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0,0,0,0.4);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 15px;
+		opacity: 0;
+		transition: opacity 0.3s ease;
+		z-index: 2;
+	}
+
+	.btn-album-action {
+		width: 45px;
+		height: 45px;
+		border-radius: 50%;
+		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: white;
+		font-size: 1.2rem;
+		transition: transform 0.2s, background-color 0.2s;
+		box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+		text-decoration: none !important;
+	}
+
+	.btn-album-action:hover {
+		transform: scale(1.1);
+		color: white;
+	}
+
+	.btn-album-view {
+		background-color: #5145ba;
+	}
+
+	.btn-album-add {
+		background-color: #28a745;
 	}
 
 	.album-meta {

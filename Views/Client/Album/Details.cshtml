@@ -1,5 +1,6 @@
+@model ManageLife.Entities.AlbumEntity
 @{
-	ViewData["Title"] = ViewBag.AlbumTitle ?? "Album Details";
+	ViewData["Title"] = Model?.Title ?? "Album Details";
 }
 
 <style>
@@ -130,14 +131,14 @@
 </style>
 
 <div class="container mt-4 album-details-container">
-	<div id="album-details-app" data-id="@ViewBag.AlbumId">
+	<div id="album-details-app" data-id="@Model?.Id">
         <div class="album-header">
             <div class="album-title-section">
                 <a href="/Album" class="btn btn-link text-decoration-none p-0 mb-3 text-muted"><i class="fas fa-arrow-left"></i> Back to Albums</a>
-                <h2>@ViewBag.AlbumTitle</h2>
-                @if (!string.IsNullOrEmpty(ViewBag.AlbumDescription))
+                <h2>@Model?.Title</h2>
+                @if (!string.IsNullOrEmpty(Model?.Description))
                 {
-                    <p class="album-description">@ViewBag.AlbumDescription</p>
+                    <p class="album-description">@Model?.Description</p>
                 }
             </div>
             <button class="btn-upload-photo" id="btnUploadPhoto">

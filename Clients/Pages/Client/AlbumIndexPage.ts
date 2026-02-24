@@ -31,6 +31,15 @@ namespace App {
 
         private attachEvents() {
             this.albumContainer.on('click', '#btnCreateAlbum', () => this.showCreateAlbumPopup());
+
+            // NEW: Add photos directly from index
+            this.albumContainer.on('click', '.btn-album-add', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const albumId = $(e.currentTarget).data('id');
+                const albumTitle = $(e.currentTarget).data('title');
+                this.showUploadPopup(albumId, albumTitle);
+            });
         }
 
         private showCreateAlbumPopup() {
@@ -134,31 +143,73 @@ namespace App {
         }
 
         private generateAlbumCardHtml(album: any): string {
-            const date = new Date(album.createdTime).toLocaleDateString();
+            const id = album.id || album.Id; // Fix case sensitivity
+            const date = new Date(album.createdTime || album.CreatedTime).toLocaleDateString();
 
             // Note: cover photo implementation will depend on how we serve photos
             // For now, if no cover, show empty state
+            const coverPhotoId = album.coverPhotoId || album.CoverPhotoId;
             let coverHtml = '';
-            if (album.coverPhotoId) {
-                // Assuming we have an endpoint like /FileStorage/GetFileUrl?fileId=...
-                // Or maybe we directly load the image by file ID.
-                // We'll use a placeholder URL for now and fix when uploading is done
-                coverHtml = `<div class="album-cover" style="background-image: url('/FileStorage/GetFileUrl?fileId=${album.coverPhotoId}')"></div>`;
+            if (coverPhotoId) {
+                coverHtml = `<div class="album-cover" style="background-image: url('/FileStorage/GetFile?fileId=${coverPhotoId}')"></div>`;
             } else {
                 coverHtml = `<div class="album-cover empty"><i class="fas fa-photo-video"></i></div>`;
             }
 
             return `
-                <a href="/Album/Details/${album.id}" class="album-card">
+                <div class="album-card">
                     ${coverHtml}
-                    <div class="album-info">
-                        <div class="album-title" title="${album.title}">${album.title}</div>
+                    <div class="album-overlay">
+                        <a href="/Album/Details/${id}" class="btn-album-action btn-album-view" title="View Album">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button class="btn-album-action btn-album-add" data-id="${id}" data-title="${album.title || album.Title}" title="Add Photos">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <a href="/Album/Details/${id}" class="album-info text-decoration-none">
+                        <div class="album-title" title="${album.title || album.Title}">${album.title || album.Title}</div>
                         <div class="album-meta">
                             <i class="far fa-calendar-alt"></i> ${date}
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
             `;
+        }
+
+        private showUploadPopup(albumId: string, albumTitle: string) {
+            const popup = new PopupBuilder({
+                title: `Upload Photos to [${albumTitle}]`,
+                size: 'lg',
+                bodyHtml: `<div id="albumUploaderContainer"></div>`,
+                onShow: ($body) => {
+                    const uploaderContainerId = '#albumUploaderContainer';
+                    new FileUploaderBuilder(uploaderContainerId, {
+                        url: '/FileStorage/Upload',
+                        title: 'Select photos'
+                    })
+                        .onSuccess(async (file: File, res: any) => {
+                            if (res.isOk() && res.data && (res.data.id || res.data.Id)) {
+                                const fileId = res.data.id || res.data.Id;
+                                await this.linkFileToAlbum(albumId, fileId);
+                            }
+                        })
+                        .build();
+                }
+            }).show();
+        }
+
+        private async linkFileToAlbum(albumId: string, fileId: string) {
+            try {
+                const formData = new FormData();
+                formData.append('albumId', albumId);
+                formData.append('fileId', fileId);
+
+                const res = await ApiService.post<any>('/Album/LinkFile', formData);
+                // No toast here as per user request, uploader UI handles status
+            } catch (error) {
+                console.error("Failed to link file", error);
+            }
         }
     }
 }

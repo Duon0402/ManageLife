@@ -125,10 +125,34 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result<string>> GetFileUrlByFileIdAsync(string fileId)
+        public async Task<Result<string>> GetFileUrlByFileIdAsync(string fileId)
         {
-            //TODO: Triển khai phần này nếu upload lên tele thì lấy ở tele không thì lấy ở local
-            throw new NotImplementedException();
+            try
+            {
+                var file = await _botClient.GetFile(fileId);
+                if (file == null || string.IsNullOrEmpty(file.FilePath))
+                {
+                    return Result.Error<string>(Result.DATA_NOT_EXISTED.Code, "Could not get file path from Telegram");
+                }
+
+                var url = $"https://api.telegram.org/file/bot{_botToken}/{file.FilePath}";
+                return Result.Ok(url);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Error getting file URL for Telegram FileId: {fileId}");
+                return Result.Exception<string>("Error getting file URL from Telegram", ex);
+            }
+        }
+
+        public async Task<Result<FileEntity>> GetFileEntityAsync(string fileId)
+        {
+            var entity = await _repo.GetAsync(fileId);
+            if (entity == null)
+            {
+                return Result.Error<FileEntity>(Result.DATA_NOT_EXISTED.Code, "File not found in database");
+            }
+            return Result.Ok(entity);
         }
 
         public async Task<Result> UploadToTelegramAsync(string fileId)
@@ -196,6 +220,27 @@ namespace ManageLife.Services
                 msg = $"Upload fail: {fileId}";
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
+            }
+        }
+        public async Task<Result<Stream>> DownloadFileStreamAsync(string telegramFileId)
+        {
+            try
+            {
+                var file = await _botClient.GetFile(telegramFileId);
+                if (file == null || string.IsNullOrEmpty(file.FilePath))
+                {
+                    return Result.Error<Stream>(Result.DATA_NOT_EXISTED.Code, "Could not get file path from Telegram");
+                }
+
+                var ms = new MemoryStream();
+                await _botClient.DownloadFile(file.FilePath, ms);
+                ms.Position = 0;
+                return Result.Ok<Stream>(ms);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Error downloading file stream for {telegramFileId}");
+                return Result.Exception<Stream>("Error downloading file from Telegram", ex);
             }
         }
     }
