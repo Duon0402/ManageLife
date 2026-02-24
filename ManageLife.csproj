@@ -12,6 +12,7 @@
 	  <EmbeddedResource Remove="Clients\Core\Commons\**" />
 	  <None Remove="Clients\Core\Commons\**" />
 	  <TypeScriptCompile Remove="Clients\Core\Commons\**" />
+	  <TypeScriptCompile Remove="node_modules\**" />
 	</ItemGroup>
 
 	<ItemGroup>
