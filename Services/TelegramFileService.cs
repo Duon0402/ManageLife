@@ -34,6 +34,7 @@ namespace ManageLife.Services
         public async Task<Result<FileModel>> SaveTempFileAsync(IFormFile file, string? caption = null)
         {
             string msg;
+            bool b;
             string? tempPath = null;
             try
             {
@@ -45,7 +46,50 @@ namespace ManageLife.Services
                 }
                 var id = IdHeper.NewId();
                 var extension = Path.GetExtension(file.FileName);
+
+                var model = new FileModel
+                {
+                    Id = id,
+                    FileName = file.FileName,
+                    FileType = file.ContentType,
+                    FileSize = file.Length,
+                    Extension = extension,
+                    Status = UploadStatus.Pending,
+                };
+
+                var entity = model.MapTo<FileEntity>();
+
+                // Fast path for files < 5MB: Upload directly from memory
+                if (file.Length < 5 * 1024 * 1024)
+                {
+                    _logger.Info($"Direct memory upload for small file: {file.FileName} ({(file.Length / 1024.0 / 1024.0):F2} MB)");
+                    entity.Status = UploadStatus.Uploading;
+                    b = await _repo.InsertAsync(entity);
+                    if (!b) return Result.Error<FileModel>(Result.DATA_NOT_CREATE.Code, "Could not save initial DB state");
+
+                    using var ms = new MemoryStream();
+                    await file.CopyToAsync(ms);
+                    ms.Position = 0;
+
+                    var input = new Telegram.Bot.Types.InputFileStream(ms, file.FileName);
+                    var message = await _botClient.SendDocument(chatId: _chatId!, document: input, caption: caption);
+                    var telegramFileId = message.Document?.FileId;
+                    if (telegramFileId.IsEmpty()) throw new Exception("Telegram FileId null directly");
+
+                    entity.FileId = telegramFileId;
+                    entity.Status = UploadStatus.Completed;
+                    await _repo.UpdateAsync(entity);
+
+                    model.Status = UploadStatus.Completed;
+                    model.FileId = telegramFileId;
+                    _logger.Info($"Memory upload success: {file.FileName}");
+                    return Result.Ok(model);
+                }
+
+                // Slow path for large files: Save to disk and queue
                 tempPath = Path.Combine(_tempFolder, id + extension);
+                entity.TempPath = tempPath;
+                model.TempPath = tempPath;
 
                 await using var fs = new FileStream(
                     tempPath,
@@ -56,21 +100,9 @@ namespace ManageLife.Services
                     useAsync: true);
 
                 await file.CopyToAsync(fs);
+                fs.Close();
 
-                var model = new FileModel
-                {
-                    Id = id,
-                    FileName = file.FileName,
-                    FileType = file.ContentType,
-                    FileSize = file.Length,
-                    Extension = extension,
-                    TempPath = tempPath,
-                    Status = UploadStatus.Pending,
-                };
-
-                var entity = model.MapTo<FileEntity>();
-                var b = await _repo.InsertAsync(entity);
-
+                b = await _repo.InsertAsync(entity);
                 if (!b)
                 {
                     File.Delete(tempPath);
