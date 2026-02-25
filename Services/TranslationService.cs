@@ -192,9 +192,21 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request)
+        public async Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (request?.Id == null) return Result.Error<TranslationModel>(Result.DATA_INVALID.Code, TranslationKey.Common.Message.DataInvalid);
+
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                if (entity == null) return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, TranslationKey.Common.Message.DataNotExisted);
+
+                return Result.Ok(entity.MapTo<TranslationModel>());
+            }
+            catch (Exception ex)
+            {
+                return Result.Exception<TranslationModel>(TranslationKey.Common.Message.SystemError, ex);
+            }
         }
 
         public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request)
@@ -257,23 +269,47 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var languagesList = data.Select(x => x.Language).ToList();
-
+                var languages = await _languageRepo.Query().Where(l => l.IsDeleted == false).ToListAsync();
+                var allKeys = data.Select(x => x.Key).Distinct().ToList();
+                
                 var existingEntities = await _repo.Query()
-                    .Join(_languageRepo.Query().Where(l => languagesList.Contains(l.Name) || languagesList.Contains(l.Code)),
-                        t => t.LanguageId,
-                        l => l.Id,
-                        (t, l) => t)
+                    .Where(x => allKeys.Contains(x.Key))
                     .ToListAsync();
 
                 var insertEntities = new List<TranslationEntity>();
                 var updateEntities = new List<TranslationEntity>();
+
+                foreach (var item in data)
+                {
+                    var lang = languages.FirstOrDefault(l => l.Code == item.Language || l.Name == item.Language);
+                    if (lang == null) continue;
+
+                    var existing = existingEntities.FirstOrDefault(x => x.LanguageId == lang.Id && x.Key == item.Key);
+                    if (existing != null)
+                    {
+                        if (existing.Value != item.Value)
+                        {
+                            existing.Value = item.Value;
+                            updateEntities.Add(existing);
+                        }
+                    }
+                    else
+                    {
+                        insertEntities.Add(new TranslationEntity
+                        {
+                            LanguageId = lang.Id,
+                            Key = item.Key,
+                            Value = item.Value
+                        });
+                    }
+                }
 
                 if (insertEntities.IsNotEmpty())
                 {
                     b = await _repo.BulkInsertAsync(insertEntities);
                     if (!b)
                     {
+                        await _uow.RollbackAsync();
                         msg = TranslationKey.Common.Message.CreateError;
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                     }
@@ -284,6 +320,7 @@ namespace ManageLife.Services
                     b = await _repo.BulkUpdateAsync(updateEntities);
                     if (!b)
                     {
+                        await _uow.RollbackAsync();
                         msg = TranslationKey.Common.Message.UpdateError;
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                     }
@@ -291,18 +328,52 @@ namespace ManageLife.Services
 
                 await _uow.CommitAsync();
 
+                // Clear all translation cache
+                foreach (var lang in languages)
+                {
+                    await _cache.RemoveAsync(CacheSettings.Translations(lang.Code));
+                }
+
                 return Result.Ok();
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync();
                 msg = TranslationKey.Common.Message.SystemError;
                 return Result.Exception(msg, ex);
             }
         }
 
-        public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request)
+        public async Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                if (entity == null) return Result.DATA_NOT_EXISTED;
+
+                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == request.LanguageId && x.IsDeleted == false);
+                if (language == null) return Result.Error(Result.DATA_INVALID.Code, TranslationKey.Common.Message.DataInvalid);
+
+                request.MapTo(entity);
+                var b = await _repo.UpdateAsync(entity);
+
+                if (!b) return Result.Error(Result.DATA_NOT_UPDATE.Code, TranslationKey.Common.Message.UpdateError);
+
+                await _cache.RemoveAsync(CacheSettings.Translations(language.Code));
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
+            }
         }
     }
 }

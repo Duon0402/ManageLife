@@ -37,34 +37,10 @@ namespace ManageLife.Contexts
         {
             languageCode ??= _languageContext.GetCurrentLanguage();
 
-            var cacheItem = CacheSettings.Translations(languageCode);
+            var req = new GetDictionaryTranslationByLanguageCodeRequest { LanguageCode = languageCode };
+            var res = await _translationService.GetDictionaryTranslationByLanguageCode(req);
 
-            if (!HttpContext.Items.TryGetValue(cacheItem.Key, out var dictObj))
-            {
-                Dictionary<string, string>? dict = null;
-                dict = await _cacheService
-                    .TryGetValueAsync<Dictionary<string, string>>(cacheItem);
-
-                if (dict.IsEmpty())
-                {
-                    var req = new GetDictionaryTranslationByLanguageCodeRequest { LanguageCode = languageCode };
-                    var res = await _translationService.GetDictionaryTranslationByLanguageCode(req);
-
-                    if (res.IsOk() && res.Data.IsNotEmpty())
-                    {
-                        dict = res.Data;
-                        await _cacheService.SetAsync(dict, cacheItem);
-                    }
-                }
-
-                dictObj = dict ?? new Dictionary<string, string>();
-                HttpContext.Items[cacheItem.Key] = dictObj;
-            }
-
-            if (dictObj is not Dictionary<string, string> translations)
-                return key;
-
-            if (translations.TryGetValue(key, out var value))
+            if (res.IsOk() && res.Data != null && res.Data.TryGetValue(key, out var value))
             {
                 return args.Length > 0 ? string.Format(value, args) : value;
             }
