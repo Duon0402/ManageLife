@@ -28,8 +28,8 @@ namespace ManageLife.Data
         public DbSet<TodoListEntity> TodoLists { get; set; } = default!;
         public DbSet<TodoTaskEntity> TodoTasks { get; set; } = default!;
         public DbSet<UserTelegramConnectionEntity> UserTelegramConnections { get; set; } = default!;
-        public DbSet<AlbumEntity> Albums { get; set; } = default!;
-        public DbSet<AlbumFileEntity> AlbumFiles { get; set; } = default!;
+        public DbSet<FolderEntity> Folders { get; set; } = default!;
+        public DbSet<FolderFileEntity> FolderFiles { get; set; } = default!;
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -37,13 +37,16 @@ namespace ManageLife.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<RolePermissionEntity>()
-                .HasKey(ur => new { ur.RoleId, ur.PermissionId });
+                .HasKey(rp => new { rp.RoleId, rp.PermissionId });
 
             modelBuilder.Entity<UserPermissionEntity>()
-                .HasKey(ur => new { ur.UserId, ur.PermissionId });
+                .HasKey(up => new { up.UserId, up.PermissionId });
 
             modelBuilder.Entity<UserRoleEntity>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });
+
+            modelBuilder.Entity<FolderFileEntity>()
+                .HasKey(ff => new { ff.FolderId, ff.FileId });
         }
     }
 }
