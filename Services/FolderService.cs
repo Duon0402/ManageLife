@@ -126,20 +126,18 @@ namespace ManageLife.Services
                 if (folder == null)
                     return Result.Error<List<FolderFileItemModel>>(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                var folderFiles = await _folderFileRepo.FindAsync(ff => ff.FolderId == folderId);
-                var fileIds = folderFiles.Select(ff => ff.FileId).ToList();
-
-                if (!fileIds.Any())
-                    return Result.Ok(new List<FolderFileItemModel>());
-
-                var files = await _fileRepo.FindAsync(f => fileIds.Contains(f.Id));
-
-                var models = files.Select(f => new FolderFileItemModel
-                {
-                    FileId = f.Id,
-                    FileName = f.FileName,
-                    FileUrl = $"/FileStorage/GetFile?fileId={f.Id}"
-                }).ToList();
+                // Single join query – avoids two separate round-trips
+                var models = await (
+                    from ff in _folderFileRepo.Query(true)
+                    join f in _fileRepo.Query(true) on ff.FileId equals f.Id
+                    where ff.FolderId == folderId
+                    select new FolderFileItemModel
+                    {
+                        FileId = f.Id,
+                        FileName = f.FileName,
+                        FileUrl = $"/FileStorage/GetFile?fileId={f.Id}"
+                    }
+                ).ToListAsync();
 
                 return Result.Ok(models);
             }

@@ -41,10 +41,17 @@ namespace ManageLife.Controllers.Client
             // Case 1: Upload is completed and we have a Telegram FileId
             if (entity.Status == UploadStatus.Completed && !string.IsNullOrEmpty(entity.FileId))
             {
+                // Check ETag – allow browser to use its cache without hitting the server again
+                var etag = $"\"{entity.Id}\"";
+                if (Request.Headers.IfNoneMatch == etag)
+                    return StatusCode(304);
+
                 var streamResult = await _telegramFileService.DownloadFileStreamAsync(entity.FileId);
                 if (streamResult.IsOk())
                 {
                     var contentType = entity.FileType ?? "image/jpeg";
+                    Response.Headers["Cache-Control"] = "public, max-age=604800, immutable"; // 7 days
+                    Response.Headers["ETag"] = etag;
                     return File(streamResult.Data!, contentType, entity.FileName);
                 }
             }
@@ -56,6 +63,7 @@ namespace ManageLife.Controllers.Client
                 if (System.IO.File.Exists(fullPath))
                 {
                     var contentType = entity.FileType ?? "application/octet-stream";
+                    Response.Headers["Cache-Control"] = "public, max-age=3600"; // 1 hour for temp files
                     return PhysicalFile(fullPath, contentType, entity.FileName);
                 }
             }

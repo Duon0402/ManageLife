@@ -122,18 +122,23 @@ namespace App {
             const confirmed = await MessageService.confirm('Xác nhận xoá album này? Thao tác này không thể hoàn tác.');
             if (!confirmed) return;
 
-            const res = await ApiService.delete('/Folder/Delete/' + folderId);
-            if (res.isOk()) {
-                ToastService.success('Đã xoá album');
-                // Reload folder grid
-                $(`.folder-card[data-id="${folderId}"]`).fadeOut(300, function () {
-                    $(this).remove();
-                    if ($('#folder-grid').children().length === 0) {
-                        $('#folder-empty').show();
-                    }
-                });
-            } else {
-                ToastService.error(res.message || 'Không thể xoá album');
+            LoadingService.show();
+            try {
+                const res = await ApiService.delete('/Folder/Delete/' + folderId);
+                if (res.isOk()) {
+                    ToastService.success('Đã xoá album');
+                    // Reload folder grid
+                    $(`.folder-card[data-id="${folderId}"]`).fadeOut(300, function () {
+                        $(this).remove();
+                        if ($('#folder-grid').children().length === 0) {
+                            $('#folder-empty').show();
+                        }
+                    });
+                } else {
+                    ToastService.error(res.message || 'Không thể xoá album');
+                }
+            } finally {
+                LoadingService.hide();
             }
         }
 
@@ -155,6 +160,8 @@ namespace App {
     export class FolderDetailPage extends BasePage<{ folderId: string }> {
 
         private gallery: GalleryBuilder;
+        private isLoadingGallery = false;
+        private fileItems: FolderFileItem[] = [];
 
         protected initialize(): void {
             // Init uploader
@@ -171,13 +178,15 @@ namespace App {
                 })
                 .build();
 
-            // Init gallery
+            // Init gallery with delete enabled
             this.gallery = new GalleryBuilder({
                 container: '#folder-gallery-container',
                 columns: 4,
                 gap: 10,
                 borderRadius: 8,
-                items: []
+                items: [],
+                enableDelete: true,
+                onDelete: (fileId, index) => this.deleteImage(fileId, index)
             });
             this.gallery.build();
 
@@ -185,7 +194,8 @@ namespace App {
         }
 
         private async loadGallery(): Promise<void> {
-            LoadingService.show();
+            if (this.isLoadingGallery) return;
+            this.isLoadingGallery = true;
             try {
                 const res = await ApiService.get('/Folder/Files', { id: this.model.folderId });
                 if (!res.isOk()) {
@@ -193,17 +203,44 @@ namespace App {
                     return;
                 }
 
-                const files: FolderFileItem[] = res.data || [];
+                this.fileItems = (res.data as FolderFileItem[]) || [];
 
-                const items: IGalleryItem[] = files.map(f => ({
+                // Map file list directly to gallery items.
+                // GalleryBuilder's IntersectionObserver lazy-loads each image and
+                // automatically patches data-pswp-width/height with real naturalWidth/Height
+                // once the thumbnail actually loads – no upfront dimension probing needed.
+                const items: IGalleryItem[] = this.fileItems.map(f => ({
+                    fileId: f.fileId,
                     src: f.fileUrl,
-                    width: 1200,
-                    height: 900,
+                    width: 800,
+                    height: 600,
                     alt: f.fileName,
                     title: f.fileName
                 }));
 
                 this.gallery.setItems(items);
+            } finally {
+                this.isLoadingGallery = false;
+            }
+        }
+
+        private async deleteImage(fileId: string, index: number): Promise<void> {
+            const confirmed = await MessageService.confirm('Xoá ảnh này khỏi album?');
+            if (!confirmed) return;
+
+            LoadingService.show();
+            try {
+                const res = await ApiService.delete(
+                    `/Folder/RemoveFile?folderId=${encodeURIComponent(this.model.folderId)}&fileId=${encodeURIComponent(fileId)}`
+                );
+
+                if (res.isOk()) {
+                    ToastService.success('Đã xoá ảnh');
+                    this.fileItems = this.fileItems.filter(f => f.fileId !== fileId);
+                    this.gallery.removeItem(index);
+                } else {
+                    ToastService.error(res.message || 'Không thể xoá ảnh');
+                }
             } finally {
                 LoadingService.hide();
             }
