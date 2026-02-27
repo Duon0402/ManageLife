@@ -183,7 +183,7 @@ namespace App {
                 class="pswp-gallery-grid"
                 style="
                     display: grid;
-                    grid-template-columns: repeat(${this.options.columns}, 1fr);
+                    --pswp-cols: ${this.options.columns};
                     gap: ${this.options.gap}px;
                 ">
             </div>`);
@@ -276,16 +276,23 @@ namespace App {
             imgEl.onload = () => applyRealDimensions();
             imgEl.onerror = () => $img.css('opacity', '0.3');
 
-            // Hover micro-animation
-            $tile.on('mouseenter', function () {
-                $(this).find('img').css('transform', 'scale(1.07)').css('opacity', '0.85');
-                $(this).find('.pswp-gallery__zoom-icon').css('opacity', '1');
-                $(this).find('.pswp-gallery__delete-btn, .pswp-gallery__download-btn').css('opacity', '1');
-            }).on('mouseleave', function () {
-                $(this).find('img').css('transform', 'scale(1)').css('opacity', '1');
-                $(this).find('.pswp-gallery__zoom-icon').css('opacity', '0');
-                $(this).find('.pswp-gallery__delete-btn, .pswp-gallery__download-btn').css('opacity', '0');
-            });
+            // Hover micro-animation (desktop only — touch devices use always-visible buttons)
+            const isTouchDevice = () => window.matchMedia('(hover: none)').matches;
+
+            if (isTouchDevice()) {
+                // On touch: keep buttons always visible, no scale effect
+                $tile.find('.pswp-gallery__delete-btn, .pswp-gallery__download-btn').css('opacity', '1');
+            } else {
+                $tile.on('mouseenter', function () {
+                    $(this).find('img').css('transform', 'scale(1.07)').css('opacity', '0.85');
+                    $(this).find('.pswp-gallery__zoom-icon').css('opacity', '1');
+                    $(this).find('.pswp-gallery__delete-btn, .pswp-gallery__download-btn').css('opacity', '1');
+                }).on('mouseleave', function () {
+                    $(this).find('img').css('transform', 'scale(1)').css('opacity', '1');
+                    $(this).find('.pswp-gallery__zoom-icon').css('opacity', '0');
+                    $(this).find('.pswp-gallery__delete-btn, .pswp-gallery__download-btn').css('opacity', '0');
+                });
+            }
 
             // Download button handler
             $tile.find('.pswp-gallery__download-btn').on('click', function (e) {
@@ -356,6 +363,41 @@ namespace App {
             if (document.getElementById(styleId)) return;
 
             const css = `
+                .pswp-gallery-grid {
+                    /* CSS custom property lets JS set the desktop column count;
+                       media queries below cap it for smaller screens. */
+                    --pswp-max-cols: 99;
+                    grid-template-columns: repeat(min(var(--pswp-cols, 3), var(--pswp-max-cols)), 1fr) !important;
+                }
+
+                /* Tablet: max 3 columns */
+                @media (max-width: 767px) {
+                    .pswp-gallery-grid {
+                        --pswp-max-cols: 3;
+                    }
+                }
+
+                /* phone small: max 3 columns but buttons slightly smaller */
+                @media (max-width: 480px) {
+                    .pswp-gallery-grid {
+                        --pswp-max-cols: 3;
+                    }
+                }
+
+                /* On touch devices, action buttons are always visible */
+                @media (hover: none) {
+                    .pswp-gallery__delete-btn,
+                    .pswp-gallery__download-btn {
+                        opacity: 1 !important;
+                        width: 32px;
+                        height: 32px;
+                        font-size: 0.8rem;
+                    }
+                    .pswp-gallery__download-btn {
+                        right: 44px;
+                    }
+                }
+
                 .pswp-gallery__item {
                     aspect-ratio: 1 / 1;
                     overflow: visible;
