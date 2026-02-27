@@ -47,6 +47,7 @@
 
 	<ItemGroup>
 		<Folder Include="Clients\Commons\" />
+		<Folder Include="Clients\Core\Gallary\" />
 		<Folder Include="Clients\Core\Popup\" />
 		<Folder Include="Clients\Services\" />
 		<Folder Include="Middlewares\" />

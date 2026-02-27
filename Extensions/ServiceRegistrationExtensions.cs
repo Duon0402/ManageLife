@@ -29,6 +29,7 @@ namespace ManageLife.Extensions
             services.AddScoped<ICronJobService, CronJobService>();
             services.AddScoped<ITelegramFileService, TelegramFileService>();
             services.AddSingleton<ITelegramUploadQueue, TelegramUploadQueue>();
+            services.AddScoped<IFolderService, FolderService>();
             return services;
         }
     }

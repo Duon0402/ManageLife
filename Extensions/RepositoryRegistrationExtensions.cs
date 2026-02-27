@@ -22,6 +22,8 @@ namespace ManageLife.Extensions
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
             services.AddScoped<ITodoListRepository, TodoListRepository>();
             services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
+            services.AddScoped<IFolderRepository, FolderRepository>();
+            services.AddScoped<IFolderFileRepository, FolderFileRepository>();
 
             return services;
         }
