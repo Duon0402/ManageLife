@@ -5,6 +5,37 @@ namespace App {
         protected initialize(): void {
             this.currentLangCode = this.root.find('#currentLangCode').val() as string;
             this.loadLanguages();
+            this.bindToggle();
+        }
+
+        private bindToggle(): void {
+            const $toggle = this.root.find('#header-toggle');
+            const $nav = this.root.find('#header-nav');
+            const $right = this.root.find('#header-right');
+
+            $toggle.on('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                $toggle.toggleClass('open');
+                $nav.toggleClass('open');
+                $right.toggleClass('open');
+            });
+
+            // Close menu when clicking a nav link (mobile)
+            $nav.find('.nav-link:not(.dropdown-toggle)').on('click', () => {
+                $toggle.removeClass('open');
+                $nav.removeClass('open');
+                $right.removeClass('open');
+            });
+
+            // Close menu when clicking outside
+            $(document).on('click', (e) => {
+                if ($toggle.hasClass('open') && !$(e.target).closest('#client-header').length) {
+                    $toggle.removeClass('open');
+                    $nav.removeClass('open');
+                    $right.removeClass('open');
+                }
+            });
         }
 
         private loadLanguages(): void {
