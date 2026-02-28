@@ -6,7 +6,7 @@ namespace ManageLife.Interfaces
 {
     public interface ITelegramService
     {
-        Task<Result> SendMessageAsync(SendMessageRequest request);
+        Task<Result> SendMessageAsync(SendTelegramMessageRequest request);
 
         Task HandleUpdateAsync(Update update);
 

@@ -24,6 +24,10 @@ namespace ManageLife.Extensions
             services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
             services.AddScoped<IFolderRepository, FolderRepository>();
             services.AddScoped<IFolderFileRepository, FolderFileRepository>();
+            services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
+            services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+            services.AddScoped<IChatRoomMemberRepository, ChatRoomMemberRepository>();
+            services.AddScoped<IChatRoomUserStateRepository, ChatRoomUserStateRepository>();
 
             return services;
         }

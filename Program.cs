@@ -3,9 +3,9 @@ using ManageLife.Base;
 using ManageLife.Contexts;
 using ManageLife.Data;
 using ManageLife.Extensions;
+using ManageLife.Hubs;
 using ManageLife.Middlewares;
 using ManageLife.Services;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +28,7 @@ builder.Host.UseSerilog((context, services, loggerConfig) =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 // Add application services
 builder.Services.AddApplicationServices(builder.Configuration);
@@ -95,5 +96,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
+
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();

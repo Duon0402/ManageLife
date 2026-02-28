@@ -3,6 +3,7 @@ using System;
 using ManageLife.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManageLife.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227171142_UpdateChatMessageEntity")]
+    partial class UpdateChatMessageEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,12 +30,8 @@ namespace ManageLife.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("CreatedTime")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("RoomId")
                         .IsRequired()
@@ -45,7 +43,7 @@ namespace ManageLife.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoomId", "CreatedTime");
+                    b.HasIndex("RoomId", "CreatedAt");
 
                     b.ToTable("ChatMessages");
                 });
@@ -55,12 +53,8 @@ namespace ManageLife.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<DateTime>("CreatedTime")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("PrivateKey")
                         .HasColumnType("varchar(255)");
@@ -85,24 +79,11 @@ namespace ManageLife.Migrations
                     b.Property<string>("UserId")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Id")
-                        .HasColumnType("longtext");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<DateTime?>("UpdatedTime")
+                    b.Property<DateTime>("JoinedAt")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UpdatedUser")
-                        .HasColumnType("longtext");
 
                     b.HasKey("RoomId", "UserId");
 
@@ -119,26 +100,10 @@ namespace ManageLife.Migrations
                     b.Property<string>("UserId")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Id")
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("LastReadAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("LastReadMessageId")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UpdatedUser")
                         .HasColumnType("longtext");
 
                     b.HasKey("RoomId", "UserId");

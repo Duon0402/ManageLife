@@ -3,6 +3,7 @@ using System;
 using ManageLife.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManageLife.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227164558_AddChatMessageEntity")]
+    partial class AddChatMessageEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,16 +30,19 @@ namespace ManageLife.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("CreatedTime")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("CreatedUser")
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ReceiverId")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("RoomId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("SenderId")
                         .IsRequired()
@@ -45,105 +50,7 @@ namespace ManageLife.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoomId", "CreatedTime");
-
                     b.ToTable("ChatMessages");
-                });
-
-            modelBuilder.Entity("ManageLife.Entities.ChatRoomEntity", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PrivateKey")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PrivateKey")
-                        .IsUnique()
-                        .HasFilter("[PrivateKey] IS NOT NULL");
-
-                    b.ToTable("ChatRooms");
-                });
-
-            modelBuilder.Entity("ManageLife.Entities.ChatRoomMemberEntity", b =>
-                {
-                    b.Property<string>("RoomId")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Id")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime?>("UpdatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UpdatedUser")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("RoomId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ChatRoomMembers");
-                });
-
-            modelBuilder.Entity("ManageLife.Entities.ChatRoomUserStateEntity", b =>
-                {
-                    b.Property<string>("RoomId")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Id")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("LastReadAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("LastReadMessageId")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UpdatedUser")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("RoomId", "UserId");
-
-                    b.ToTable("ChatRoomUserStates");
                 });
 
             modelBuilder.Entity("ManageLife.Entities.ExceptionItemEntity", b =>

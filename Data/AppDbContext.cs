@@ -30,23 +30,44 @@ namespace ManageLife.Data
         public DbSet<UserTelegramConnectionEntity> UserTelegramConnections { get; set; } = default!;
         public DbSet<FolderEntity> Folders { get; set; } = default!;
         public DbSet<FolderFileEntity> FolderFiles { get; set; } = default!;
+        public DbSet<ChatMessageEntity> ChatMessages { get; set; } = default!;
+        public DbSet<ChatRoomMemberEntity> ChatRoomMembers { get; set; } = default!;
+        public DbSet<ChatRoomEntity> ChatRooms { get; set; } = default!;
+        public DbSet<ChatRoomUserStateEntity> ChatRoomUserStates { get; set; } = default!;
         #endregion
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(builder);
 
-            modelBuilder.Entity<RolePermissionEntity>()
+            builder.Entity<RolePermissionEntity>()
                 .HasKey(rp => new { rp.RoleId, rp.PermissionId });
 
-            modelBuilder.Entity<UserPermissionEntity>()
+            builder.Entity<UserPermissionEntity>()
                 .HasKey(up => new { up.UserId, up.PermissionId });
 
-            modelBuilder.Entity<UserRoleEntity>()
+            builder.Entity<UserRoleEntity>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });
 
-            modelBuilder.Entity<FolderFileEntity>()
+            builder.Entity<FolderFileEntity>()
                 .HasKey(ff => new { ff.FolderId, ff.FileId });
+
+            builder.Entity<ChatRoomMemberEntity>()
+                .HasIndex(x => x.UserId);
+
+            builder.Entity<ChatMessageEntity>()
+                .HasIndex(x => new { x.RoomId, x.CreatedTime });
+
+            builder.Entity<ChatRoomEntity>()
+                .HasIndex(x => x.PrivateKey)
+                .IsUnique()
+                .HasFilter("[PrivateKey] IS NOT NULL");
+
+            builder.Entity<ChatRoomMemberEntity>()
+                .HasKey(x => new { x.RoomId, x.UserId });
+
+            builder.Entity<ChatRoomUserStateEntity>()
+                .HasKey(x => new { x.RoomId, x.UserId });
         }
     }
 }

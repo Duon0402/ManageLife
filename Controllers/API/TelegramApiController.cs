@@ -22,7 +22,7 @@ namespace ManageLife.Controllers.API
         }
 
         [HttpPost("send-message")]
-        public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
+        public async Task<IActionResult> SendMessage([FromBody] SendTelegramMessageRequest request)
         {
             var rs = await _service.SendMessageAsync(request);
             if (rs.IsOk())

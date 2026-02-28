@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ManageLife.Entities;
 using ManageLife.Models;
 
@@ -44,6 +44,9 @@ namespace ManageLife.Helpers
 
             // File
             CreateMap<FileEntity, FileModel>().ReverseMap();
+
+            // Chat
+            CreateMap<ChatMessageEntity, ChatMessageModel>().ReverseMap();
         }
     }
 }

@@ -1,5 +1,3 @@
-using ManageLife.Base;
-
 namespace ManageLife.Entities
 {
     public class FolderFileEntity

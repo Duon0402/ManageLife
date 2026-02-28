@@ -25,7 +25,7 @@ namespace ManageLife.Services
             _botClient = new TelegramBotClient(botToken);
         }
 
-        public async Task<Result> SendMessageAsync(SendMessageRequest request)
+        public async Task<Result> SendMessageAsync(SendTelegramMessageRequest request)
         {
             string msg;
             try
