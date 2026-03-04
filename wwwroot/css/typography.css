@@ -1,0 +1,133 @@
+/* ============================================================
+   Typography - Skydash Style (Nunito)
+   ============================================================ */
+
+/* Nunito is loaded via _RootLayout.cshtml Google Fonts link */
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-base);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Headings ──────────────────────────────────────────── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+}
+
+h1,
+.h1 {
+    font-size: 2rem;
+}
+
+h2,
+.h2 {
+    font-size: 1.625rem;
+}
+
+h3,
+.h3 {
+    font-size: 1.375rem;
+}
+
+h4,
+.h4 {
+    font-size: 1.125rem;
+}
+
+h5,
+.h5 {
+    font-size: 1rem;
+}
+
+h6,
+.h6 {
+    font-size: 0.875rem;
+}
+
+/* ─── Text Utilities ────────────────────────────────────── */
+.text-primary {
+    color: var(--color-primary) !important;
+}
+
+.text-muted {
+    color: var(--color-text-muted) !important;
+}
+
+.text-dark {
+    color: var(--color-text-dark) !important;
+}
+
+.text-success {
+    color: var(--color-success) !important;
+}
+
+.text-danger {
+    color: var(--color-danger) !important;
+}
+
+.text-warning {
+    color: var(--color-warning) !important;
+}
+
+.text-info {
+    color: var(--color-info) !important;
+}
+
+.fw-medium {
+    font-weight: var(--font-weight-medium);
+}
+
+.fw-semibold {
+    font-weight: var(--font-weight-semibold);
+}
+
+/* ─── Links ─────────────────────────────────────────────── */
+a {
+    color: var(--color-primary);
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-primary-dark);
+}
+
+/* ─── Small / Caption ───────────────────────────────────── */
+small,
+.small {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+/* ─── Page Title Block ──────────────────────────────────── */
+.page-title {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}

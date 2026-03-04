@@ -4,6 +4,13 @@
 
 <aside class="sidebar-container collapse collapse-horizontal show" id="sidebar">
 	<nav class="sidebar">
+		<!-- Sidebar Logo / Brand -->
+		<a href="/admin" class="sidebar-logo">
+			<i class="fa-solid fa-chart-line"></i>
+			<h3 class="sidebar-brand">Manage Life</h3>
+		</a>
+
+		<!-- Navigation Menu -->
 		<ul class="menu">
 			@foreach (var item in menus)
 			{
@@ -15,16 +22,15 @@
 						   data-bs-toggle="collapse"
 						   data-bs-target="#submenu-@item.Title.Replace(" ", "")">
 							<i class="@item.Icon"></i>
-							<span class="ms-2">@item.Title</span>
-							<i class="fa-solid fa-chevron-down ms-auto menu-arrow"></i>
+							<span>@item.Title</span>
+							<i class="fa-solid fa-chevron-down menu-arrow"></i>
 						</a>
 						<ul class="sub-menu collapse" id="submenu-@item.Title.Replace(" ", "")">
 							@foreach (var sub in item.SubItems)
 							{
 								<li class="sub-item">
 									<a href="@sub.Url" class="sub-link">
-										<i class="@sub.Icon"></i>
-										<span class="ms-2">@sub.Title</span>
+										<span>@sub.Title</span>
 									</a>
 								</li>
 							}
@@ -36,7 +42,7 @@
 					<li class="menu-item">
 						<a href="@item.Url" class="menu-link">
 							<i class="@item.Icon"></i>
-							<span class="ms-2">@item.Title</span>
+							<span>@item.Title</span>
 						</a>
 					</li>
 				}

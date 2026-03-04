@@ -1,9 +1,36 @@
-﻿<header class="header d-flex justify-content-between align-items-center px-3">
-    <div class="d-flex align-items-center">
-        <button type="button" class="btn-toggle-sidebar" data-bs-toggle="collapse" data-bs-target="#sidebar"
-                aria-expanded="true" aria-controls="sidebar">
-            <i class="fa-solid fa-bars"></i>
+﻿<header class="header" id="admin-header">
+    <!-- Sidebar Toggle -->
+    <button type="button" class="btn-toggle-sidebar" data-bs-toggle="collapse" data-bs-target="#sidebar"
+            aria-expanded="true" aria-controls="sidebar" title="Toggle sidebar">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <!-- Brand (visible in header when sidebar is collapsed) -->
+    <a href="/admin" class="header-brand d-none d-collapsed-flex" id="header-brand-collapsed">
+        <h3 class="brand">Manage Life</h3>
+    </a>
+
+    <!-- Search -->
+    <div class="header-search ms-3 d-none d-md-flex">
+        <div class="header-search-wrap">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="search" placeholder="Search..." class="form-control" />
+        </div>
+    </div>
+
+    <!-- Right Icons -->
+    <div class="header-right ms-auto">
+        <a href="/admin" class="header-icon-btn" title="Home">
+            <i class="fa-solid fa-house"></i>
+        </a>
+        <button type="button" class="header-icon-btn" title="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span class="badge-indicator"></span>
         </button>
-        <a href="/admin"><h3 class="brand">Manage Life</h3></a>
+        <div class="header-user" id="admin-user-menu">
+            <div class="user-avatar">
+                <i class="fa-solid fa-user" style="font-size:0.85rem;"></i>
+            </div>
+        </div>
     </div>
 </header>

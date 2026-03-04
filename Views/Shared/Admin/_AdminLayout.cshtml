@@ -1,6 +1,11 @@
 ﻿@{
     Layout = RazorPageConst.Layout.RootLayout;
-    this.UseCss(new ResourceLink("~/css/admin-layout.css"));
+    this.UseCss(
+        new ResourceLink("~/css/admin-layout.css"),
+        new ResourceLink("~/css/breadcrumbs.css"),
+        new ResourceLink("~/css/tables.css"),
+        new ResourceLink("~/css/admin-pages.css")
+    );
 }
 <div class="admin-layout">
     <partial name="Admin/_AdminHeader" />

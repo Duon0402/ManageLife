@@ -1,4 +1,14 @@
-﻿.grid-container table.dataTable th,
+﻿/* ============================================================
+   Grid Table - DataGrid Layout Specific Styles
+   ============================================================ */
+
+/* Hide DataTables built-in search label (search is custom-handled) */
+.dt-search label,
+[id$="_wrapper"] .dt-search label {
+    display: none;
+}
+
+.grid-container table.dataTable th,
 .grid-container table.dataTable td {
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -10,6 +20,53 @@
     text-align: center !important;
 }
 
-    .grid-container table.dataTable thead th[title] {
-        cursor: help;
-    }
+.grid-container table.dataTable thead th[title] {
+    cursor: help;
+}
+
+/* ─── Admin DataGrid Layout Container ───────────────────── */
+#admin-layout-container {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100% - 40px);
+    gap: 0.75rem;
+}
+
+/* Toolbar card at top */
+#admin-layout-container .tooltip-container {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-sm);
+    border: none !important;
+    padding: 0.5rem 1rem;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+}
+
+/* Title in toolbar */
+#admin-layout-container .tooltip-item-start .text-uppercase {
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.05em;
+    color: var(--color-heading);
+}
+
+/* Form filter card */
+#admin-layout-container .form-container {
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-sm);
+    border: none !important;
+}
+
+/* Main grid card */
+#admin-layout-container .grid-container {
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-sm);
+    border: none !important;
+    flex: 1;
+}
+
+#admin-layout-container .grid-container .card-body {
+    padding: 0;
+}

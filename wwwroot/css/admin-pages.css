@@ -1,0 +1,72 @@
+/* ============================================================
+   Admin Pages - Specific Component Styles - Skydash
+   ============================================================ */
+
+/* ─── Permission Page ───────────────────────────────────── */
+.permission-wrap {
+    width: 100%;
+    height: 100%;
+}
+
+.permission-wrap .permission-panel {
+    width: calc(50% - 40px);
+    border-radius: var(--radius-lg) !important;
+    border-color: var(--color-border-light) !important;
+    background: var(--color-surface);
+    overflow: hidden;
+}
+
+.permission-wrap .permission-panel .fw-bold {
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-heading);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border-light) !important;
+}
+
+.permission-wrap .permission-controls {
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+.permission-wrap .permission-controls .btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* ─── Role Modal ────────────────────────────────────────── */
+.role-wrap {
+    width: 100%;
+    height: 100%;
+}
+
+/* ─── Dashboard / Admin Home ────────────────────────────── */
+.admin-dashboard {
+    padding: 0.5rem 0;
+}
+
+/* ─── CronJob Page ──────────────────────────────────────── */
+.cronjob-page-wrap {
+    width: 100%;
+}
+
+/* ─── User Page ─────────────────────────────────────────── */
+.user-page-wrap {
+    width: 100%;
+}
+
+/* ─── Translation Page ──────────────────────────────────── */
+.translation-page-wrap {
+    width: 100%;
+}
