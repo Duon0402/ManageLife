@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Entities

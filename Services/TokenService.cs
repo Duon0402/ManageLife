@@ -1,5 +1,5 @@
 ﻿using LinqKit;
-using ManageLife.Base;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;

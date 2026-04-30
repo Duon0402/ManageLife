@@ -7,11 +7,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Clients\Core\Commons\**" />
-	  <Content Remove="Clients\Core\Commons\**" />
-	  <EmbeddedResource Remove="Clients\Core\Commons\**" />
-	  <None Remove="Clients\Core\Commons\**" />
-	  <TypeScriptCompile Remove="Clients\Core\Commons\**" />
+	  <Compile Remove="ClientSrc\Core\Commons\**" />
+	  <Content Remove="ClientSrc\Core\Commons\**" />
+	  <EmbeddedResource Remove="ClientSrc\Core\Commons\**" />
+	  <None Remove="ClientSrc\Core\Commons\**" />
+	  <TypeScriptCompile Remove="ClientSrc\Core\Commons\**" />
 	  <TypeScriptCompile Remove="node_modules\**" />
 	</ItemGroup>
 
@@ -47,12 +47,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Clients\Commons\" />
-		<Folder Include="Clients\Core\Gallary\" />
-		<Folder Include="Clients\Core\Popup\" />
-		<Folder Include="Clients\Services\" />
-		<Folder Include="Middlewares\" />
-		<Folder Include="Migrations\" />
+		<Folder Include="ClientSrc\Commons\" />
+		<Folder Include="ClientSrc\Core\Gallary\" />
+		<Folder Include="ClientSrc\Core\Popup\" />
+		<Folder Include="ClientSrc\Services\" />
+		<Folder Include="Middleware\" />
+		<Folder Include="Data\Migrations\" />
 	</ItemGroup>
 
 	<Target Name="CompileTypeScript" BeforeTargets="Build">

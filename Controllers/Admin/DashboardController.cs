@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.Admin

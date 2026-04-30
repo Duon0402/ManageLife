@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using ManageLife.Base;
+using ManageLife.Core;
 using ManageLife.Contexts;
 using ManageLife.Data;
 using ManageLife.Extensions;
 using ManageLife.Hubs;
-using ManageLife.Middlewares;
+using ManageLife.Middleware;
 using ManageLife.Services;
 using Serilog;
 

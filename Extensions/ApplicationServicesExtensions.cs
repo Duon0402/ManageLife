@@ -1,6 +1,7 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using ManageLife.Data;
 using ManageLife.Helpers;
+using ManageLife.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -58,7 +59,10 @@ namespace ManageLife.Extensions
             #endregion
 
             #region AddAutoMapper
-            services.AddAutoMapper(typeof(AutoMapperProfiles));
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<AutoMapperProfiles>();
+            });
             #endregion
 
             #region AddDbContext

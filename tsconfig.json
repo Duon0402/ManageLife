@@ -17,9 +17,9 @@
   ],
   "include": [
     // NOTE: Phải sắp xếp đúng thứ tự để tránh lỗi khi biên dịch
-    "Clients/Core/**/*.ts",
-    "Clients/Models/**/*.ts",
-    "Clients/Pages/**/*.ts"
+    "ClientSrc/Core/**/*.ts",
+    "ClientSrc/Models/**/*.ts",
+    "ClientSrc/Pages/**/*.ts"
   ],
   "exclude": [
     "node_modules",
