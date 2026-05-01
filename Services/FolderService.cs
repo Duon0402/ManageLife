@@ -22,7 +22,7 @@ namespace ManageLife.Services
             _fileRepo = fileRepo;
         }
 
-        public async Task<Result<List<FolderModel>>> GetFoldersAsync()
+        public async Task<Result<List<FolderModel>>> GetFoldersAsync(CancellationToken ct = default)
         {
             try
             {
@@ -58,7 +58,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<FolderModel>> CreateFolderAsync(CreateFolderCommand cmd)
+        public async Task<Result<FolderModel>> CreateFolderAsync(CreateFolderCommand cmd, CancellationToken ct = default)
         {
             try
             {
@@ -93,7 +93,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteFolderAsync(string folderId)
+        public async Task<Result> DeleteFolderAsync(string folderId, CancellationToken ct = default)
         {
             try
             {
@@ -118,7 +118,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<FolderFileItemModel>>> GetFolderFilesAsync(string folderId)
+        public async Task<Result<List<FolderFileItemModel>>> GetFolderFilesAsync(string folderId, CancellationToken ct = default)
         {
             try
             {
@@ -147,7 +147,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> AddFileToFolderAsync(string folderId, string fileId)
+        public async Task<Result> AddFileToFolderAsync(string folderId, string fileId, CancellationToken ct = default)
         {
             try
             {
@@ -180,7 +180,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> RemoveFileFromFolderAsync(string folderId, string fileId)
+        public async Task<Result> RemoveFileFromFolderAsync(string folderId, string fileId, CancellationToken ct = default)
         {
             try
             {

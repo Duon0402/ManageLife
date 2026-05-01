@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.ViewModels;
@@ -9,7 +9,6 @@ namespace ManageLife.Controllers.Admin
     public class TranslationController : WebAdminControllerBase
     {
         private readonly ITranslationService _service;
-
         private readonly ILanguageService _languageService;
 
         public TranslationController(ITranslationService service, ILanguageService languageService)
@@ -18,11 +17,11 @@ namespace ManageLife.Controllers.Admin
             _languageService = languageService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken ct = default)
         {
             var viewModel = new TranslationViewModel();
 
-            var rs = await _languageService.GetListLanguagesAsync();
+            var rs = await _languageService.GetListLanguagesAsync(ct);
             if (rs.IsOk() && rs.Data.IsNotEmpty())
             {
                 viewModel.Languages = rs.Data.Select(x => new KeyValueModel(x.Id, x.Name)).ToList();
@@ -32,17 +31,15 @@ namespace ManageLife.Controllers.Admin
         }
 
         [HttpPost]
-        public async Task<Result<List<TranslationModel>>> GetListTranslations([FromBody] GetListTranslationsRequest request)
+        public async Task<Result<List<TranslationModel>>> GetListTranslations([FromBody] GetListTranslationsRequest request, CancellationToken ct)
         {
-            var rs = await _service.GetListTranslationsAsync(request);
-            return rs;
+            return await _service.GetListTranslationsAsync(request, ct);
         }
 
         [HttpPost]
-        public async Task<Result> CreateTranslation([FromBody] CreateTranslationRequest request)
+        public async Task<Result> CreateTranslation([FromBody] CreateTranslationRequest request, CancellationToken ct)
         {
-            var rs = await _service.CreateTranslationAsync(request);
-            return rs;
+            return await _service.CreateTranslationAsync(request, ct);
         }
     }
 }

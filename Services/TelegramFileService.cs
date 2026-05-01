@@ -31,7 +31,7 @@ namespace ManageLife.Services
             Directory.CreateDirectory(_tempFolder);
         }
 
-        public async Task<Result<FileModel>> SaveTempFileAsync(IFormFile file, string? caption = null)
+        public async Task<Result<FileModel>> SaveTempFileAsync(IFormFile file, string? caption = null, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -44,7 +44,7 @@ namespace ManageLife.Services
                     _logger.Debug(msg);
                     return Result.Error<FileModel>(Result.DATA_INVALID.Code, msg);
                 }
-                var id = IdHeper.NewId();
+                var id = IdHelper.NewId();
                 var extension = Path.GetExtension(file.FileName);
 
                 var model = new FileModel
@@ -125,7 +125,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<string>> GetFileUrlByFileIdAsync(string fileId)
+        public async Task<Result<string>> GetFileUrlByFileIdAsync(string fileId, CancellationToken ct = default)
         {
             try
             {
@@ -145,7 +145,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<FileEntity>> GetFileEntityAsync(string fileId)
+        public async Task<Result<FileEntity>> GetFileEntityAsync(string fileId, CancellationToken ct = default)
         {
             var entity = await _repo.GetAsync(fileId);
             if (entity == null)
@@ -155,7 +155,7 @@ namespace ManageLife.Services
             return Result.Ok(entity);
         }
 
-        public async Task<Result> UploadToTelegramAsync(string fileId)
+        public async Task<Result> UploadToTelegramAsync(string fileId, CancellationToken ct = default)
         {
             string msg;
             FileEntity? entity = null;
@@ -222,7 +222,7 @@ namespace ManageLife.Services
                 return Result.Exception(msg, ex);
             }
         }
-        public async Task<Result<Stream>> DownloadFileStreamAsync(string telegramFileId)
+        public async Task<Result<Stream>> DownloadFileStreamAsync(string telegramFileId, CancellationToken ct = default)
         {
             try
             {

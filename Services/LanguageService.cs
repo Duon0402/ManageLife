@@ -18,7 +18,7 @@ namespace ManageLife.Services
             _cache = cache;
         }
 
-        public async Task<Result<ChangeLanguageResult>> ChangeLanguageAsync(ChangeLanguageRequest request, string currentLanguage)
+        public async Task<Result<ChangeLanguageResult>> ChangeLanguageAsync(ChangeLanguageRequest request, string currentLanguage, CancellationToken ct = default)
         {
             string msg;
             try
@@ -48,7 +48,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> CreateLanguageAsync(CreateLanguageRequest request)
+        public async Task<Result> CreateLanguageAsync(CreateLanguageRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -86,7 +86,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteLanguageAsync(DeleteLanguageRequest request)
+        public async Task<Result> DeleteLanguageAsync(DeleteLanguageRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -123,7 +123,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<LanguageModel>> GetLanguageByCodeAsync(GetLanguageByCodeRequest request)
+        public async Task<Result<LanguageModel>> GetLanguageByCodeAsync(GetLanguageByCodeRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -153,7 +153,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<LanguageModel>> GetLanguageByIdAsync(GetLanguageByIdRequest request)
+        public async Task<Result<LanguageModel>> GetLanguageByIdAsync(GetLanguageByIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -183,7 +183,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<LanguageModel>>> GetListLanguagesAsync()
+        public async Task<Result<List<LanguageModel>>> GetListLanguagesAsync(CancellationToken ct = default)
         {
             string msg;
             try
@@ -209,7 +209,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> UpdateLanguageAsync(UpdateLanguageRequest request)
+        public async Task<Result> UpdateLanguageAsync(UpdateLanguageRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;

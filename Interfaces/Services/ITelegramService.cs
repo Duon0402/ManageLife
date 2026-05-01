@@ -6,16 +6,16 @@ namespace ManageLife.Interfaces
 {
     public interface ITelegramService
     {
-        Task<Result> SendMessageAsync(SendTelegramMessageRequest request);
+        Task<Result> SendMessageAsync(SendTelegramMessageRequest request, CancellationToken ct = default);
 
-        Task HandleUpdateAsync(Update update);
+        Task HandleUpdateAsync(Update update, CancellationToken ct = default);
 
-        Task<Result<string>> RegisterWebhookAsync(string url);
+        Task<Result<string>> RegisterWebhookAsync(string url, CancellationToken ct = default);
 
-        Task<Result<object>> GetWebhookStatusAsync();
+        Task<Result<object>> GetWebhookStatusAsync(CancellationToken ct = default);
 
-        Task<Result> SetDefaultCommandsAsync();
+        Task<Result> SetDefaultCommandsAsync(CancellationToken ct = default);
 
-        Task<Result<List<BotCommand>>> GetListTelegramBotCommands();
+        Task<Result<List<BotCommand>>> GetListTelegramBotCommands(CancellationToken ct = default);
     }
 }

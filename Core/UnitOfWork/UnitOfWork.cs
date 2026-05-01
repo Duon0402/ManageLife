@@ -1,4 +1,4 @@
-﻿using ManageLife.Data;
+using ManageLife.Data;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ManageLife.Core
@@ -18,17 +18,17 @@ namespace ManageLife.Core
             _context = context;
         }
 
-        public async Task BeginTransactionAsync()
+        public async Task BeginTransactionAsync(CancellationToken ct = default)
         {
             if (_transaction != null) return;
-            _transaction = await _context.Database.BeginTransactionAsync();
+            _transaction = await _context.Database.BeginTransactionAsync(ct);
         }
 
-        public async Task CommitAsync()
+        public async Task CommitAsync(CancellationToken ct = default)
         {
             if (_transaction == null) return;
-            await _context.SaveChangesAsync();
-            await _transaction.CommitAsync();
+            await _context.SaveChangesAsync(ct);
+            await _transaction.CommitAsync(ct);
             await _transaction.DisposeAsync();
             _transaction = null;
         }
@@ -53,17 +53,17 @@ namespace ManageLife.Core
             _context.Dispose();
         }
 
-        public async Task RollbackAsync()
+        public async Task RollbackAsync(CancellationToken ct = default)
         {
             if (_transaction == null) return;
-            await _transaction.RollbackAsync();
+            await _transaction.RollbackAsync(ct);
             await _transaction.DisposeAsync();
             _transaction = null;
         }
 
-        public async Task<int> SaveChangesAsync()
+        public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {
-            return await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync(ct);
         }
     }
 }

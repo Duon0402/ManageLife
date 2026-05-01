@@ -1,4 +1,4 @@
-﻿using ManageLife.Contexts;
+﻿using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -15,9 +15,9 @@ namespace ManageLife.Hubs
             _service = service;
         }
 
-        private static string GetUserId()
+        private string GetUserId()
         {
-            var userId = UserContext.GetUserId();
+            var userId = Context.User?.GetUserId();
 
             if (string.IsNullOrWhiteSpace(userId))
                 throw new HubException("User not authenticated");

@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -18,10 +18,10 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpPost]
-        public async Task<Result<ChangeLanguageResult>> ChangeLanguage([FromBody] ChangeLanguageRequest request)
+        public async Task<Result<ChangeLanguageResult>> ChangeLanguage([FromBody] ChangeLanguageRequest request, CancellationToken ct)
         {
-            var currrentLangugage = _languageContext.GetCurrentLanguage();
-            var rs = await _service.ChangeLanguageAsync(request, currrentLangugage);
+            var currentLanguage = _languageContext.GetCurrentLanguage();
+            var rs = await _service.ChangeLanguageAsync(request, currentLanguage, ct);
 
             if (rs.IsOk())
             {
@@ -32,17 +32,15 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpGet]
-        public async Task<Result<List<LanguageModel>>> GetListLanguages()
+        public async Task<Result<List<LanguageModel>>> GetListLanguages(CancellationToken ct)
         {
-            var rs = await _service.GetListLanguagesAsync();
-            return rs;
+            return await _service.GetListLanguagesAsync(ct);
         }
 
         [HttpPost]
-        public async Task<Result<LanguageModel>> GetLanguageByCode([FromBody] GetLanguageByCodeRequest request)
+        public async Task<Result<LanguageModel>> GetLanguageByCode([FromBody] GetLanguageByCodeRequest request, CancellationToken ct)
         {
-            var rs = await _service.GetLanguageByCodeAsync(request);
-            return rs;
+            return await _service.GetLanguageByCodeAsync(request, ct);
         }
     }
 }

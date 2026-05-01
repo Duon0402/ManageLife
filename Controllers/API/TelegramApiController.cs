@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -22,19 +22,17 @@ namespace ManageLife.Controllers.API
         }
 
         [HttpPost("send-message")]
-        public async Task<IActionResult> SendMessage([FromBody] SendTelegramMessageRequest request)
+        public async Task<IActionResult> SendMessage([FromBody] SendTelegramMessageRequest request, CancellationToken ct)
         {
-            var rs = await _service.SendMessageAsync(request);
+            var rs = await _service.SendMessageAsync(request, ct);
             if (rs.IsOk())
-            {
                 return Ok();
-            }
 
             return BadRequest(rs.Message);
         }
 
         [HttpPost("webhook")]
-        public async Task<IActionResult> Webhook([FromBody] JsonElement json)
+        public async Task<IActionResult> Webhook([FromBody] JsonElement json, CancellationToken ct)
         {
             try
             {
@@ -46,7 +44,7 @@ namespace ManageLife.Controllers.API
 
                 if (update != null)
                 {
-                    await _service.HandleUpdateAsync(update);
+                    await _service.HandleUpdateAsync(update, ct);
                 }
 
                 return Ok();
@@ -60,31 +58,29 @@ namespace ManageLife.Controllers.API
         }
 
         [HttpGet("set-webhook")]
-        public async Task<IActionResult> SetWebhook(string url)
+        public async Task<IActionResult> SetWebhook(string url, CancellationToken ct)
         {
-            var rs = await _service.RegisterWebhookAsync(url);
+            var rs = await _service.RegisterWebhookAsync(url, ct);
             if (rs.IsOk())
-            {
                 return Ok(rs.Data);
-            }
+
             return BadRequest(rs.Message);
         }
 
         [HttpGet("status")]
-        public async Task<IActionResult> GetStatus()
+        public async Task<IActionResult> GetStatus(CancellationToken ct)
         {
-            var rs = await _service.GetWebhookStatusAsync();
+            var rs = await _service.GetWebhookStatusAsync(ct);
             return Ok(rs);
         }
 
         [HttpGet("register-commands")]
-        public async Task<IActionResult> RegisterCommands()
+        public async Task<IActionResult> RegisterCommands(CancellationToken ct)
         {
-            var rs = await _service.SetDefaultCommandsAsync();
+            var rs = await _service.SetDefaultCommandsAsync(ct);
             if (rs.IsOk())
-            {
                 return Ok(rs.Message);
-            }
+
             return BadRequest(rs.Message);
         }
     }

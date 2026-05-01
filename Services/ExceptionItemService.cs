@@ -17,7 +17,7 @@ namespace ManageLife.Services
             _repo = repo;
         }
 
-        public async Task<Result> CreateExceptionItemAsync(CreateExceptionItemRequest request)
+        public async Task<Result> CreateExceptionItemAsync(CreateExceptionItemRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -47,7 +47,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteExceptionItemAsync(DeleteExceptionItemRequest request)
+        public async Task<Result> DeleteExceptionItemAsync(DeleteExceptionItemRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -84,7 +84,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<ExceptionItemModel>> GetExceptionItemByIdAsync(GetExceptionItemByIdRequest request)
+        public async Task<Result<ExceptionItemModel>> GetExceptionItemByIdAsync(GetExceptionItemByIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -115,7 +115,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<ExceptionItemModel>>> GetListExceptionItemsAsync(GetListExceptionItemsRequest request)
+        public async Task<Result<List<ExceptionItemModel>>> GetListExceptionItemsAsync(GetListExceptionItemsRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -147,7 +147,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> UpdateExceptionItemAsync(UpdateExceptionItemRequest request)
+        public async Task<Result> UpdateExceptionItemAsync(UpdateExceptionItemRequest request, CancellationToken ct = default)
         {
             string msg;
             try

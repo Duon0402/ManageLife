@@ -25,7 +25,7 @@ namespace ManageLife.Services
             _botClient = new TelegramBotClient(botToken);
         }
 
-        public async Task<Result> SendMessageAsync(SendTelegramMessageRequest request)
+        public async Task<Result> SendMessageAsync(SendTelegramMessageRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -53,7 +53,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task HandleUpdateAsync(Update update)
+        public async Task HandleUpdateAsync(Update update, CancellationToken ct = default)
         {
             string msg;
             try
@@ -102,7 +102,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<string>> RegisterWebhookAsync(string url)
+        public async Task<Result<string>> RegisterWebhookAsync(string url, CancellationToken ct = default)
         {
             string msg;
             try
@@ -125,7 +125,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<object>> GetWebhookStatusAsync()
+        public async Task<Result<object>> GetWebhookStatusAsync(CancellationToken ct = default)
         {
             try
             {
@@ -138,7 +138,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> SetDefaultCommandsAsync()
+        public async Task<Result> SetDefaultCommandsAsync(CancellationToken ct = default)
         {
             try
             {
@@ -158,7 +158,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<BotCommand>>> GetListTelegramBotCommands()
+        public async Task<Result<List<BotCommand>>> GetListTelegramBotCommands(CancellationToken ct = default)
         {
             string msg;
             try

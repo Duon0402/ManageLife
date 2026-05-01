@@ -18,7 +18,7 @@ namespace ManageLife.Services
             _userRoleRepo = userRoleRepo;
         }
 
-        public async Task<Result> CreateRoleAsync(CreateRoleRequest request)
+        public async Task<Result> CreateRoleAsync(CreateRoleRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -55,7 +55,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteRoleAsync(DeleteRoleRequest request)
+        public async Task<Result> DeleteRoleAsync(DeleteRoleRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -90,7 +90,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<RoleModel>>> GetListRolesAsync()
+        public async Task<Result<List<RoleModel>>> GetListRolesAsync(CancellationToken ct = default)
         {
             string msg;
             try
@@ -106,7 +106,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<RoleModel>>> GetListRolesByUserIdAsync(GetListRolesByUserIdRequest request)
+        public async Task<Result<List<RoleModel>>> GetListRolesByUserIdAsync(GetListRolesByUserIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -139,7 +139,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<RoleModel>> GetRoleByIdAsync(GetRoleByIdRequest request)
+        public async Task<Result<RoleModel>> GetRoleByIdAsync(GetRoleByIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try

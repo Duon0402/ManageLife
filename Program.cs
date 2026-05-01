@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using ManageLife.Core;
-using ManageLife.Contexts;
+﻿using ManageLife.Core;
 using ManageLife.Data;
 using ManageLife.Extensions;
 using ManageLife.Hubs;
@@ -49,9 +47,7 @@ await app.ApplyMigrationsAsync();
 app.UseSerilogRequestLogging();
 // =====================================
 
-UserContext.Configure(
-    app.Services.GetRequiredService<IHttpContextAccessor>()
-);
+app.UseMapperBase();
 
 // ======= SEED DATA =========
 using (var scope = app.Services.CreateScope())
@@ -65,10 +61,6 @@ using (var scope = app.Services.CreateScope())
     // ======================================
 }
 // ===========================
-
-// Configure MapperBase
-var mapper = app.Services.GetRequiredService<IMapper>();
-MapperBase.Configure(mapper);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -16,17 +16,15 @@ namespace ManageLife.Controllers.Client
             _telegramFileService = telegramFileService;
         }
 
-        /// <summary>Trang danh sách folder</summary>
         public IActionResult Index()
         {
             return View();
         }
 
-        /// <summary>Trang chi tiết folder (gallery ảnh)</summary>
         [HttpGet]
-        public async Task<IActionResult> Detail(string id)
+        public async Task<IActionResult> Detail(string id, CancellationToken ct)
         {
-            var result = await _folderService.GetFoldersAsync();
+            var result = await _folderService.GetFoldersAsync(ct);
             var folder = result.Data?.FirstOrDefault(f => f.Id == id);
             if (folder == null)
                 return RedirectToAction("Index");
@@ -36,56 +34,48 @@ namespace ManageLife.Controllers.Client
             return View("Detail");
         }
 
-        /// <summary>API: Lấy tất cả folder</summary>
         [HttpGet]
-        public async Task<Result<List<FolderModel>>> GetAll()
+        public async Task<Result<List<FolderModel>>> GetAll(CancellationToken ct)
         {
-            return await _folderService.GetFoldersAsync();
+            return await _folderService.GetFoldersAsync(ct);
         }
 
-        /// <summary>API: Tạo folder mới</summary>
         [HttpPost]
-        public async Task<Result<FolderModel>> Create([FromBody] CreateFolderCommand cmd)
+        public async Task<Result<FolderModel>> Create([FromBody] CreateFolderCommand cmd, CancellationToken ct)
         {
-            return await _folderService.CreateFolderAsync(cmd);
+            return await _folderService.CreateFolderAsync(cmd, ct);
         }
 
-        /// <summary>API: Xoá folder</summary>
         [HttpDelete]
-        public async Task<Result> Delete(string id)
+        public async Task<Result> Delete(string id, CancellationToken ct)
         {
-            return await _folderService.DeleteFolderAsync(id);
+            return await _folderService.DeleteFolderAsync(id, ct);
         }
 
-        /// <summary>API: Lấy danh sách file trong folder</summary>
         [HttpGet]
-        public async Task<Result<List<FolderFileItemModel>>> Files(string id)
+        public async Task<Result<List<FolderFileItemModel>>> Files(string id, CancellationToken ct)
         {
-            return await _folderService.GetFolderFilesAsync(id);
+            return await _folderService.GetFolderFilesAsync(id, ct);
         }
 
-        /// <summary>API: Upload file và tự động link vào folder</summary>
         [HttpPost]
-        public async Task<Result<FileModel>> Upload(string id, IFormFile file)
+        public async Task<Result<FileModel>> Upload(string id, IFormFile file, CancellationToken ct)
         {
-            // Bước 1: Upload file qua TelegramFileService
-            var uploadResult = await _telegramFileService.SaveTempFileAsync(file);
+            var uploadResult = await _telegramFileService.SaveTempFileAsync(file, ct: ct);
             if (!uploadResult.IsOk())
                 return uploadResult;
 
-            // Bước 2: Link file vào folder
-            var linkResult = await _folderService.AddFileToFolderAsync(id, uploadResult.Data!.Id);
+            var linkResult = await _folderService.AddFileToFolderAsync(id, uploadResult.Data!.Id, ct);
             if (!linkResult.IsOk())
                 return Result.Error<FileModel>(linkResult.Code, linkResult.Message);
 
             return uploadResult;
         }
 
-        /// <summary>API: Xoá file khỏi folder</summary>
         [HttpDelete]
-        public async Task<Result> RemoveFile(string folderId, string fileId)
+        public async Task<Result> RemoveFile(string folderId, string fileId, CancellationToken ct)
         {
-            return await _folderService.RemoveFileFromFolderAsync(folderId, fileId);
+            return await _folderService.RemoveFileFromFolderAsync(folderId, fileId, ct);
         }
     }
 }

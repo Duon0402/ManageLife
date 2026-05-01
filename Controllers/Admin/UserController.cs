@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,18 +22,16 @@ namespace ManageLife.Controllers.Admin
 
         [HttpGet]
         [ViewPermission]
-        public async Task<Result<List<UserModel>>> GetListUsers()
+        public async Task<Result<List<UserModel>>> GetListUsers(CancellationToken ct)
         {
-            var rs = await _userService.GetListUsersAsync();
-            return rs;
+            return await _userService.GetListUsersAsync(ct);
         }
 
         [HttpPost]
         [ViewPermission]
-        public async Task<Result<UserModel>> GetUserById([FromBody] GetUserByIdRequest request)
+        public async Task<Result<UserModel>> GetUserById([FromBody] GetUserByIdRequest request, CancellationToken ct)
         {
-            var rs = await _userService.GetUserByIdAsync(request);
-            return rs;
+            return await _userService.GetUserByIdAsync(request, ct);
         }
     }
 }

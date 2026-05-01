@@ -23,7 +23,7 @@ namespace ManageLife.Services
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
         }
 
-        public async Task<Result<List<CronJobModel>>> GetListCronJobsAsync()
+        public async Task<Result<List<CronJobModel>>> GetListCronJobsAsync(CancellationToken ct = default)
         {
             try
             {

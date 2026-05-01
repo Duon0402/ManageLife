@@ -1,5 +1,5 @@
-﻿using ManageLife.Core;
-using ManageLife.Contexts;
+using ManageLife.Core;
+using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -25,12 +25,11 @@ namespace ManageLife.Controllers.Client
         [HttpGet]
         [Route("")]
         [Route("Index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            var res = await _userService.GetListUsersAsync();
+            var res = await _userService.GetListUsersAsync(ct);
 
-            // Try multiple claim types to find the User ID
-            var currentUserId = UserContext.GetUserId();
+            var currentUserId = User.GetUserId();
 
             _logger.Info($"Chat Index - UserID: {currentUserId}, Claims: {string.Join("|", User.Claims.Select(c => $"{c.Type}={c.Value}"))}");
 
@@ -41,22 +40,22 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpPost("CreateOrGetPrivateRoom")]
-        public async Task<Result<string>> CreateOrGetPrivateRoom([FromBody] PrivateRoomRequest request)
+        public async Task<Result<string>> CreateOrGetPrivateRoom([FromBody] PrivateRoomRequest request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(request.UserId))
                 return Result.Error<string>("400", "UserId is required");
 
-            var currentUserId = UserContext.GetUserId();
+            var currentUserId = User.GetUserId();
             if (string.IsNullOrEmpty(currentUserId))
                 return Result.Error<string>("401", "Unauthorized");
 
-            return await _chatService.CreateOrGetPrivateRoomAsync(currentUserId, request.UserId);
+            return await _chatService.CreateOrGetPrivateRoomAsync(currentUserId, request.UserId, ct);
         }
 
         [HttpGet("{roomId}/messages")]
-        public async Task<Result<List<ChatMessageModel>>> GetMessages(string roomId, [FromQuery] DateTime? before, [FromQuery] int pageSize = 50)
+        public async Task<Result<List<ChatMessageModel>>> GetMessages(string roomId, [FromQuery] DateTime? before, [FromQuery] int pageSize = 50, CancellationToken ct = default)
         {
-            return await _chatService.GetMessagesAsync(roomId, before, pageSize);
+            return await _chatService.GetMessagesAsync(roomId, before, pageSize, ct);
         }
     }
 

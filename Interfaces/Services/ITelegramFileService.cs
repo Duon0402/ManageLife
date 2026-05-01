@@ -6,10 +6,10 @@ namespace ManageLife.Interfaces
 {
     public interface ITelegramFileService
     {
-        Task<Result<FileModel>> SaveTempFileAsync(IFormFile file, string? caption = null);
-        Task<Result> UploadToTelegramAsync(string fileId);
-        Task<Result<string>> GetFileUrlByFileIdAsync(string fileId);
-        Task<Result<FileEntity>> GetFileEntityAsync(string fileId);
-        Task<Result<Stream>> DownloadFileStreamAsync(string telegramFileId);
+        Task<Result<FileModel>> SaveTempFileAsync(IFormFile file, string? caption = null, CancellationToken ct = default);
+        Task<Result> UploadToTelegramAsync(string fileId, CancellationToken ct = default);
+        Task<Result<string>> GetFileUrlByFileIdAsync(string fileId, CancellationToken ct = default);
+        Task<Result<FileEntity>> GetFileEntityAsync(string fileId, CancellationToken ct = default);
+        Task<Result<Stream>> DownloadFileStreamAsync(string telegramFileId, CancellationToken ct = default);
     }
 }

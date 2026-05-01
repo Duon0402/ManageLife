@@ -11,11 +11,13 @@ namespace ManageLife.Services
     {
         private readonly ICacheService _cache;
         private readonly IPermissionService _permissionService;
+        private readonly IUserContext _userContext;
 
-        public MenuRegister(ICacheService cache, IPermissionService permissionService)
+        public MenuRegister(ICacheService cache, IPermissionService permissionService, IUserContext userContext)
         {
             _cache = cache;
             _permissionService = permissionService;
+            _userContext = userContext;
         }
 
         public async Task<List<MenuItem>> GetListMenuItemsAsync()
@@ -42,7 +44,7 @@ namespace ManageLife.Services
                 new MenuItem("Language", "fa-solid fa-language", new List<MenuItem>
                 {
                     new MenuItem<LanguageController>("Language", x => x.Index(), "fa-regular fa-circle fa-2xs"),
-                    new MenuItem<TranslationController>("Translation", x => x.Index(), "fa-regular fa-circle fa-2xs"),
+                    new MenuItem<TranslationController>("Translation", x => x.Index(default(CancellationToken)), "fa-regular fa-circle fa-2xs"),
                 }),
                 new MenuItem("User Management", "fa-solid fa-user",new List<MenuItem>
                 {
@@ -55,7 +57,7 @@ namespace ManageLife.Services
 
         private async Task<List<MenuItem>> FilterMenuByPermissionAsync(List<MenuItem> allMenuItems)
         {
-            var userId = UserContext.GetUserId();
+            var userId = _userContext.GetUserId();
 
             HashSet<string> userPermissions = new(StringComparer.OrdinalIgnoreCase);
 

@@ -25,7 +25,7 @@ namespace ManageLife.Services
             _uow = uow;
         }
 
-        public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request)
+        public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -75,7 +75,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request)
+        public async Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -107,7 +107,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request)
+        public async Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -154,7 +154,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<TranslationModel>>> GetListTranslationsAsync(GetListTranslationsRequest request)
+        public async Task<Result<List<TranslationModel>>> GetListTranslationsAsync(GetListTranslationsRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -192,12 +192,12 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request)
+        public Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request)
+        public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -234,7 +234,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request)
+        public async Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -300,7 +300,7 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request)
+        public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }

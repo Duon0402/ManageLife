@@ -1,4 +1,4 @@
-﻿using ManageLife.Data;
+using ManageLife.Data;
 
 namespace ManageLife.Core
 {
@@ -6,9 +6,9 @@ namespace ManageLife.Core
     {
         AppDbContext Context { get; }
         bool AutoSave { get; }
-        Task BeginTransactionAsync();
-        Task CommitAsync();
-        Task RollbackAsync();
-        Task<int> SaveChangesAsync();
+        Task BeginTransactionAsync(CancellationToken ct = default);
+        Task CommitAsync(CancellationToken ct = default);
+        Task RollbackAsync(CancellationToken ct = default);
+        Task<int> SaveChangesAsync(CancellationToken ct = default);
     }
 }

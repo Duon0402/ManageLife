@@ -5,11 +5,11 @@ namespace ManageLife.Interfaces
 {
     public interface IUserTelegramConnectionService
     {
-        Task<Result<List<UserTelegramConnectionModel>>> GetListUserTelegramConnectionsAsync();
-        Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByUserIdAsync(GetUserTelegramConnectionByUserIdRequest request);
-        Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByChatIdAsync(GetUserTelegramConnectionByChatIdRequest request);
-        Task<Result> CreateUserTelegramConnectionAsync(CreateUserTelegramConnectionRequest request);
-        Task<Result> UpdateUserTelegramConnectionAsync(UpdateUserTelegramConnectionRequest request);
-        Task<Result> DeleteUserTelegramConnectionAsync(DeleteUserTelegramConnectionRequest request);
+        Task<Result<List<UserTelegramConnectionModel>>> GetListUserTelegramConnectionsAsync(CancellationToken ct = default);
+        Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByUserIdAsync(GetUserTelegramConnectionByUserIdRequest request, CancellationToken ct = default);
+        Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByChatIdAsync(GetUserTelegramConnectionByChatIdRequest request, CancellationToken ct = default);
+        Task<Result> CreateUserTelegramConnectionAsync(CreateUserTelegramConnectionRequest request, CancellationToken ct = default);
+        Task<Result> UpdateUserTelegramConnectionAsync(UpdateUserTelegramConnectionRequest request, CancellationToken ct = default);
+        Task<Result> DeleteUserTelegramConnectionAsync(DeleteUserTelegramConnectionRequest request, CancellationToken ct = default);
     }
 }

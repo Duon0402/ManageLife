@@ -10,6 +10,7 @@ namespace ManageLife.Extensions
         {
             services.AddScoped<IUserTelegramConnectionService, UserTelegramConnectionService>();
             services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IUserContext, UserContext>();
             services.AddScoped<ITranslationContext, TranslationContext>();
             services.AddScoped<ILanguageContext, LanguageContext>();
             services.AddScoped<IExceptionItemService, ExceptionItemService>();

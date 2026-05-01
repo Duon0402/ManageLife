@@ -105,7 +105,7 @@ namespace ManageLife.Services
             return Convert.ToBase64String(randomBytes);
         }
 
-        public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken)
+        public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -160,7 +160,7 @@ namespace ManageLife.Services
                 var newRefreshToken = GenerateRefreshToken();
                 var newRefreshEntity = new UserRefreshTokenEntity
                 {
-                    Id = IdHeper.NewId(),
+                    Id = IdHelper.NewId(),
                     UserId = tokenEntity.UserId,
                     RefreshToken = newRefreshToken,
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
@@ -186,7 +186,7 @@ namespace ManageLife.Services
                     .Select(r => r.Name)
                     .ToListAsync();
 
-                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, IdHeper.NewId(), roles);
+                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, IdHelper.NewId(), roles);
 
                 SetTokensCookie(newAccessToken, newRefreshToken);
 
@@ -235,7 +235,7 @@ namespace ManageLife.Services
         }
         #endregion
 
-        public async Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null)
+        public async Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null, CancellationToken ct = default)
         {
             string msg;
             bool b;

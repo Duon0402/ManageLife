@@ -1,11 +1,10 @@
-﻿using LinqKit;
+using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Data.SqlClient;
 
 namespace ManageLife.Services
 {
@@ -34,9 +33,8 @@ namespace ManageLife.Services
             _logger = logger;
         }
 
-        public async Task<Result<string>> CreateOrGetPrivateRoomAsync(string user1, string user2)
+        public async Task<Result<string>> CreateOrGetPrivateRoomAsync(string user1, string user2, CancellationToken ct = default)
         {
-            await _unitOfWork.BeginTransactionAsync();
             string msg;
             try
             {
@@ -105,13 +103,13 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<string>(msg, ex);
             }
         }
 
-        public async Task<Result<List<ChatMessageModel>>> GetMessagesAsync(string roomId, DateTime? before, int pageSize)
+        public async Task<Result<List<ChatMessageModel>>> GetMessagesAsync(string roomId, DateTime? before, int pageSize, CancellationToken ct = default)
         {
             string msg;
             try
@@ -120,7 +118,7 @@ namespace ManageLife.Services
 
                 if (before.HasValue)
                 {
-                    predicate.And(x => x.CreatedTime < before.Value);
+                    predicate = predicate.And(x => x.CreatedTime < before.Value);
                 }
 
                 var entities = await _repoChatMessage
@@ -136,18 +134,17 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<List<ChatMessageModel>>(msg, ex);
             }
         }
 
-        public async Task<Result<int>> GetUnreadCountAsync(string roomId, string userId)
+        public async Task<Result<int>> GetUnreadCountAsync(string roomId, string userId, CancellationToken ct = default)
         {
             string msg;
             try
             {
-
                 var state = await _repoChatRoomUserState
                     .FirstOrDefaultAsync(x =>
                         x.RoomId == roomId &&
@@ -173,13 +170,13 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<int>(msg, ex);
             }
         }
 
-        public async Task<Result> MarkAsReadAsync(string userId, string roomId)
+        public async Task<Result> MarkAsReadAsync(string userId, string roomId, CancellationToken ct = default)
         {
             string msg;
             try
@@ -202,7 +199,7 @@ namespace ManageLife.Services
 
                     if (!b)
                     {
-                        msg = "Đã có lỗi xảy ra";
+                        msg = TranslationKey.Common.Message.CreateError;
                         _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                     }
@@ -213,7 +210,7 @@ namespace ManageLife.Services
                     var b = await _repoChatRoomUserState.UpdateAsync(state);
                     if (!b)
                     {
-                        msg = "Đã có lỗi xảy ra khi cập nhật";
+                        msg = TranslationKey.Common.Message.UpdateError;
                         _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                     }
@@ -223,13 +220,13 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
 
-        public async Task<Result<ChatMessageModel>> SendMessageAsync(string roomId, string senderId, string content)
+        public async Task<Result<ChatMessageModel>> SendMessageAsync(string roomId, string senderId, string content, CancellationToken ct = default)
         {
             string msg;
             try
@@ -257,7 +254,7 @@ namespace ManageLife.Services
 
                 if (!b)
                 {
-                    msg = "Không thế gửi tin nhắn";
+                    msg = "Không thể gửi tin nhắn";
                     _logger.Debug(msg);
                     return Result.Error<ChatMessageModel>(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -266,19 +263,17 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<ChatMessageModel>(msg, ex);
             }
         }
 
+        // Check MySQL "Duplicate entry" — SQL Server strings removed (wrong driver)
         private static bool IsUniqueViolation(Exception ex)
         {
             return ex is DbUpdateException dbEx &&
-                   dbEx.InnerException != null &&
-                   (dbEx.InnerException.Message.Contains("Duplicate entry") ||
-                    dbEx.InnerException.Message.Contains("Violation of UNIQUE KEY constraint") ||
-                    dbEx.InnerException.Message.Contains("Cannot insert duplicate key"));
+                   dbEx.InnerException?.Message.Contains("Duplicate entry") == true;
         }
 
         private static string GeneratePrivateKey(string user1, string user2)
@@ -294,7 +289,7 @@ namespace ManageLife.Services
                 : $"{user2}:{user1}";
         }
 
-        public async Task<bool> IsMemberAsync(string roomId, string userId)
+        public async Task<bool> IsMemberAsync(string roomId, string userId, CancellationToken ct = default)
         {
             return await _repoChatRoomMember.Query(true)
                 .AnyAsync(x =>

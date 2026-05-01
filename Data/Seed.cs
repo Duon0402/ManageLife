@@ -18,7 +18,7 @@ namespace ManageLife.Data
                 {
                     adminRole = new RoleEntity
                     {
-                        Id = IdHeper.NewId(),
+                        Id = IdHelper.NewId(),
                         Code = RoleConst.Admin,
                         Name = "Admin",
                         Description = "Quản trị viên",
@@ -33,7 +33,7 @@ namespace ManageLife.Data
                 {
                     userRole = new RoleEntity
                     {
-                        Id = IdHeper.NewId(),
+                        Id = IdHelper.NewId(),
                         Code = RoleConst.User,
                         Name = "User",
                         Description = "Người dùng",
@@ -50,12 +50,14 @@ namespace ManageLife.Data
                 {
                     adminUser = new UserEntity
                     {
-                        Id = IdHeper.NewId(),
+                        Id = IdHelper.NewId(),
                         UserName = "admin",
                         Email = "admin@system.local",
                         FullName = "Administrator",
                         HashPassword = PasswordHelper.HashPassword(
-                            Environment.GetEnvironmentVariable("ADMIN_DEFAULT_PASSWORD") ?? "D@ngDuong0402"
+                            Environment.GetEnvironmentVariable("ADMIN_DEFAULT_PASSWORD")
+                                ?? throw new InvalidOperationException(
+                                    "ADMIN_DEFAULT_PASSWORD environment variable is required for seeding admin user.")
                         ),
                         IsActive = true,
                         CreatedUser = SystemUsers.System,

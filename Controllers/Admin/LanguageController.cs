@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -21,18 +21,16 @@ namespace ManageLife.Controllers.Admin
         }
 
         [HttpGet]
-        public async Task<Result<List<LanguageModel>>> GetListLanguages()
+        public async Task<Result<List<LanguageModel>>> GetListLanguages(CancellationToken ct)
         {
-            var rs = await _service.GetListLanguagesAsync();
-            return rs;
+            return await _service.GetListLanguagesAsync(ct);
         }
 
         [InsertPermission]
         [HttpPost]
-        public async Task<Result> CreateLanguage([FromBody] CreateLanguageRequest request)
+        public async Task<Result> CreateLanguage([FromBody] CreateLanguageRequest request, CancellationToken ct)
         {
-            var rs = await _service.CreateLanguageAsync(request);
-            return rs;
+            return await _service.CreateLanguageAsync(request, ct);
         }
     }
 }

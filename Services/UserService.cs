@@ -1,18 +1,17 @@
-﻿using ManageLife.Core;
+﻿using AutoMapper;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Contexts;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 namespace ManageLife.Services
 {
-    public class UserService : IUserService
+    public class UserService : ServiceBase, IUserService
     {
         private readonly IUserRepository _userRepo;
         private readonly IRoleRepository _roleRepo;
@@ -27,7 +26,9 @@ namespace ManageLife.Services
             IUserRoleRepository userRoleRepo,
             IUserRefreshTokenRepository refreshRepo,
             ITokenService tokenService,
-            IUnitOfWork uow)
+            IUnitOfWork uow,
+            IMapper mapper,
+            IUserContext userContext) : base(mapper, userContext)
         {
             _userRepo = userRepo;
             _roleRepo = roleRepo;
@@ -37,9 +38,9 @@ namespace ManageLife.Services
             _uow = uow;
         }
 
-        public async Task<Result> RegisterAsync(RegisterAccountRequest request)
+        public async Task<Result> RegisterAsync(RegisterAccountRequest request, CancellationToken ct = default)
         {
-            await _uow.BeginTransactionAsync();
+            await _uow.BeginTransactionAsync(ct);
             string msg;
             bool b;
             try
@@ -51,14 +52,14 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var existedUser = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName);
+                var existedUser = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName, ct);
                 if (existedUser != null)
                 {
                     msg = "Tên đăng nhập đã tồn tại";
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
-                var roleEntity = await _roleRepo.FirstOrDefaultAsync(x => x.Name == "User" && x.IsDeleted == false);
+                var roleEntity = await _roleRepo.FirstOrDefaultAsync(x => x.Name == "User" && x.IsDeleted == false, ct);
                 if (roleEntity == null)
                 {
                     msg = "Không thể đăng ký tài khoản";
@@ -67,12 +68,12 @@ namespace ManageLife.Services
 
                 var userEntity = new UserEntity
                 {
-                    Id = IdHeper.NewId(),
+                    Id = IdHelper.NewId(),
                     UserName = request.UserName,
                     HashPassword = PasswordHelper.HashPassword(request.Password),
                     CreatedUser = SystemUsers.System
                 };
-                b = await _userRepo.InsertAsync(userEntity);
+                b = await _userRepo.InsertAsync(userEntity, ct);
                 if (!b)
                 {
                     msg = "Không thể đăng ký tài khoản";
@@ -84,7 +85,7 @@ namespace ManageLife.Services
                     UserId = userEntity.Id,
                     RoleId = roleEntity.Id
                 };
-                b = await _userRoleRepo.InsertAsync(userRoleEntity);
+                b = await _userRoleRepo.InsertAsync(userRoleEntity, ct);
                 if (!b)
                 {
                     msg = "Không thể đăng ký tài khoản";
@@ -94,24 +95,24 @@ namespace ManageLife.Services
                 var refreshToken = _tokenService.GenerateRefreshToken();
                 var refreshEntity = new UserRefreshTokenEntity
                 {
-                    Id = IdHeper.NewId(),
+                    Id = IdHelper.NewId(),
                     UserId = userEntity.Id,
                     RefreshToken = refreshToken,
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
                 };
 
-                b = await _refreshRepo.InsertAsync(refreshEntity);
+                b = await _refreshRepo.InsertAsync(refreshEntity, ct);
                 if (!b)
                 {
                     msg = "Không thể tạo phiên đăng nhập";
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
-                await _uow.CommitAsync();
+                await _uow.CommitAsync(ct);
 
                 var roles = new List<string> { roleEntity.Name };
 
-                var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHeper.NewId(), roles);
+                var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHelper.NewId(), roles);
                 _tokenService.SetTokensCookie(accessToken, refreshToken);
 
                 return Result.Ok();
@@ -123,9 +124,9 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> LoginAsync(LoginAccountRequest request)
+        public async Task<Result> LoginAsync(LoginAccountRequest request, CancellationToken ct = default)
         {
-            await _uow.BeginTransactionAsync();
+            await _uow.BeginTransactionAsync(ct);
             string msg;
             bool b;
             try
@@ -137,7 +138,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var userEntity = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName && !x.IsDeleted);
+                var userEntity = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName && !x.IsDeleted, ct);
                 if (userEntity == null)
                 {
                     msg = "Tên đăng nhập hoặc mật khẩu không đúng";
@@ -150,13 +151,23 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                if (PasswordHelper.HashPassword(request.Password) != userEntity.HashPassword)
+                var passwordValid = PasswordHelper.IsLegacyHash(userEntity.HashPassword)
+                    ? PasswordHelper.VerifyLegacy(request.Password, userEntity.HashPassword)
+                    : PasswordHelper.Verify(request.Password, userEntity.HashPassword);
+
+                if (!passwordValid)
                 {
                     msg = "Tên đăng nhập hoặc mật khẩu không đúng";
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var cleanupResult = await _tokenService.CleanupRefreshTokensAsync(userEntity.Id, _uow);
+                if (PasswordHelper.IsLegacyHash(userEntity.HashPassword))
+                {
+                    userEntity.HashPassword = PasswordHelper.HashPassword(request.Password);
+                    await _userRepo.UpdateAsync(userEntity, ct);
+                }
+
+                var cleanupResult = await _tokenService.CleanupRefreshTokensAsync(userEntity.Id, _uow, ct);
                 if (!cleanupResult.IsOk())
                 {
                     msg = "Không thể dọn dẹp token cũ";
@@ -166,20 +177,20 @@ namespace ManageLife.Services
                 var refreshToken = _tokenService.GenerateRefreshToken();
                 var refreshEntity = new UserRefreshTokenEntity
                 {
-                    Id = IdHeper.NewId(),
+                    Id = IdHelper.NewId(),
                     UserId = userEntity.Id,
                     RefreshToken = refreshToken,
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7),
                 };
 
-                b = await _refreshRepo.InsertAsync(refreshEntity);
+                b = await _refreshRepo.InsertAsync(refreshEntity, ct);
                 if (!b)
                 {
                     msg = "Không thể tạo phiên đăng nhập";
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
-                await _uow.CommitAsync();
+                await _uow.CommitAsync(ct);
 
                 var roles = await _userRoleRepo.Query()
                     .Where(ur => ur.UserId == userEntity.Id)
@@ -187,9 +198,9 @@ namespace ManageLife.Services
                         ur => ur.RoleId,
                         r => r.Id,
                         (ur, r) => r.Name)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
-                var accessToken = this._tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHeper.NewId(), roles);
+                var accessToken = this._tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHelper.NewId(), roles);
 
                 _tokenService.SetTokensCookie(accessToken, refreshToken);
 
@@ -202,7 +213,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> LogoutAsync(string? refreshToken)
+        public async Task<Result> LogoutAsync(string? refreshToken, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -240,14 +251,12 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> ChangePasswordAsync(ChangePasswordRequest request, string? refreshToken)
+        public async Task<Result> ChangePasswordAsync(ChangePasswordRequest request, string? refreshToken, CancellationToken ct = default)
         {
             string msg;
             bool b;
             try
             {
-                var validate = request.Validate();
-
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
@@ -261,8 +270,8 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var userId = UserContext.User?.GetUserId();
-                var user = await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive == true && x.IsDeleted == true);
+                var userId = _userContext.GetUserId();
+                var user = await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive && !x.IsDeleted);
                 if (user == null)
                 {
                     msg = TranslationKey.Common.Message.DataInvalid;
@@ -277,7 +286,11 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                if (user.HashPassword != PasswordHelper.HashPassword(request.OldPassword))
+                var oldPasswordValid = PasswordHelper.IsLegacyHash(user.HashPassword)
+                    ? PasswordHelper.VerifyLegacy(request.OldPassword, user.HashPassword)
+                    : PasswordHelper.Verify(request.OldPassword, user.HashPassword);
+
+                if (!oldPasswordValid)
                 {
                     msg = "Mật khẩu cũ không đúng";
                     return Result.Error(Result.DATA_INVALID.Code, msg);
@@ -312,7 +325,7 @@ namespace ManageLife.Services
         }
 
         #region Admin
-        public async Task<Result<List<UserModel>>> GetListUsersAsync()
+        public async Task<Result<List<UserModel>>> GetListUsersAsync(CancellationToken ct = default)
         {
             try
             {
@@ -327,7 +340,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<UserModel>> GetUserByIdAsync(GetUserByIdRequest request)
+        public async Task<Result<UserModel>> GetUserByIdAsync(GetUserByIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try

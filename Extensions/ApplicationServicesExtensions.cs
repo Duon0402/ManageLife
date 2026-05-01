@@ -1,4 +1,5 @@
-﻿using ManageLife.Core;
+﻿using AutoMapper;
+using ManageLife.Core;
 using ManageLife.Data;
 using ManageLife.Helpers;
 using ManageLife.Services;
@@ -58,11 +59,8 @@ namespace ManageLife.Extensions
             services.AddAuthorization();
             #endregion
 
-            #region AddAutoMapper
-            services.AddAutoMapper(cfg =>
-            {
-                cfg.AddProfile<AutoMapperProfiles>();
-            });
+            #region AutoMapper
+            services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapperProfiles>());
             #endregion
 
             #region AddDbContext
@@ -106,6 +104,12 @@ namespace ManageLife.Extensions
             #endregion
 
             return services;
+        }
+
+        public static WebApplication UseMapperBase(this WebApplication app)
+        {
+            MapperBase.Configure(app.Services.GetRequiredService<IMapper>());
+            return app;
         }
     }
 

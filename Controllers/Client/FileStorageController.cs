@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -21,16 +21,15 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpPost]
-        public async Task<Result<FileModel>> Upload(IFormFile file)
+        public async Task<Result<FileModel>> Upload(IFormFile file, CancellationToken ct)
         {
-            var result = await _telegramFileService.SaveTempFileAsync(file);
-            return result;
+            return await _telegramFileService.SaveTempFileAsync(file, ct: ct);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetFile(string fileId)
+        public async Task<IActionResult> GetFile(string fileId, CancellationToken ct)
         {
-            var entityResult = await _telegramFileService.GetFileEntityAsync(fileId);
+            var entityResult = await _telegramFileService.GetFileEntityAsync(fileId, ct);
             if (!entityResult.IsOk())
             {
                 return NotFound(entityResult.Message);
@@ -38,32 +37,29 @@ namespace ManageLife.Controllers.Client
 
             var entity = entityResult.Data!;
 
-            // Case 1: Upload is completed and we have a Telegram FileId
             if (entity.Status == UploadStatus.Completed && !string.IsNullOrEmpty(entity.FileId))
             {
-                // Check ETag – allow browser to use its cache without hitting the server again
                 var etag = $"\"{entity.Id}\"";
                 if (Request.Headers.IfNoneMatch == etag)
                     return StatusCode(304);
 
-                var streamResult = await _telegramFileService.DownloadFileStreamAsync(entity.FileId);
+                var streamResult = await _telegramFileService.DownloadFileStreamAsync(entity.FileId, ct);
                 if (streamResult.IsOk())
                 {
                     var contentType = entity.FileType ?? "image/jpeg";
-                    Response.Headers["Cache-Control"] = "public, max-age=604800, immutable"; // 7 days
+                    Response.Headers["Cache-Control"] = "public, max-age=604800, immutable";
                     Response.Headers["ETag"] = etag;
                     return File(streamResult.Data!, contentType, entity.FileName);
                 }
             }
 
-            // Case 2: Upload not yet completed or Telegram download failed, fall back to local temp file
             if (!string.IsNullOrEmpty(entity.TempPath))
             {
                 var fullPath = Path.Combine(Directory.GetCurrentDirectory(), entity.TempPath);
                 if (System.IO.File.Exists(fullPath))
                 {
                     var contentType = entity.FileType ?? "application/octet-stream";
-                    Response.Headers["Cache-Control"] = "public, max-age=3600"; // 1 hour for temp files
+                    Response.Headers["Cache-Control"] = "public, max-age=3600";
                     return PhysicalFile(fullPath, contentType, entity.FileName);
                 }
             }
@@ -72,10 +68,9 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpGet]
-        public async Task<Result<string>> GetFileUrl(string fileId)
+        public async Task<Result<string>> GetFileUrl(string fileId, CancellationToken ct)
         {
-            var result = await _telegramFileService.GetFileUrlByFileIdAsync(fileId);
-            return result;
+            return await _telegramFileService.GetFileUrlByFileIdAsync(fileId, ct);
         }
     }
 }

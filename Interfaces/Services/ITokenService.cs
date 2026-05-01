@@ -11,7 +11,7 @@ namespace ManageLife.Interfaces
         ClaimsPrincipal? ValidateAccessToken(string? token);
         void SetTokensCookie(string accessToken, string refreshToken);
         void ClearTokensCookie();
-        Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken);
-        Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null);
+        Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken, CancellationToken ct = default);
+        Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null, CancellationToken ct = default);
     }
 }

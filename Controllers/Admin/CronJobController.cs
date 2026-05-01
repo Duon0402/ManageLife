@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,11 +21,9 @@ namespace ManageLife.Controllers.Admin
 
         [ViewPermission]
         [HttpGet]
-        public async Task<Result> GetListCronJobs()
+        public async Task<Result> GetListCronJobs(CancellationToken ct)
         {
-            var rs = await _service.GetListCronJobsAsync();
-            return rs;
+            return await _service.GetListCronJobsAsync(ct);
         }
-
     }
 }

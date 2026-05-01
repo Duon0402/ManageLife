@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,50 +22,44 @@ namespace ManageLife.Controllers.Admin
 
         [ViewPermission]
         [HttpGet]
-        public async Task<Result<List<UserTelegramConnectionModel>>> GetListUserTelegramConnections()
+        public async Task<Result<List<UserTelegramConnectionModel>>> GetListUserTelegramConnections(CancellationToken ct)
         {
-            var rs = await _service.GetListUserTelegramConnectionsAsync();
-            return rs;
+            return await _service.GetListUserTelegramConnectionsAsync(ct);
         }
 
         [ViewPermission]
         [HttpPost]
-        public async Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByUserId(GetUserTelegramConnectionByUserIdRequest request)
+        public async Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByUserId(GetUserTelegramConnectionByUserIdRequest request, CancellationToken ct)
         {
-            var rs = await _service.GetUserTelegramConnectionByUserIdAsync(request);
-            return rs;
+            return await _service.GetUserTelegramConnectionByUserIdAsync(request, ct);
         }
 
         [ViewPermission]
         [HttpPost]
-        public async Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByChatId(GetUserTelegramConnectionByChatIdRequest request)
+        public async Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByChatId(GetUserTelegramConnectionByChatIdRequest request, CancellationToken ct)
         {
-            var rs = await _service.GetUserTelegramConnectionByChatIdAsync(request);
-            return rs;
+            return await _service.GetUserTelegramConnectionByChatIdAsync(request, ct);
         }
 
         [InsertPermission]
         [HttpPost]
-        public async Task<Result> CreateUserTelegramConnection(CreateUserTelegramConnectionRequest request)
+        public async Task<Result> CreateUserTelegramConnection(CreateUserTelegramConnectionRequest request, CancellationToken ct)
         {
-            var rs = await _service.CreateUserTelegramConnectionAsync(request);
-            return rs;
+            return await _service.CreateUserTelegramConnectionAsync(request, ct);
         }
 
         [UpdatePermission]
         [HttpPost]
-        public async Task<Result> UpdateUserTelegramConnection(UpdateUserTelegramConnectionRequest request)
+        public async Task<Result> UpdateUserTelegramConnection(UpdateUserTelegramConnectionRequest request, CancellationToken ct)
         {
-            var rs = await _service.UpdateUserTelegramConnectionAsync(request);
-            return rs;
+            return await _service.UpdateUserTelegramConnectionAsync(request, ct);
         }
 
         [DeletePermission]
         [HttpPost]
-        public async Task<Result> DeleteUserTelegramConnection(DeleteUserTelegramConnectionRequest request)
+        public async Task<Result> DeleteUserTelegramConnection(DeleteUserTelegramConnectionRequest request, CancellationToken ct)
         {
-            var rs = await _service.DeleteUserTelegramConnectionAsync(request);
-            return rs;
+            return await _service.DeleteUserTelegramConnectionAsync(request, ct);
         }
     }
 }

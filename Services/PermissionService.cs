@@ -1,4 +1,5 @@
-﻿using ManageLife.Core;
+﻿using AutoMapper;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Entities;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
 {
-    public class PermissionService : IPermissionService
+    public class PermissionService : ServiceBase, IPermissionService
     {
         private readonly ICacheService _cache;
         private readonly IPermissionRepository _repoPermission;
@@ -32,7 +33,9 @@ namespace ManageLife.Services
             ICacheService cache,
             IAppLogger<PermissionService> logger,
             IPermissionGuard permissionGuard,
-            IUnitOfWork uow)
+            IUnitOfWork uow,
+            IMapper mapper,
+            IUserContext userContext) : base(mapper, userContext)
         {
             _cache = cache;
             _repoPermission = repoPermission;
@@ -46,7 +49,7 @@ namespace ManageLife.Services
             _uow = uow;
         }
 
-        public async Task<Result<List<PermissionModel>>> GetListPermissionsAsync()
+        public async Task<Result<List<PermissionModel>>> GetListPermissionsAsync(CancellationToken ct = default)
         {
             string msg;
             try
@@ -69,7 +72,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByUserIdAsync(GetAssignedPermissionsByUserIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByUserIdAsync(GetAssignedPermissionsByUserIdRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -131,7 +134,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> SyncPermissionsAsync(List<string> permissionCodes)
+        public async Task<Result> SyncPermissionsAsync(List<string> permissionCodes, CancellationToken ct = default)
         {
             bool clearPermissionCache = false;
             await _uow.BeginTransactionAsync();
@@ -145,7 +148,7 @@ namespace ManageLife.Services
 
                 var insertPermissions = toInsertCodes.Select(code => new PermissionEntity
                 {
-                    Id = IdHeper.NewId(),
+                    Id = IdHelper.NewId(),
                     Code = code,
                     Name = code,
                     CreatedUser = SystemUsers.System
@@ -226,7 +229,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserIdAsync(GetUnassignedPermissionsByUserIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserIdAsync(GetUnassignedPermissionsByUserIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -284,7 +287,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> AssignPermissionsAsync(AssignPermissionsRequest request)
+        public async Task<Result> AssignPermissionsAsync(AssignPermissionsRequest request, CancellationToken ct = default)
         {
             string msg;
             var validation = request.Validate();
@@ -300,7 +303,7 @@ namespace ManageLife.Services
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
 
-            var currentUserId = UserContext.GetUserId();
+            var currentUserId = _userContext.GetUserId();
             var guardResult = await _permissionGuard.ValidateAsync(request.TargetType, request.ObjectId, currentUserId);
             if (guardResult.IsError())
             {
@@ -326,7 +329,7 @@ namespace ManageLife.Services
             return rs;
         }
 
-        public async Task<Result> UnassignPermissionsAsync(UnassignPermissionsRequest request)
+        public async Task<Result> UnassignPermissionsAsync(UnassignPermissionsRequest request, CancellationToken ct = default)
         {
             string msg;
             var validation = request.Validate();
@@ -342,7 +345,7 @@ namespace ManageLife.Services
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
 
-            var currentUserId = UserContext.GetUserId();
+            var currentUserId = _userContext.GetUserId();
             var guardResult = await _permissionGuard.ValidateAsync(request.TargetType, request.ObjectId, currentUserId);
             if (guardResult.IsError())
             {
@@ -368,7 +371,7 @@ namespace ManageLife.Services
             return rs;
         }
 
-        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByRoleIdAsync(GetAssignedPermissionsByRoleIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByRoleIdAsync(GetAssignedPermissionsByRoleIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -408,7 +411,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleIdAsync(GetUnAssignedPermissionsByRoleIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleIdAsync(GetUnAssignedPermissionsByRoleIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
