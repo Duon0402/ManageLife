@@ -17,5 +17,8 @@ namespace ManageLife.Commons
 
         public static CacheItem MenuItems()
             => new($"{_prefix}menu_items");
+
+        public static CacheItem SecurityStamp(string userId)
+            => new($"{_prefix}security_stamp:{userId}", expiry: TimeSpan.FromDays(7));
     }
 }

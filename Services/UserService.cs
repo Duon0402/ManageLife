@@ -71,6 +71,7 @@ namespace ManageLife.Services
                     Id = IdHelper.NewId(),
                     UserName = request.UserName,
                     HashPassword = PasswordHelper.HashPassword(request.Password),
+                    SecurityStamp = IdHelper.NewId(),
                     CreatedUser = SystemUsers.System
                 };
                 b = await _userRepo.InsertAsync(userEntity, ct);
@@ -112,7 +113,7 @@ namespace ManageLife.Services
 
                 var roles = new List<string> { roleEntity.Name };
 
-                var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHelper.NewId(), roles);
+                var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, userEntity.SecurityStamp!, roles);
                 _tokenService.SetTokensCookie(accessToken, refreshToken);
 
                 return Result.Ok();
@@ -161,11 +162,22 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
+                bool needsUpdate = false;
+
                 if (PasswordHelper.IsLegacyHash(userEntity.HashPassword))
                 {
                     userEntity.HashPassword = PasswordHelper.HashPassword(request.Password);
-                    await _userRepo.UpdateAsync(userEntity, ct);
+                    needsUpdate = true;
                 }
+
+                if (userEntity.SecurityStamp.IsEmpty())
+                {
+                    userEntity.SecurityStamp = IdHelper.NewId();
+                    needsUpdate = true;
+                }
+
+                if (needsUpdate)
+                    await _userRepo.UpdateAsync(userEntity, ct);
 
                 var cleanupResult = await _tokenService.CleanupRefreshTokensAsync(userEntity.Id, _uow, ct);
                 if (!cleanupResult.IsOk())
@@ -200,7 +212,7 @@ namespace ManageLife.Services
                         (ur, r) => r.Name)
                     .ToListAsync(ct);
 
-                var accessToken = this._tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, IdHelper.NewId(), roles);
+                var accessToken = this._tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, userEntity.SecurityStamp!, roles);
 
                 _tokenService.SetTokensCookie(accessToken, refreshToken);
 
@@ -297,8 +309,9 @@ namespace ManageLife.Services
                 }
 
                 await _uow.BeginTransactionAsync();
-                var newHashedPassword = PasswordHelper.HashPassword(request.NewPassword);
-                user.HashPassword = newHashedPassword;
+
+                user.HashPassword = PasswordHelper.HashPassword(request.NewPassword);
+                user.SecurityStamp = IdHelper.NewId();
                 b = await _userRepo.UpdateAsync(user);
                 if (!b)
                 {
@@ -306,14 +319,22 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
 
-                tokenEntity.IsRevoked = true;
-                b = await _refreshRepo.UpdateAsync(tokenEntity);
-                if (!b)
+                var allTokens = await _refreshRepo.Query()
+                    .Where(x => x.UserId == user.Id)
+                    .ToListAsync();
+                if (allTokens.Count > 0)
                 {
-                    msg = "Không thể cập nhật token";
-                    return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
+                    b = await _refreshRepo.BulkDeleteAsync(allTokens);
+                    if (!b)
+                    {
+                        msg = "Không thể thu hồi phiên đăng nhập";
+                        return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                    }
                 }
+
                 await _uow.CommitAsync();
+
+                await _tokenService.InvalidateSecurityStampCacheAsync(user.Id, ct);
 
                 return Result.Ok();
             }

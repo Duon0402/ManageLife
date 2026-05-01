@@ -1,4 +1,4 @@
-﻿using LinqKit;
+using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Data;
@@ -23,6 +23,7 @@ namespace ManageLife.Services
         private readonly IRoleRepository _roleRepo;
         private readonly IUserRoleRepository _userRoleRepo;
         private readonly IUnitOfWork _uow;
+        private readonly ICacheService _cache;
 
         public TokenService(
             IUserRefreshTokenRepository refreshRepo,
@@ -31,7 +32,8 @@ namespace ManageLife.Services
             IUserRoleRepository userRoleRepo,
             IConfiguration config,
             IHttpContextAccessor httpContextAccessor,
-            IUnitOfWork uow)
+            IUnitOfWork uow,
+            ICacheService cache)
         {
             _config = config;
             _httpContextAccessor = httpContextAccessor;
@@ -40,6 +42,7 @@ namespace ManageLife.Services
             _roleRepo = roleRepo;
             _userRoleRepo = userRoleRepo;
             _uow = uow;
+            _cache = cache;
         }
 
         #region Access Token
@@ -95,6 +98,34 @@ namespace ManageLife.Services
             {
                 return null;
             }
+        }
+
+        public async Task<bool> ValidateSecurityStampAsync(ClaimsPrincipal principal, CancellationToken ct = default)
+        {
+            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var stampInToken = principal.FindFirstValue(JwtConst.SECURITY_STAMP);
+
+            if (userId.IsEmpty() || stampInToken.IsEmpty())
+                return false;
+
+            var cacheItem = CacheSettings.SecurityStamp(userId!);
+            var cachedStamp = await _cache.TryGetValueAsync<string>(cacheItem);
+
+            if (cachedStamp != null)
+                return string.Equals(cachedStamp, stampInToken, StringComparison.Ordinal);
+
+            // Cache miss → query DB và cache lại
+            var user = await _userRepo.GetAsync(userId!);
+            if (user == null || user.IsDeleted || !user.IsActive || user.SecurityStamp.IsEmpty())
+                return false;
+
+            await _cache.SetAsync(user.SecurityStamp!, cacheItem);
+            return string.Equals(user.SecurityStamp, stampInToken, StringComparison.Ordinal);
+        }
+
+        public async Task InvalidateSecurityStampCacheAsync(string userId, CancellationToken ct = default)
+        {
+            await _cache.RemoveAsync(CacheSettings.SecurityStamp(userId));
         }
         #endregion
 
@@ -186,7 +217,7 @@ namespace ManageLife.Services
                     .Select(r => r.Name)
                     .ToListAsync();
 
-                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, IdHelper.NewId(), roles);
+                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, user.SecurityStamp!, roles);
 
                 SetTokensCookie(newAccessToken, newRefreshToken);
 
