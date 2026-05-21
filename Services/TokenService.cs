@@ -5,7 +5,9 @@ using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.Settings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,7 +18,7 @@ namespace ManageLife.Services
 {
     public class TokenService : ITokenService
     {
-        private readonly IConfiguration _config;
+        private readonly JwtSettings _jwt;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserRefreshTokenRepository _refreshRepo;
         private readonly IUserRepository _userRepo;
@@ -30,12 +32,12 @@ namespace ManageLife.Services
             IUserRepository userRepo,
             IRoleRepository roleRepo,
             IUserRoleRepository userRoleRepo,
-            IConfiguration config,
+            IOptions<JwtSettings> jwtOptions,
             IHttpContextAccessor httpContextAccessor,
             IUnitOfWork uow,
             ICacheService cache)
         {
-            _config = config;
+            _jwt = jwtOptions.Value;
             _httpContextAccessor = httpContextAccessor;
             _refreshRepo = refreshRepo;
             _userRepo = userRepo;
@@ -48,7 +50,7 @@ namespace ManageLife.Services
         #region Access Token
         public string GenerateAccessToken(string userId, string username, string securityStamp, IEnumerable<string> roles)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
@@ -60,8 +62,8 @@ namespace ManageLife.Services
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
+                issuer: _jwt.Issuer,
+                audience: _jwt.Audience,
                 claims: claims,
                 expires: DateTimeHelper.UtcNow().AddMinutes(30),
                 signingCredentials: creds
@@ -82,9 +84,9 @@ namespace ManageLife.Services
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = _config["Jwt:Issuer"],
-                ValidAudience = _config["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)),
+                ValidIssuer = _jwt.Issuer,
+                ValidAudience = _jwt.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key)),
                 ClockSkew = TimeSpan.Zero,
                 NameClaimType = ClaimTypes.Name,
                 RoleClaimType = ClaimTypes.Role
