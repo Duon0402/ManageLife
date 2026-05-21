@@ -1,7 +1,7 @@
 using ManageLife.Core;
 using System.Net.Http.Json;
 
-namespace ManageLife.Base.Http
+namespace ManageLife.Core.Http
 {
     public abstract class BaseHttpApiClient
     {

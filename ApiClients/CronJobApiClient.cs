@@ -1,7 +1,8 @@
 using ManageLife.Core;
+using ManageLife.Core.Http;
 using ManageLife.Models.CronJob;
 
-namespace ManageLife.Base.Http
+namespace ManageLife.ApiClients
 {
     public class CronJobApiClient : BaseHttpApiClient
     {
