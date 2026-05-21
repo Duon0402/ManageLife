@@ -61,6 +61,13 @@ namespace ManageLife.Controllers.Client
         }
 
         [Authorize]
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View("ChangePassword");
+        }
+
+        [Authorize]
         [HttpPost]
         public async Task<Result> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
         {

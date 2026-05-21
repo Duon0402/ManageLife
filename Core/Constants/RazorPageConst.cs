@@ -8,6 +8,7 @@
             public const string AdminLayout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
             public const string ClientLayout = "~/Views/Shared/Client/_ClientLayout.cshtml";
             public const string AdminDataGridLayout = "~/Views/Shared/Admin/_AdminDataGridLayout.cshtml";
+            public const string AuthLayout = "~/Views/Shared/_AuthLayout.cshtml";
         }
 
         public static class Partial
