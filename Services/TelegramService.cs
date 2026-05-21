@@ -2,6 +2,8 @@
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.Settings;
+using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -9,20 +11,17 @@ namespace ManageLife.Services
 {
     public class TelegramService : ITelegramService
     {
-        private readonly IConfiguration _config;
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
         private readonly IAppLogger<TelegramService> _logger;
         private readonly ISettingService _settingService;
 
-        public TelegramService(IConfiguration config, IAppLogger<TelegramService> logger, ISettingService settingService)
+        public TelegramService(IOptions<TelegramSettings> options, IAppLogger<TelegramService> logger, ISettingService settingService, TelegramBotClient botClient)
         {
-            _config = config;
             _logger = logger;
             _settingService = settingService;
-            var botToken = _config["TelegramSettings:BotToken"] ?? "";
-            _chatId = _config["TelegramSettings:ChatId"];
-            _botClient = new TelegramBotClient(botToken);
+            _botClient = botClient;
+            _chatId = options.Value.ChatId;
         }
 
         public async Task<Result> SendMessageAsync(SendTelegramMessageRequest request, CancellationToken ct = default)

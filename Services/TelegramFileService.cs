@@ -2,13 +2,14 @@
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.Settings;
+using Microsoft.Extensions.Options;
 using Telegram.Bot;
 
 namespace ManageLife.Services
 {
     public class TelegramFileService : ITelegramFileService
     {
-        private readonly IConfiguration _config;
         private readonly string _botToken;
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
@@ -17,17 +18,15 @@ namespace ManageLife.Services
         private readonly ITelegramUploadQueue _queue;
         private readonly string _tempFolder = "temp";
 
-        public TelegramFileService(IFileRepository repo, IConfiguration config, IAppLogger<TelegramFileService> logger, ITelegramUploadQueue queue)
+        public TelegramFileService(IFileRepository repo, IOptions<TelegramSettings> options, IAppLogger<TelegramFileService> logger, ITelegramUploadQueue queue, TelegramBotClient botClient)
         {
-            _config = config;
+            var settings = options.Value;
             _repo = repo;
             _logger = logger;
             _queue = queue;
-            _botToken = _config["TelegramSettings:BotToken"]
-                ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured.");
-            _chatId = _config["TelegramSettings:ChatIdFileStorage"]
-                ?? throw new InvalidOperationException("TelegramSettings:ChatIdFileStorage is not configured.");
-            _botClient = new TelegramBotClient(_botToken);
+            _botClient = botClient;
+            _botToken = settings.BotToken ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured.");
+            _chatId = settings.ChatIdFileStorage ?? throw new InvalidOperationException("TelegramSettings:ChatIdFileStorage is not configured.");
             Directory.CreateDirectory(_tempFolder);
         }
 

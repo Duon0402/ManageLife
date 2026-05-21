@@ -1,15 +1,21 @@
 ﻿using AutoMapper;
+using ManageLife.ApiClients;
 using ManageLife.Core;
 using ManageLife.Data;
 using ManageLife.Helpers;
+using ManageLife.Interfaces;
 using ManageLife.Services;
+using ManageLife.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using StackExchange.Redis;
+using System.Net.Http.Headers;
 using System.Text;
+using Telegram.Bot;
 
 namespace ManageLife.Extensions
 {
@@ -20,14 +26,34 @@ namespace ManageLife.Extensions
             // Set EPPlus license 1 lần
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
+            services.Configure<TelegramSettings>(config.GetSection(TelegramSettings.Section));
+            services.Configure<CronJobSettings>(config.GetSection(CronJobSettings.Section));
+            services.Configure<JwtSettings>(config.GetSection(JwtSettings.Section));
+            services.Configure<RedisSettings>(config.GetSection(RedisSettings.Section));
+
             services.AddApplicationCustomServices();
             services.AddRepositories();
             services.AddHttpContextAccessor();
             services.AddScoped<IMenuRegister, MenuRegister>();
             services.AddHttpClient();
 
+            services.AddSingleton<TelegramBotClient>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<TelegramSettings>>().Value;
+                return new TelegramBotClient(settings.BotToken
+                    ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured."));
+            });
+
+            services.AddHttpClient<CronJobApiClient>((sp, client) =>
+            {
+                var settings = sp.GetRequiredService<IOptions<CronJobSettings>>().Value;
+                client.BaseAddress = new Uri(settings.BaseUrl);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+                    settings.ApiKey ?? throw new InvalidOperationException("CronJob:ApiKey is not configured."));
+            });
+
             #region JWT Authentication
-            var key = Encoding.UTF8.GetBytes(config["Jwt:Key"]!);
+            var jwt = config.GetSection(JwtSettings.Section).Get<JwtSettings>()!;
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -49,9 +75,9 @@ namespace ManageLife.Extensions
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = config["Jwt:Issuer"],
-                        ValidAudience = config["Jwt:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidIssuer = jwt.Issuer,
+                        ValidAudience = jwt.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
                         ClockSkew = TimeSpan.Zero
                     };
                 });
@@ -84,11 +110,12 @@ namespace ManageLife.Extensions
             #endregion
 
             #region Redis
+            var redisSettings = config.GetSection(RedisSettings.Section).Get<RedisSettings>()!;
             var redisConfig = new ConfigurationOptions
             {
-                EndPoints = { config["Redis:EndPoints"]! },
-                User = config["Redis:User"] ?? "default",
-                Password = config["Redis:Password"] ?? "",
+                EndPoints = { redisSettings.EndPoints },
+                User = redisSettings.User,
+                Password = redisSettings.Password,
             };
 
             var redis = ConnectionMultiplexer.Connect(redisConfig);
