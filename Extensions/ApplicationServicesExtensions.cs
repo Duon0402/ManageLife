@@ -26,11 +26,7 @@ namespace ManageLife.Extensions
             // Set EPPlus license 1 lần
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            services.Configure<TelegramSettings>(config.GetSection(TelegramSettings.Section));
-            services.Configure<CronJobSettings>(config.GetSection(CronJobSettings.Section));
-            services.Configure<JwtSettings>(config.GetSection(JwtSettings.Section));
-            services.Configure<RedisSettings>(config.GetSection(RedisSettings.Section));
-
+            services.AddApplicationSettings(config);
             services.AddApplicationCustomServices();
             services.AddRepositories();
             services.AddHttpContextAccessor();
@@ -123,7 +119,7 @@ namespace ManageLife.Extensions
             #endregion
 
             #region SeriLog
-            services.AddScoped(typeof(IAppLogger<>), typeof(AppLogger<>));
+            services.AddSingleton(typeof(IAppLogger<>), typeof(AppLogger<>));
             #endregion
 
             #region Unit of Work 

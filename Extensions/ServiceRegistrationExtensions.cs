@@ -32,6 +32,8 @@ namespace ManageLife.Extensions
             services.AddSingleton<ITelegramUploadQueue, TelegramUploadQueue>();
             services.AddScoped<IFolderService, FolderService>();
             services.AddScoped<IChatService, ChatService>();
+            services.AddSingleton<YtDlpManager>();
+            services.AddScoped<IVideoDownloaderService, VideoDownloaderService>();
             return services;
         }
     }

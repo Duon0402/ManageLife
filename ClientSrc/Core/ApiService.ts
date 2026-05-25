@@ -42,6 +42,17 @@ namespace App {
             return this.request<T>(url, Constants.HttpMethod.DELETE, null, options);
         }
 
+        public static async postBlob(url: string, data: any): Promise<Blob> {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.blob();
+        }
+
         public static upload<T = any>(url: string, formData: FormData, options: ApiRequestOptions = {}): Promise<ApiResponse<T>> {
             if (!(formData instanceof FormData)) {
                 throw new Error("upload() expects FormData");
