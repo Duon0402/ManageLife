@@ -15,6 +15,9 @@ namespace App {
     }
 
     export class UtilityEmailPage extends BasePage {
+        private currentPicker!: DatePickerBuilder;
+        private nextPicker!: DatePickerBuilder;
+
         protected initialize(): void {
             this.initDatePickers();
         }
@@ -37,40 +40,35 @@ namespace App {
                 nextDate.setDate(currentDate.getDate() + 1);
             }
 
-            const $current = this.root.find('#currentBusinessDay');
-            const $next = this.root.find('#nextBusinessDay');
+            this.currentPicker = new DatePickerBuilder('#currentBusinessDayContainer')
+                .withId('currentBusinessDay')
+                .setDefaultDate(currentDate)
+                .enableTyping()
+                .build();
 
-            ($current as any).datepicker({
-                format: 'dd/mm/yyyy',
-                autoclose: true,
-                todayHighlight: true,
-                clearBtn: true
-            }).datepicker('setDate', currentDate);
-
-            ($next as any).datepicker({
-                format: 'dd/mm/yyyy',
-                autoclose: true,
-                todayHighlight: true,
-                clearBtn: true,
-                startDate: currentDate
-            }).datepicker('setDate', nextDate);
+            this.nextPicker = new DatePickerBuilder('#nextBusinessDayContainer')
+                .withId('nextBusinessDay')
+                .setDefaultDate(nextDate)
+                .setMinDate(currentDate)
+                .enableTyping()
+                .build();
         }
 
         private async genEmail(): Promise<void> {
-            const currentBusinessDay = (this.root.find('#currentBusinessDay') as any).datepicker('getUTCDate');
-            const nextBusinessDay = (this.root.find('#nextBusinessDay') as any).datepicker('getUTCDate');
+            const currentBusinessDay = this.currentPicker.getValue();
+            const nextBusinessDay = this.nextPicker.getValue();
             const todayWorkResults = (this.root.find('#todayWorkResults').val() as string).trim();
             const plannedWorkTomorrow = (this.root.find('#plannedWorkTomorrow').val() as string).trim();
             const suggestions = (this.root.find('#suggestions').val() as string).trim();
 
-            if (!todayWorkResults || !plannedWorkTomorrow) {
+            if (!currentBusinessDay || !nextBusinessDay || !todayWorkResults || !plannedWorkTomorrow) {
                 ToastService.warning("Vui lòng nhập đầy đủ thông tin bắt buộc");
                 return;
             }
 
             const request: EmailReportRequest = {
-                currentBusinessDay,
-                nextBusinessDay,
+                currentBusinessDay: currentBusinessDay!,
+                nextBusinessDay: nextBusinessDay!,
                 todayWorkResults,
                 plannedWorkTomorrow,
                 suggestions
