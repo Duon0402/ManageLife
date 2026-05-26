@@ -1,5 +1,5 @@
-﻿using ManageLife.Base;
-using ManageLife.Data;
+﻿using ManageLife.Contexts;
+using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 
@@ -12,4 +12,5 @@ namespace ManageLife.Repositories
         }
     }
 }
+
 

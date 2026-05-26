@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 ﻿/* ============================================================
    Grid Table - DataGrid Layout Specific Styles
    ============================================================ */
@@ -10,16 +11,185 @@
 
 .grid-container table.dataTable th,
 .grid-container table.dataTable td {
+=======
+/* ===========================
+   GRID / DATA TABLE
+   Bootstrap 5 DataTables + SkyDash theme
+   =========================== */
+
+/* Page wrapper fills card-body flex column */
+.grid-container .card-body > div {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+/* ===== DT CONTAINER — flex column để fill card ===== */
+.grid-container .dt-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* ===== HEADER ROW: search + buttons ===== */
+.grid-container .dt-layout-header {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    background: var(--color-bg);
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.grid-container .dt-layout-header .dt-layout-cell {
+    display: flex;
+    align-items: center;
+}
+
+.grid-container .dt-layout-header .dt-layout-start {
+    flex: 1;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.grid-container .dt-layout-header .dt-layout-end {
+    gap: 0.5rem;
+}
+
+/* ===== TABLE ROW — fills remaining height ===== */
+.grid-container .dt-layout-table {
+    flex: 1;
+    overflow: auto;
+    min-height: 0;
+}
+
+.grid-container .dt-layout-table .dt-layout-cell {
+    height: 100%;
+}
+
+/* ===== FOOTER ROW: info + paging ===== */
+.grid-container .dt-layout-footer {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+    background: var(--color-bg);
+    gap: 0.5rem;
+}
+
+.grid-container .dt-layout-footer .dt-layout-cell {
+    display: flex;
+    align-items: center;
+}
+
+.grid-container .dt-layout-footer .dt-layout-start {
+    flex: 1;
+}
+
+/* ===== SEARCH BOX ===== */
+.grid-container .dt-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Ẩn text "Search:" giữ lại input */
+.grid-container .dt-search label {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 0 !important;
+    position: relative;
+    height: 32px;
+}
+
+/* Icon tìm kiếm (Font Awesome) */
+.grid-container .dt-search label::before {
+    content: '\f002';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 0.72rem;
+    color: var(--color-text);
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 1;
+    line-height: 1;
+}
+
+/* Search input — Bootstrap 5 DT thêm form-control */
+.grid-container .dt-search input.form-control,
+.grid-container .dt-search input[type="search"] {
+    font-size: 0.8125rem !important;
+    padding: 0.3rem 0.75rem 0.3rem 2rem !important;
+    height: 32px !important;
+    background: var(--color-bg-content) !important;
+    border-color: var(--color-border) !important;
+    border-radius: 6px !important;
+    min-width: 210px;
+    color: var(--color-text-dark) !important;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.grid-container .dt-search input.form-control:focus,
+.grid-container .dt-search input[type="search"]:focus {
+    background: var(--color-bg) !important;
+    border-color: var(--color-primary-light) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-bg) !important;
+    outline: none;
+}
+
+/* ===== TOOLBAR BUTTONS (Add New, v.v.) ===== */
+.grid-container .dt-buttons {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.grid-container .dt-buttons .btn,
+.grid-container .dt-buttons button.dt-button {
+    border-radius: 6px !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    padding: 0.3rem 0.75rem !important;
+    height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+>>>>>>> Stashed changes
     white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
 }
 
-.grid-container table.dataTable thead th {
+/* ===== TABLE: Override Bootstrap 5 DT defaults ===== */
+.grid-container table.dataTable {
+    width: 100% !important;
+    margin: 0 !important;
+    border-collapse: collapse !important;
+}
+
+/* THEAD */
+.grid-container table.dataTable > thead > tr > th,
+.grid-container table.dataTable > thead > tr > td {
+    background: #f8f9fc !important;
+    color: var(--color-text) !important;
+    font-size: 0.725rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.055em !important;
+    border-bottom: 2px solid var(--color-border) !important;
+    border-top: none !important;
+    border-right: 1px solid var(--color-border) !important;
+    padding: 0.7rem 1rem !important;
     vertical-align: middle !important;
-    text-align: center !important;
+    text-align: left !important;
+    white-space: nowrap;
 }
 
+<<<<<<< Updated upstream
 .grid-container table.dataTable thead th[title] {
     cursor: help;
 }
@@ -70,3 +240,116 @@
 #admin-layout-container .grid-container .card-body {
     padding: 0;
 }
+=======
+.grid-container table.dataTable > thead > tr > th:last-child,
+.grid-container table.dataTable > thead > tr > td:last-child {
+    border-right: none !important;
+}
+
+/* TBODY cells */
+.grid-container table.dataTable > tbody > tr > td,
+.grid-container table.dataTable > tbody > tr > th {
+    font-size: 0.84rem !important;
+    color: var(--color-text-dark) !important;
+    vertical-align: middle !important;
+    border-top: none !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    border-right: 1px solid var(--color-border) !important;
+    padding: 0.7rem 1rem !important;
+    background: var(--color-bg) !important;
+}
+
+.grid-container table.dataTable > tbody > tr > td:last-child,
+.grid-container table.dataTable > tbody > tr > th:last-child {
+    border-right: none !important;
+}
+
+/* Xóa alternating row màu của DataTables/Bootstrap */
+.grid-container table.dataTable > tbody > tr.odd > td,
+.grid-container table.dataTable > tbody > tr.odd > th,
+.grid-container table.dataTable > tbody > tr.even > td,
+.grid-container table.dataTable > tbody > tr.even > th {
+    background: var(--color-bg) !important;
+}
+
+/* Hover */
+.grid-container table.dataTable > tbody > tr:hover > td,
+.grid-container table.dataTable > tbody > tr:hover > th {
+    background: #f5f7ff !important;
+}
+
+/* Last row: bỏ border-bottom */
+.grid-container table.dataTable > tbody > tr:last-child > td,
+.grid-container table.dataTable > tbody > tr:last-child > th {
+    border-bottom: none !important;
+}
+
+/* ===== ACTION BUTTONS (trong cell) ===== */
+.grid-action-btn {
+    padding: 0.22rem 0.48rem;
+    font-size: 0.75rem;
+    border-radius: 5px;
+    line-height: 1.4;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+/* ===== SORT ICON ===== */
+.grid-container table.dataTable thead .sorting::after,
+.grid-container table.dataTable thead .sorting_asc::after,
+.grid-container table.dataTable thead .sorting_desc::after {
+    opacity: 0.5;
+}
+
+.grid-container table.dataTable thead .sorting_asc::after,
+.grid-container table.dataTable thead .sorting_desc::after {
+    color: var(--color-primary) !important;
+    opacity: 1;
+}
+
+/* ===== EMPTY STATE ===== */
+.grid-container table.dataTable > tbody > tr > td.dataTables_empty {
+    text-align: center !important;
+    color: var(--color-text) !important;
+    font-size: 0.875rem !important;
+    padding: 2.5rem 1rem !important;
+    background: var(--color-bg) !important;
+}
+
+/* ===== PAGING ===== */
+.grid-container .dt-paging .pagination {
+    margin: 0;
+    gap: 2px;
+}
+
+.grid-container .dt-paging .page-link {
+    font-size: 0.8rem;
+    color: var(--color-text);
+    border-color: var(--color-border);
+    border-radius: 5px !important;
+    padding: 0.25rem 0.55rem;
+}
+
+.grid-container .dt-paging .page-link:hover {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    border-color: var(--color-primary-light);
+}
+
+.grid-container .dt-paging .page-item.active .page-link {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+/* ===== INFO TEXT ===== */
+.grid-container .dt-info {
+    font-size: 0.8rem;
+    color: var(--color-text);
+    padding: 0;
+}
+
+/* ===== SCROLL WRAPPER (khi dùng scrollY) ===== */
+.grid-container .dt-scroll-body {
+    border-bottom: none !important;
+}
+>>>>>>> Stashed changes

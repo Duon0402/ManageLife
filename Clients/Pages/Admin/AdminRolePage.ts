@@ -43,8 +43,6 @@ namespace App {
                     onClick: (data) => this.deleteRole(data)
                 })
                 .setOptions({
-                    scrollY: 'calc(100vh - 395px)',
-                    scrollCollapse: true,
                     paging: false,
                     info: false,
                     ordering: false,

@@ -14,8 +14,7 @@ namespace App {
             ordering: false,
             searching: true,
             autoWidth: true,
-            destroy: true,
-            scrollCollapse: true
+            destroy: true
         };
         private dataSource: IGridDataSource<T> | null = null;
         private callbacks: IGridCallbacks<T> = {};
@@ -208,8 +207,8 @@ namespace App {
             }
 
             return {
-                title: this.actionColumnConfig.title,
-                data: null,
+                title: this.actionColumnConfig.title ?? '',
+                data: undefined,
                 orderable: false,
                 searchable: false,
                 className: this.actionColumnConfig.className,
@@ -270,15 +269,14 @@ namespace App {
                 return this.layout;
             }
 
-            // Default layout with buttons and search if toolbar buttons exist
             if (this.toolbarButtons.length > 0) {
                 return {
-                    topEnd: ['buttons', 'search']
+                    topStart: ['buttons', 'search']
                 };
             }
 
             return {
-                topEnd: ['search']
+                topStart: ['search']
             };
         }
 
@@ -348,10 +346,11 @@ namespace App {
             const allColumns = [...this.columns];
 
             if (actionColumn) {
-                if (this.actionColumnConfig.position === -1 || this.actionColumnConfig.position >= allColumns.length) {
+                const pos = this.actionColumnConfig.position ?? -1;
+                if (pos === -1 || pos >= allColumns.length) {
                     allColumns.push(actionColumn);
                 } else {
-                    allColumns.splice(this.actionColumnConfig.position, 0, actionColumn);
+                    allColumns.splice(pos, 0, actionColumn);
                 }
             }
 
@@ -362,17 +361,17 @@ namespace App {
                 data: this.dataSource?.data || []
             };
 
-            // Add buttons if configured
+            // Layout always set for consistent positioning; buttons added when configured
+            config.layout = this.buildLayout();
             if (this.toolbarButtons.length > 0) {
                 config.buttons = this.buildButtons();
-                config.layout = this.buildLayout();
             }
 
             // Add AJAX config if URL is provided
             if (this.dataSource?.url) {
                 config.ajax = {
                     url: this.dataSource.url,
-                    type: this.dataSource.method || 'GET',
+                    method: this.dataSource.method || 'GET',
                     dataSrc: (res: any) => {
                         if (res && res.code === Constants.ApiCode.SUCCESS) {
                             const ds = this.dataSource?.dataSrc || 'data';

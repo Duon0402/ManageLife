@@ -31,8 +31,9 @@ namespace ManageLife.Controllers.Admin
             return View(viewModel);
         }
 
-        [HttpPost]
-        public async Task<Result<List<TranslationModel>>> GetListTranslations([FromBody] GetListTranslationsRequest request)
+        [HttpGet]
+        [ViewPermission]
+        public async Task<Result<List<TranslationModel>>> GetListTranslations([FromQuery] GetListTranslationsRequest request, CancellationToken ct)
         {
             var rs = await _service.GetListTranslationsAsync(request);
             return rs;

@@ -1,0 +1,80 @@
+/* ===========================
+   MESSAGE / CONFIRM MODAL
+   =========================== */
+
+.ml-message-modal .modal-dialog {
+    max-width: 400px;
+}
+
+.ml-message-modal .modal-content {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.16);
+    overflow: hidden;
+}
+
+/* Centered body layout */
+.ml-message-modal .modal-body {
+    padding: 2rem 1.75rem 1.25rem;
+    text-align: center;
+}
+
+/* Icon wrapper */
+.ml-msg-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.75rem;
+}
+
+    .ml-msg-icon.ml-icon-success {
+        background: rgba(40, 167, 69, 0.12);
+        color: #28a745;
+    }
+
+    .ml-msg-icon.ml-icon-error {
+        background: rgba(220, 53, 69, 0.12);
+        color: #dc3545;
+    }
+
+    .ml-msg-icon.ml-icon-warning {
+        background: rgba(255, 193, 7, 0.12);
+        color: #e6a817;
+    }
+
+    .ml-msg-icon.ml-icon-info {
+        background: rgba(23, 162, 184, 0.12);
+        color: #17a2b8;
+    }
+
+    .ml-msg-icon.ml-icon-confirm {
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+    }
+
+.ml-msg-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    margin-bottom: 0.45rem;
+    line-height: 1.3;
+}
+
+.ml-msg-text {
+    font-size: 0.875rem;
+    color: var(--color-text);
+    line-height: 1.65;
+    white-space: pre-wrap;
+}
+
+/* Footer */
+.ml-message-modal .modal-footer {
+    border-top: 1px solid var(--color-border);
+    padding: 0.875rem 1.75rem;
+    justify-content: center;
+    gap: 0.6rem;
+}

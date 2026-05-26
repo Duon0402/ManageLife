@@ -1,8 +1,45 @@
+<<<<<<< Updated upstream
 /* ============================================================
    Site.css - Global Base Styles (Skydash-aligned)
    ============================================================ */
 
 /* ─── Base HTML ─────────────────────────────────────────── */
+=======
+/* ===========================
+   SITE — Global Base Styles
+   SkyDash Light Theme
+   =========================== */
+
+/* ===== CSS VARIABLES (global) ===== */
+:root {
+    /* Brand */
+    --color-primary: #4b49ac;
+    --color-primary-light: #7978d9;
+    --color-primary-bg: rgba(75, 73, 172, 0.08);
+    /* Text */
+    --color-text: #6c7293;
+    --color-text-dark: #2c2c54;
+    /* Surfaces */
+    --color-bg: #ffffff;
+    --color-bg-content: #f5f7ff;
+    --color-border: #e8eaf0;
+    --color-sidebar-hover: rgba(75, 73, 172, 0.08);
+    /* Type scale & shape */
+    --sidebar-font-size: 13.5px;
+    --radius: 8px;
+    /* Shadows */
+    --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.07);
+    --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.10);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.15);
+    /* Status */
+    --color-success: #28a745;
+    --color-danger: #dc3545;
+    --color-warning: #ffc107;
+    --color-info: #17a2b8;
+}
+
+/* ===== BASE ===== */
+>>>>>>> Stashed changes
 html {
     font-size: 14px;
     position: relative;
@@ -12,6 +49,7 @@ html {
 @media (min-width: 768px) {
     html {
         font-size: 16px;
+<<<<<<< Updated upstream
     }
 }
 
@@ -153,13 +191,40 @@ html {
 .file-uploader .file-list:has(li) {
     padding: 20px;
 }
-
-.file-list .file-item {
-    display: flex;
-    gap: 14px;
-    margin-bottom: 23px;
+=======
+    }
 }
 
+/* ===== BUTTONS (SkyDash overrides) ===== */
+.btn {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+    border: none;
+    box-shadow: 0 2px 8px rgba(75, 73, 172, 0.25);
+    color: #fff;
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+        background: linear-gradient(135deg, #3f3e8e, #6665c0);
+        box-shadow: 0 4px 14px rgba(75, 73, 172, 0.35);
+        border: none;
+        color: #fff;
+    }
+>>>>>>> Stashed changes
+
+.btn-outline-primary {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+<<<<<<< Updated upstream
 .file-list .file-item .file-extension {
     height: 50px;
     width: 50px;
@@ -295,3 +360,161 @@ html {
 .file-upload-box .box-title .file-browse-button:hover {
     text-decoration: underline;
 }
+=======
+    .btn-outline-primary:hover,
+    .btn-outline-primary:focus {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #fff;
+    }
+
+.btn-secondary {
+    background: #f0f1f6;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+    .btn-secondary:hover {
+        background: #e4e6f0;
+        border-color: #d0d3e0;
+        color: var(--color-text-dark);
+    }
+
+/* ===== FORM CONTROLS ===== */
+.form-control,
+.form-select {
+    border-color: var(--color-border);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: var(--color-text-dark);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--color-primary-light);
+        box-shadow: 0 0 0 3px var(--color-primary-bg);
+        color: var(--color-text-dark);
+    }
+
+.form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    margin-bottom: 0.35rem;
+}
+
+.form-text {
+    color: var(--color-text);
+    font-size: 0.775rem;
+}
+
+/* ===== CARDS ===== */
+.card {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.875rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text-dark);
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* ===== MODALS (global defaults) ===== */
+.modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.875rem 1.25rem;
+}
+
+.modal-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--color-border);
+    padding: 0.75rem 1.25rem;
+}
+
+/* ===== BADGES ===== */
+.ml-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    gap: 0.3rem;
+}
+
+.ml-badge-success {
+    background: #e6f9f0;
+    color: #1a8a50;
+}
+
+.ml-badge-danger {
+    background: #fde8e8;
+    color: #c0392b;
+}
+
+.ml-badge-warning {
+    background: #fff4e0;
+    color: #b06000;
+}
+
+.ml-badge-info {
+    background: #e8f4ff;
+    color: #1565c0;
+}
+
+.ml-badge-primary {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+}
+
+.ml-badge-muted {
+    background: #f0f1f6;
+    color: #6c7293;
+}
+
+/* ===== CUSTOM CARD COMPONENT ===== */
+.ml-card {
+    background: var(--color-bg);
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+    .ml-card .ml-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .ml-card .ml-card-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--color-text-dark);
+        margin: 0;
+    }
+
+    .ml-card .ml-card-body {
+        padding: 1.25rem;
+    }
+>>>>>>> Stashed changes
