@@ -19,7 +19,7 @@ namespace App {
         private initGrid(): void {
             this.gridBuilder = new GridBuilder<LanguageModel>('#tblLanguage')
                 .setDataSource({
-                    url: '/Admin/Language/GetListLanguages'
+                    url: '/Admin/Language/GetList'
                 })
                 .addColumn({ field: 'id', title: 'ID', visible: false })
                 .addColumn({ field: 'code', title: 'Code' })
