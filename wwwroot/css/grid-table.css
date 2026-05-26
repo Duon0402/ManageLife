@@ -7,13 +7,20 @@
 .grid-container .card-body > div {
     flex: 1 1 0;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-/* ===== DT CONTAINER — flex column để fill card ===== */
+/* ===== DT CONTAINER — bordered box inset from card edges ===== */
 .grid-container .dt-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    margin: 0.75rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 /* ===== HEADER ROW: search + buttons ===== */
@@ -40,7 +47,8 @@
 }
 
 .grid-container .dt-layout-header .dt-layout-end {
-    gap: 0.5rem;
+    gap: 0.25rem;
+    margin-left: auto;
 }
 
 /* ===== TABLE ROW — fills remaining height ===== */
@@ -76,6 +84,7 @@
 
 /* ===== SEARCH BOX ===== */
 .grid-container .dt-search {
+    margin: 0 0.5rem;
     position: relative;
     display: flex;
     align-items: center;
@@ -99,7 +108,7 @@
     font-size: 0.72rem;
     color: var(--color-text);
     position: absolute;
-    left: 0.65rem;
+    left: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
@@ -211,11 +220,6 @@
     background: #f5f7ff !important;
 }
 
-/* Last row: bỏ border-bottom */
-.grid-container table.dataTable > tbody > tr:last-child > td,
-.grid-container table.dataTable > tbody > tr:last-child > th {
-    border-bottom: none !important;
-}
 
 /* ===== ACTION BUTTONS (trong cell) ===== */
 .grid-action-btn {

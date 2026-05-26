@@ -271,12 +271,14 @@ namespace App {
 
             if (this.toolbarButtons.length > 0) {
                 return {
-                    topStart: ['buttons', 'search']
+                    topStart: null,
+                    topEnd: ['buttons', 'search']
                 };
             }
 
             return {
-                topStart: ['search']
+                topStart: null,
+                topEnd: 'search'
             };
         }
 
