@@ -8,6 +8,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Content Update="appsettings.Production.json">
+			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<Compile Remove="ClientSrc\Core\Commons\**" />
 		<Content Remove="ClientSrc\Core\Commons\**" />
 		<EmbeddedResource Remove="ClientSrc\Core\Commons\**" />
