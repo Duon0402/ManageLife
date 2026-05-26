@@ -1,9 +1,6 @@
 @{
     Layout = RazorPageConst.Layout.RootLayout;
-    this.UseCss(
-        new ResourceLink("~/css/admin-layout.css"),
-        new ResourceLink("~/css/popup.css")
-    );
+    this.UseCss(new ResourceLink("~/css/admin-layout.css"));
 }
 <div class="admin-layout">
     <partial name="Admin/_AdminHeader" />

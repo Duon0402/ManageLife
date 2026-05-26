@@ -1,10 +1,166 @@
 ﻿@{
-    ViewData["Title"] = "File Storage";
-    this.UseCss(new ResourceLink("~/css/file-storage.css"));
+	ViewData["Title"] = "File Storage Test";
 }
 
+<style>
+	.file-uploader {
+		min-width: 325px;
+		background-color: #fff;
+		border-radius: 5px;
+		border: 1px solid #d9d9d9;
+	}
+
+		.file-uploader .uploader-header {
+			display: flex;
+			padding: 20px;
+			background-color: #eff1fb;
+			justify-content: space-between;
+			border-radius: 5px 5px 0 0;
+			align-items: center;
+		}
+
+	.uploader-header .uploader-title {
+		font-size: 1.2rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.uploader-header .file-completed-status {
+		font-size: 1rem;
+		font-weight: 500;
+		color: #333;
+	}
+
+	.file-uploader .file-list {
+		list-style: none;
+		width: 100%;
+		padding-bottom: 10px;
+		max-height: 400px;
+		overflow-y: auto;
+		scrollbar-color: #999 transparent;
+		scrollbar-width: thin;
+	}
+
+		.file-uploader .file-list:has(li) {
+			padding: 20px;
+		}
+
+	.file-list .file-item {
+		display: flex;
+		gap: 14px;
+		margin-bottom: 23px;
+	}
+
+		.file-list .file-item .file-extension {
+			height: 50px;
+			width: 50px;
+			color: #fff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 15px;
+			background-color: #5145ba;
+		}
+
+		.file-list .file-item .file-content-wrapper {
+			flex: 1;
+		}
+
+		.file-list .file-item .file-content {
+			display: flex;
+			width: 100%;
+			justify-content: space-between;
+		}
+
+		.file-list .file-item .file-name {
+			font-size: 1rem;
+			font-weight: 600;
+		}
+
+		.file-list .file-item .file-info {
+			display: flex;
+			gap: 5px;
+		}
+
+			.file-list .file-item .file-info small {
+				color: #5c5c5c;
+				margin-top: 5px;
+				display: block;
+				font-size: 0.9rem;
+				font-weight: 500;
+			}
+
+			.file-list .file-item .file-info .file-status {
+				color: #5145ba;
+			}
+
+		.file-list .file-item .cancel-button {
+			align-self: center;
+			border: none;
+			outline: none;
+			background: none;
+			cursor: pointer;
+			font-size: 1.4rem;
+		}
+
+			.file-list .file-item .cancel-button:hover {
+				color: #e3413f;
+			}
+
+		.file-list .file-item .file-progress-bar {
+			width: 100%;
+			height: 3px;
+			margin-top: 10px;
+			border-radius: 30px;
+			background-color: #d9d9d9;
+		}
+
+			.file-list .file-item .file-progress-bar .file-progress {
+				width: 50%;
+				height: inherit;
+				border-radius: inherit;
+				background-color: #5145ba;
+			}
+
+	.file-uploader .file-upload-box {
+		margin: 10px 20px 20px;
+		border-radius: 5px;
+		min-height: 100px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: 2px dashed #b1add4;
+		transition: all 0.2s ease;
+	}
+
+		.file-uploader .file-upload-box.active {
+			border: 2px solid #5145ba;
+			background-color: #f3f6ff;
+		}
+
+		.file-uploader .file-upload-box .box-title {
+			font-size: 1.05rem;
+			font-weight: 500;
+			color: #626161;
+		}
+
+		.file-uploader .file-upload-box.active .box-title {
+			pointer-events: none;
+		}
+
+	.file-upload-box .box-title .file-browse-button {
+		color: #5145ba;
+		cursor: pointer;
+	}
+
+		.file-upload-box .box-title .file-browse-button:hover {
+			text-decoration: underline;
+		}
+
+</style>
+
 <div class="container mt-4">
-    <div id="file-storage-page-container"></div>
+	<div id="file-storage-page-container"></div>
 </div>
 
 <script>

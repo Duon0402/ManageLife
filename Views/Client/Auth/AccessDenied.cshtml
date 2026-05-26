@@ -1,13 +1,17 @@
 ﻿@{
     Options.Title = "Access Denied";
-    this.UseCss(new ResourceLink("~/css/auth.css"));
 }
 
-<div class="access-denied-page">
-    <div class="error-code">403</div>
-    <h1><i class="fa-solid fa-lock me-2"></i>403 - Access Denied</h1>
-    <p>Bạn không có quyền truy cập trang này.</p>
+<div class="d-flex justify-content-center align-items-center" style="height: 80vh; flex-direction: column;">
+    <h1 class="text-danger mb-3">403 - Access Denied</h1>
+    <p class="mb-4">Bạn không có quyền truy cập trang này.</p>
     <a href="~/" class="btn btn-primary">
         <i class="fa-solid fa-house me-2"></i> Trở về trang chủ
     </a>
 </div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+</style>

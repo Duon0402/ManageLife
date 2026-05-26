@@ -1,24 +1,178 @@
 @{
-    ViewData["Title"] = "Photo Albums";
-    this.UseCss(new ResourceLink("~/css/folder.css"));
+	ViewData["Title"] = "Photo Albums";
 }
 
+<style>
+	.folder-page-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+	}
+
+	.folder-page-header h2 {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: #2c2c54;
+		margin: 0;
+	}
+
+	.btn-create-folder {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: #fff;
+		border: none;
+		border-radius: 8px;
+		padding: 10px 24px;
+		font-weight: 600;
+		font-size: 0.95rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+	}
+
+	.btn-create-folder:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 14px rgba(102, 126, 234, 0.45);
+	}
+
+	.folder-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		gap: 20px;
+	}
+
+	.folder-card {
+		background: #fff;
+		border-radius: 12px;
+		padding: 24px;
+		border: 1px solid #e8e8e8;
+		cursor: pointer;
+		transition: all 0.25s ease;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.folder-card::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 4px;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		opacity: 0;
+		transition: opacity 0.25s ease;
+	}
+
+	.folder-card:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+	}
+
+	.folder-card:hover::before {
+		opacity: 1;
+	}
+
+	.folder-card__icon {
+		font-size: 2.5rem;
+		color: #667eea;
+		margin-bottom: 12px;
+	}
+
+	.folder-card__name {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #2c2c54;
+		margin-bottom: 4px;
+		word-break: break-word;
+	}
+
+	.folder-card__desc {
+		font-size: 0.85rem;
+		color: #888;
+		margin-bottom: 10px;
+		word-break: break-word;
+	}
+
+	.folder-card__meta {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: 0.8rem;
+		color: #aaa;
+	}
+
+	.folder-card__count {
+		background: #f0eeff;
+		color: #667eea;
+		padding: 3px 10px;
+		border-radius: 20px;
+		font-weight: 600;
+		font-size: 0.8rem;
+	}
+
+	.folder-card__actions {
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		opacity: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	.folder-card:hover .folder-card__actions {
+		opacity: 1;
+	}
+
+	.folder-card__delete {
+		background: none;
+		border: none;
+		color: #e74c3c;
+		font-size: 1rem;
+		cursor: pointer;
+		padding: 4px 8px;
+		border-radius: 4px;
+		transition: background 0.15s;
+	}
+
+	.folder-card__delete:hover {
+		background: #fde8e8;
+	}
+
+	.folder-empty {
+		text-align: center;
+		padding: 60px 20px;
+		color: #aaa;
+	}
+
+	.folder-empty i {
+		font-size: 4rem;
+		margin-bottom: 16px;
+		color: #ddd;
+	}
+
+	/* Create Folder Modal */
+	.create-folder-form .form-label {
+		font-weight: 600;
+		color: #333;
+	}
+</style>
+
 <div id="folder-page">
-    <div class="folder-page-header">
-        <h2><i class="fa-solid fa-images"></i> Photo Albums</h2>
-        <button class="btn-create-folder" id="btn-create-folder">
-            <i class="fa-solid fa-plus"></i> Tạo Album
-        </button>
-    </div>
+	<div class="folder-page-header">
+		<h2><i class="fa-solid fa-images me-2"></i> Photo Albums</h2>
+		<button class="btn-create-folder" id="btn-create-folder">
+			<i class="fa-solid fa-plus me-1"></i> Tạo Album
+		</button>
+	</div>
 
-    <div class="folder-grid" id="folder-grid">
-        <!-- Rendered by JS -->
-    </div>
+	<div class="folder-grid" id="folder-grid">
+		<!-- Rendered by JS -->
+	</div>
 
-    <div class="folder-empty" id="folder-empty" style="display:none;">
-        <i class="fa-regular fa-folder-open d-block"></i>
-        <p>Chưa có album nào. Hãy tạo album đầu tiên!</p>
-    </div>
+	<div class="folder-empty" id="folder-empty" style="display:none;">
+		<i class="fa-regular fa-folder-open d-block"></i>
+		<p>Chưa có album nào. Hãy tạo album đầu tiên!</p>
+	</div>
 </div>
 
 <script>

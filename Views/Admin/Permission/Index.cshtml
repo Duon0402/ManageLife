@@ -57,13 +57,13 @@
 
 <div class="permission-wrap" id="admin-permission-page">
     <div class="d-flex w-100 h-100 justify-content-between">
-        <div class="permission-panel border rounded p-2">
+        <div class="permission-panel border rounded p-2" style="width: calc(50% - 40px);">
             <div class="fw-bold mb-2 text-center border-1 border-bottom">
                 Unassigned Permissions
             </div>
             <table id="tblUnassigned" class="table w-100"></table>
         </div>
-        <div class="permission-controls">
+        <div class="d-flex flex-column justify-content-center align-items-center gap-3" style="width: 80px;">
             <button id="btnAssign" class="btn btn-outline-primary">
                 <i class="fa-solid fa-angles-right"></i>
             </button>
@@ -71,7 +71,7 @@
                 <i class="fa-solid fa-angles-left"></i>
             </button>
         </div>
-        <div class="permission-panel border rounded p-2">
+        <div class="permission-panel border rounded p-2" style="width: calc(50% - 40px);">
             <div class="fw-bold mb-2 text-center border-1 border-bottom">
                 Assigned Permissions
             </div>

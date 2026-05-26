@@ -1,18 +1,17 @@
 ﻿@{
     Options.Title = "QR Generator";
-    this.UseCss(new ResourceLink("~/css/qr.css"));
 }
 
 <div class="d-flex justify-content-center align-items-center" id="qr-page">
-    <div class="qr-wrapper">
+    <div class="d-flex flex-column align-items-center w-75">
         <div class="mb-3 w-100">
             <input type="text" class="form-control" id="textInput" placeholder="Nhập nội dung QR..." />
         </div>
-        <button id="btnGenerate" class="btn btn-primary w-100 mb-3">
-            <i class="fa-solid fa-qrcode me-2"></i> Generate &amp; Download
+        <button id="btnGenerate" class="btn btn-primary mb-3">
+            <i class="fa-solid fa-qrcode"></i> Generate & Download
         </button>
 
-        <div id="qrContainer" class="card">
+        <div id="qrContainer" class="card" style="width: 250px; height: 250px; display: none;">
             <img id="qrImage" src="" alt="QR Preview" class="object-fit-contain w-100 h-100">
         </div>
     </div>

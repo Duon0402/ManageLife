@@ -1,31 +1,26 @@
 ﻿@{
     Options.Title = "Register";
-    this.UseCss(new ResourceLink("~/css/auth.css"));
 }
 
-<div class="container d-flex justify-content-center align-items-center py-5" id="auth-register-page">
-    <div class="card">
+<div class="container d-flex justify-content-center align-items-center" id="auth-register-page">
+    <div class="card" style="width: 100%; max-width: 400px;">
         <div class="card-body">
-            <h5 class="card-title">Register</h5>
-            <p class="card-subtitle">Create your account to get started.</p>
+            <h5 class="card-title text-center">Register</h5>
             <form id="registerForm">
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" name="Username" placeholder="Enter username" required />
+                    <input type="text" class="form-control" id="username" name="Username" required />
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="Password" placeholder="Enter password" required />
+                    <input type="password" class="form-control" id="password" name="Password" required />
                 </div>
                 <div class="mb-3">
                     <label for="confirmPassword" class="form-label">Confirm Password</label>
-                    <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword" placeholder="Re-enter password" required />
+                    <input type="password" class="form-control" id="confirmPassword" name="Confirm Password" required />
                 </div>
-                <button type="submit" class="btn btn-primary w-100 mt-2" id="btnRegister">Register</button>
+                <button type="submit" class="btn btn-primary w-100" id="btnRegister">Register</button>
             </form>
-            <div class="auth-footer-link">
-                Already have an account? <a href="/Auth/Login">Sign in</a>
-            </div>
         </div>
     </div>
 </div>
