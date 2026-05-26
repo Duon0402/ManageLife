@@ -1,0 +1,205 @@
+/* ============================================================
+   Forms - Skydash Style
+   ============================================================ */
+
+/* ─── Labels ────────────────────────────────────────────── */
+.form-label {
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-dark);
+    margin-bottom: 6px;
+}
+
+/* ─── Inputs & Textareas ────────────────────────────────── */
+.form-control,
+.form-select {
+    font-family: var(--font-family);
+    font-size: 0.875rem;
+    color: var(--color-text-dark);
+    background-color: #f8f9fa;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.6rem 0.85rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-control::placeholder,
+.form-select::placeholder {
+    color: var(--color-text-muted);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--color-surface);
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 3px rgba(75, 73, 172, 0.12);
+    outline: none;
+    color: var(--color-text-dark);
+}
+
+/* ─── Checkbox & Radio ──────────────────────────────────── */
+.form-check-input {
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.form-check-input:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(75, 73, 172, 0.12);
+}
+
+.form-check-label {
+    font-size: 0.875rem;
+    color: var(--color-text);
+}
+
+/* ─── Buttons ───────────────────────────────────────────── */
+.btn {
+    font-family: var(--font-family);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--radius-pill);
+    padding: 0.5rem 1.25rem;
+    transition: all var(--transition-base);
+    border: none;
+}
+
+.btn-sm {
+    padding: 0.3rem 0.85rem;
+    font-size: var(--font-size-sm);
+}
+
+.btn-lg {
+    padding: 0.75rem 1.75rem;
+    font-size: var(--font-size-lg);
+}
+
+/* Primary */
+.btn-primary {
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--color-primary-dark);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(75, 73, 172, 0.4);
+}
+
+/* Outline Primary */
+.btn-outline-primary {
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--color-primary);
+    color: #fff;
+}
+
+/* Secondary */
+.btn-secondary {
+    background-color: var(--color-secondary);
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #555e6e;
+    color: #fff;
+}
+
+/* Outline secondary */
+.btn-outline-secondary {
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+    background: transparent;
+}
+
+.btn-outline-secondary:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-bg);
+}
+
+/* Danger */
+.btn-danger {
+    background-color: var(--color-danger);
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #e03232;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(255, 71, 71, 0.35);
+}
+
+/* Success */
+.btn-success {
+    background-color: var(--color-success);
+    color: #fff;
+}
+
+.btn-success:hover {
+    background-color: #45a045;
+    color: #fff;
+}
+
+/* Warning */
+.btn-warning {
+    background-color: var(--color-warning);
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #e5ac00;
+    color: #212529;
+}
+
+/* Info */
+.btn-info {
+    background-color: var(--color-info);
+    color: #fff;
+}
+
+.btn-info:hover {
+    background-color: #0e74e8;
+    color: #fff;
+}
+
+/* Light */
+.btn-light {
+    background-color: #f0eeff;
+    color: var(--color-primary);
+    border: none;
+}
+
+.btn-light:hover {
+    background-color: #e0dcff;
+    color: var(--color-primary-dark);
+}
+
+/* ─── Input Group ───────────────────────────────────────── */
+.input-group .form-control,
+.input-group .form-select {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.input-group .btn {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* ─── Form Text ─────────────────────────────────────────── */
+.form-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}

@@ -1,106 +1,37 @@
-@{
-    Layout = RazorPageConst.Layout.AuthLayout;
-    Options.Title = "Đăng ký";
+﻿@{
+    Options.Title = "Register";
+    this.UseCss(new ResourceLink("~/css/auth.css"));
 }
 
-<div class="auth-wrapper" id="auth-register-page">
-    <div class="auth-card">
-
-        <div class="auth-brand">
-            <div class="auth-brand-inner">
-                <div class="auth-brand-icon">
-                    <i class="fa-solid fa-infinity"></i>
-                </div>
-                <div class="auth-brand-title">ManageLife</div>
-                <div class="auth-brand-subtitle">
-                    Tạo tài khoản mới và bắt đầu hành trình quản lý cuộc sống của bạn.
-                </div>
-                <div class="auth-brand-dots">
-                    <span></span>
-                    <span class="active"></span>
-                    <span></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="auth-form-panel">
-            <div class="auth-form-logo">
-                <i class="fa-solid fa-infinity"></i>
-                <span>ManageLife</span>
-            </div>
-
-            <div class="auth-form-title">Tạo tài khoản</div>
-            <div class="auth-form-subtitle">Điền thông tin để đăng ký tài khoản mới</div>
-
-            <form id="registerForm" novalidate>
+<div class="container d-flex justify-content-center align-items-center py-5" id="auth-register-page">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Register</h5>
+            <p class="card-subtitle">Create your account to get started.</p>
+            <form id="registerForm">
                 <div class="mb-3">
-                    <label for="username" class="form-label">Tên đăng nhập</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fa-regular fa-user"></i></span>
-                        <input type="text" class="form-control" id="username" name="Username"
-                               placeholder="Nhập tên đăng nhập" autocomplete="username" required />
-                    </div>
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="Username" placeholder="Enter username" required />
                 </div>
-
                 <div class="mb-3">
-                    <label for="password" class="form-label">Mật khẩu</label>
-                    <div class="input-group has-toggle">
-                        <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" class="form-control" id="password" name="Password"
-                               placeholder="Tạo mật khẩu" autocomplete="new-password" required />
-                        <button class="auth-input-toggle btn" type="button" id="togglePassword" tabindex="-1">
-                            <i class="fa-regular fa-eye" id="togglePasswordIcon"></i>
-                        </button>
-                    </div>
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="Password" placeholder="Enter password" required />
                 </div>
-
-                <div class="mb-4">
-                    <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
-                    <div class="input-group has-toggle">
-                        <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword"
-                               placeholder="Nhập lại mật khẩu" autocomplete="new-password" required />
-                        <button class="auth-input-toggle btn" type="button" id="toggleConfirm" tabindex="-1">
-                            <i class="fa-regular fa-eye" id="toggleConfirmIcon"></i>
-                        </button>
-                    </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword" placeholder="Re-enter password" required />
                 </div>
-
-                <button type="submit" class="auth-btn" id="btnRegister">
-                    <i class="fa-solid fa-user-plus me-2"></i>
-                    Đăng ký
-                </button>
+                <button type="submit" class="btn btn-primary w-100 mt-2" id="btnRegister">Register</button>
             </form>
-
-            <div class="auth-footer">
-                Đã có tài khoản? <a href="/Auth/Login">Đăng nhập</a>
+            <div class="auth-footer-link">
+                Already have an account? <a href="/Auth/Login">Sign in</a>
             </div>
         </div>
-
     </div>
 </div>
 
-@section Scripts {
 <script>
     $(function () {
         new App.AuthRegisterPage("#auth-register-page");
-
-        function bindToggle(btnId, inputId, iconId) {
-            $('#' + btnId).on('click', function () {
-                var input = $('#' + inputId);
-                var icon = $('#' + iconId);
-                if (input.attr('type') === 'password') {
-                    input.attr('type', 'text');
-                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
-                } else {
-                    input.attr('type', 'password');
-                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
-                }
-            });
-        }
-
-        bindToggle('togglePassword', 'password', 'togglePasswordIcon');
-        bindToggle('toggleConfirm', 'confirmPassword', 'toggleConfirmIcon');
     });
 </script>
-}

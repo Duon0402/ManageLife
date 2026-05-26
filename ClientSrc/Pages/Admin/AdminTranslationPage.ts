@@ -7,30 +7,16 @@ namespace App {
         languageName: string;
     }
 
-    interface TranslationViewModel {
-        Languages: { Key: string; Value: string; }[];
-    }
-
-    export class AdminTranslationPage extends BasePage<TranslationViewModel> {
-        private gridBuilder: GridBuilder<TranslationModel>;
+    export class AdminTranslationPage extends BasePage {
+        private gridBuilder!: GridBuilder<TranslationModel>;
 
         protected initialize(): void {
             this.initGrid();
-            this.loadTranslations();
-        }
-
-        protected bindEvents(): void {
-            this.root.find('#btnLoad').on('click', () => this.loadTranslations());
         }
 
         private initGrid(): void {
-            // Convert model languages to select options
-            const languageOptions: ISelectOption[] = (this.model.Languages || []).map(lang => ({
-                value: lang.Key,
-                text: lang.Value
-            }));
-
             this.gridBuilder = new GridBuilder<TranslationModel>('#tblTranslations')
+                .setDataSource({ url: '/Admin/Translation/GetListTranslations' })
                 .addColumn({ field: 'key', title: 'Key' })
                 .addColumn({ field: 'value', title: 'Value' })
                 .addColumn({ field: 'languageName', title: 'Language' })
@@ -53,8 +39,6 @@ namespace App {
                     onClick: (data) => this.deleteTranslation(data)
                 })
                 .setOptions({
-                    scrollY: 'calc(100vh - 395px)',
-                    scrollCollapse: true,
                     paging: false,
                     info: false,
                     ordering: true,
@@ -68,69 +52,20 @@ namespace App {
                     cancelButtonText: 'Hủy',
                     showDeleteButton: true,
                     fields: [
-                        {
-                            name: 'id',
-                            label: 'ID',
-                            type: 'hidden'
-                        },
-                        {
-                            name: 'key',
-                            label: 'Key',
-                            type: 'text',
-                            required: true,
-                            placeholder: 'Nhập key (vd: common.save)'
-                        },
-                        {
-                            name: 'value',
-                            label: 'Value',
-                            type: 'textarea',
-                            required: true,
-                            placeholder: 'Nhập giá trị dịch'
-                        },
-                        {
-                            name: 'languageId',
-                            label: 'Language',
-                            type: 'select',
-                            required: true,
-                            options: languageOptions
-                        }
+                        { name: 'id', label: 'ID', type: 'hidden' },
+                        { name: 'key', label: 'Key', type: 'text', required: true, placeholder: 'Nhập key (vd: common.save)' },
+                        { name: 'value', label: 'Value', type: 'textarea', required: true, placeholder: 'Nhập giá trị dịch' },
+                        { name: 'languageId', label: 'Language', type: 'select', required: true, options: [] }
                     ]
                 });
 
             this.gridBuilder.build();
 
-            // Set up form save handler
             const formBuilder = this.gridBuilder.getFormBuilder();
             if (formBuilder) {
                 formBuilder.onSave((submission) => this.saveTranslation(submission));
                 formBuilder.onDelete((data) => this.deleteTranslation(data));
             }
-        }
-
-        private loadTranslations(): void {
-            const languageId = this.root.find("#ddlLanguageId").val();
-
-            const req = {
-                languageId: languageId
-            };
-
-            LoadingService.show();
-            ApiService.post('/Admin/Translation/GetListTranslations', req, {
-                showLoading: false,
-                success: (response: any) => {
-                    LoadingService.hide();
-                    if (response.isOk()) {
-                        const data = response.data || [];
-                        this.gridBuilder.reload(data);
-                    } else {
-                        ToastService.error(response.message || 'Lấy danh sách thất bại');
-                    }
-                },
-                error: () => {
-                    LoadingService.hide();
-                    ToastService.error('Lỗi hệ thống');
-                }
-            });
         }
 
         private async saveTranslation(submission: IFormSubmission<TranslationModel>): Promise<void> {
@@ -139,18 +74,16 @@ namespace App {
                 : '/Admin/Translation/Update';
 
             LoadingService.show();
-
             try {
                 const response = await ApiService.post(url, submission.data);
                 LoadingService.hide();
-
                 if (response.isOk()) {
                     ToastService.success(submission.mode === 'create' ? 'Thêm thành công' : 'Cập nhật thành công');
-                    this.loadTranslations();
+                    this.gridBuilder.reload();
                 } else {
                     ToastService.error(response.message || 'Lỗi khi lưu');
                 }
-            } catch (error) {
+            } catch {
                 LoadingService.hide();
                 ToastService.error('Lỗi hệ thống');
             }
@@ -166,7 +99,7 @@ namespace App {
                     LoadingService.hide();
                     if (response.isOk()) {
                         ToastService.success('Xóa thành công');
-                        this.loadTranslations();
+                        this.gridBuilder.reload();
                     } else {
                         ToastService.error(response.message || 'Xóa thất bại');
                     }

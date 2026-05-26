@@ -1,16 +1,9 @@
-@{
-    var menus = await MenuRegister.GetListMenuItemsAsync();
-    var currentPath = Context.Request.Path.Value?.ToLower() ?? "";
+﻿@{
+	var menus = await MenuRegister.GetListMenuItemsAsync();
+	var currentPath = Context.Request.Path.ToString().ToLower();
 }
 
-<aside class="sidebar-wrapper" id="adminSidebar">
-    <div class="sidebar-brand">
-        <div class="sidebar-brand-icon">
-            <i class="fa-solid fa-infinity"></i>
-        </div>
-        <span class="sidebar-brand-name">ManageLife</span>
-    </div>
-
+<aside class="sidebar-container collapse collapse-horizontal show" id="sidebar">
     <nav class="sidebar-nav">
         <ul class="menu">
             @foreach (var item in menus)
@@ -33,9 +26,13 @@
                             @foreach (var sub in item.SubItems)
                             {
                                 var isSubActive = currentPath.StartsWith(sub.Url?.ToLower() ?? "__");
+                                var hasIcon = !string.IsNullOrWhiteSpace(sub.Icon);
                                 <li class="sub-item @(isSubActive ? "active" : "")">
-                                    <a href="@sub.Url" class="sub-link">
-                                        <i class="@sub.Icon" style="margin-right:.5rem;font-size:.75rem;"></i>
+                                    <a href="@sub.Url" class="sub-link @(hasIcon ? "has-icon" : "")">
+                                        @if (hasIcon)
+                                        {
+                                            <i class="@sub.Icon sub-icon"></i>
+                                        }
                                         @sub.Title
                                     </a>
                                 </li>

@@ -1,0 +1,23 @@
+/* ============================================================
+   File Storage Page - Skydash Style
+   ============================================================ */
+
+/* Page wrapper */
+#file-storage-page-container {
+    padding: 1rem 0;
+}
+
+/* Page title (injected by JS) */
+.file-storage-title {
+    font-size: 1.3rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.file-storage-title i {
+    color: var(--color-primary);
+}

@@ -1,0 +1,113 @@
+/* ===========================
+   TOAST NOTIFICATIONS
+   =========================== */
+
+#ml-toast-container {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    pointer-events: none;
+}
+
+/* Base toast — extends Bootstrap .toast */
+.ml-toast {
+    pointer-events: auto;
+    background: var(--color-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid transparent;
+    min-width: 300px;
+    max-width: 380px;
+    overflow: hidden;
+    /* override the generic fadeIn/fadeOut from site.css */
+    animation: ml-toast-slide-in 0.22s ease !important;
+}
+
+    .ml-toast.ml-toast-success {
+        border-left-color: #28a745;
+    }
+
+    .ml-toast.ml-toast-error {
+        border-left-color: #dc3545;
+    }
+
+    .ml-toast.ml-toast-warning {
+        border-left-color: #ffc107;
+    }
+
+    .ml-toast.ml-toast-info {
+        border-left-color: var(--color-primary);
+    }
+
+    /* Header */
+    .ml-toast .toast-header {
+        background: transparent;
+        border-bottom: 1px solid var(--color-border);
+        padding: 0.55rem 0.875rem;
+        gap: 0.4rem;
+    }
+
+        .ml-toast .toast-header strong {
+            color: var(--color-text-dark);
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        .ml-toast .toast-header .ml-toast-icon {
+            font-size: 0.9375rem;
+            flex-shrink: 0;
+        }
+
+    .ml-toast.ml-toast-success .ml-toast-icon {
+        color: #28a745;
+    }
+
+    .ml-toast.ml-toast-error .ml-toast-icon {
+        color: #dc3545;
+    }
+
+    .ml-toast.ml-toast-warning .ml-toast-icon {
+        color: #ffc107;
+    }
+
+    .ml-toast.ml-toast-info .ml-toast-icon {
+        color: var(--color-primary);
+    }
+
+    /* Body */
+    .ml-toast .toast-body {
+        padding: 0.6rem 0.875rem;
+        font-size: 0.8125rem;
+        color: var(--color-text);
+        line-height: 1.55;
+        white-space: pre-wrap;
+    }
+
+    /* Close button */
+    .ml-toast .btn-close {
+        width: 0.75rem;
+        height: 0.75rem;
+        opacity: 0.45;
+        margin-left: auto;
+    }
+
+        .ml-toast .btn-close:hover {
+            opacity: 0.9;
+        }
+
+@keyframes ml-toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

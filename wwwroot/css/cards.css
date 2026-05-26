@@ -1,0 +1,115 @@
+/* ============================================================
+   Cards - Skydash Style
+   ============================================================ */
+
+.card {
+    background-color: var(--color-surface);
+    border: none;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-base);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-heading);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    background-color: transparent;
+    border-top: 1px solid var(--color-border-light);
+    padding: 1rem 1.5rem;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl) !important;
+}
+
+/* ─── Colored Stat Cards (Skydash Dashboard Style) ──────── */
+.card-stat {
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-stat .stat-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+}
+
+.card-stat .stat-value {
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.1;
+}
+
+.card-stat .stat-sub {
+    font-size: var(--font-size-sm);
+    opacity: 0.85;
+    margin-top: 0.5rem;
+}
+
+.card-stat-primary {
+    background-color: var(--color-info);
+}
+
+.card-stat-purple {
+    background-color: var(--color-primary);
+}
+
+.card-stat-danger {
+    background-color: #f96868;
+}
+
+.card-stat-warning {
+    background-color: var(--color-warning);
+}
+
+/* ─── Card Toolbar / Title Row ──────────────────────────── */
+.card-title {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+    margin: 0;
+}
+
+.card-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.card .card-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* ─── Tooltip / Action Toolbar Card (admin grid) ────────── */
+.tooltip-container {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-sm);
+    border: none !important;
+}
+
+/* ─── Admin Layout Container Card ───────────────────────── */
+.grid-container {
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-sm);
+    border: none !important;
+}

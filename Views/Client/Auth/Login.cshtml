@@ -1,90 +1,36 @@
-@{
-    Layout = RazorPageConst.Layout.AuthLayout;
+﻿@{
     var title = T(TranslationKey.Client.Login.Title);
     Options.Title = title;
+    this.UseCss(new ResourceLink("~/css/auth.css"));
 }
 
-<div class="auth-wrapper" id="auth-login-page">
-    <div class="auth-card">
-
-        <div class="auth-brand">
-            <div class="auth-brand-inner">
-                <div class="auth-brand-icon">
-                    <i class="fa-solid fa-infinity"></i>
-                </div>
-                <div class="auth-brand-title">ManageLife</div>
-                <div class="auth-brand-subtitle">
-                    Quản lý cuộc sống của bạn một cách thông minh và hiệu quả hơn.
-                </div>
-                <div class="auth-brand-dots">
-                    <span class="active"></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="auth-form-panel">
-            <div class="auth-form-logo">
-                <i class="fa-solid fa-infinity"></i>
-                <span>ManageLife</span>
-            </div>
-
-            <div class="auth-form-title">@title</div>
-            <div class="auth-form-subtitle">Nhập thông tin để tiếp tục</div>
-
-            <form id="loginForm" novalidate>
+<div class="container d-flex justify-content-center align-items-center py-5" id="auth-login-page">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@title</h5>
+            <p class="card-subtitle">Sign in to continue.</p>
+            <form id="loginForm">
                 <div class="mb-3">
                     <label for="username" class="form-label">@T(TranslationKey.Client.Login.Field.UserName)</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fa-regular fa-user"></i></span>
-                        <input type="text" class="form-control" id="username" name="Username"
-                               placeholder="Tên đăng nhập" autocomplete="username" required />
-                    </div>
+                    <input type="text" class="form-control" id="username" name="Username" placeholder="Enter username" required />
                 </div>
-
-                <div class="mb-4">
+                <div class="mb-3">
                     <label for="password" class="form-label">@T(TranslationKey.Client.Login.Field.Password)</label>
-                    <div class="input-group has-toggle">
-                        <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" class="form-control" id="password" name="Password"
-                               placeholder="Mật khẩu" autocomplete="current-password" required />
-                        <button class="auth-input-toggle btn" type="button" id="togglePassword" tabindex="-1">
-                            <i class="fa-regular fa-eye" id="togglePasswordIcon"></i>
-                        </button>
-                    </div>
+                    <input type="password" class="form-control" id="password" name="Password" placeholder="Enter password" required />
                 </div>
-
-                <button type="submit" class="auth-btn" id="btnLogin">
-                    <i class="fa-solid fa-right-to-bracket me-2"></i>
+                <button type="submit" class="btn btn-primary w-100 mt-2" id="btnLogin">
                     @T(TranslationKey.Client.Login.Button.Login)
                 </button>
             </form>
-
-            <div class="auth-footer">
-                Chưa có tài khoản? <a href="/Auth/Register">Đăng ký ngay</a>
+            <div class="auth-footer-link">
+                Don't have an account? <a href="/Auth/Register">Register</a>
             </div>
         </div>
-
     </div>
 </div>
 
-@section Scripts {
 <script>
     $(function () {
         new App.AuthLoginPage("#auth-login-page");
-
-        $('#togglePassword').on('click', function () {
-            var input = $('#password');
-            var icon = $('#togglePasswordIcon');
-            if (input.attr('type') === 'password') {
-                input.attr('type', 'text');
-                icon.removeClass('fa-eye').addClass('fa-eye-slash');
-            } else {
-                input.attr('type', 'password');
-                icon.removeClass('fa-eye-slash').addClass('fa-eye');
-            }
-        });
     });
 </script>
-}

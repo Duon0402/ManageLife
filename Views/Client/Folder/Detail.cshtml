@@ -1,238 +1,38 @@
 @{
-	ViewData["Title"] = "Album - " + ViewBag.FolderName;
+    ViewData["Title"] = "Album - " + ViewBag.FolderName;
+    this.UseCss(
+        new ResourceLink("~/css/gallery.css"),
+        new ResourceLink("~/css/folder.css")
+    );
 }
 
-<style>
-	.detail-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1.5rem;
-	}
-
-	.detail-header__left {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-	}
-
-	.detail-header__back {
-		color: #667eea;
-		font-size: 1.3rem;
-		text-decoration: none;
-		transition: transform 0.2s;
-	}
-
-	.detail-header__back:hover {
-		transform: translateX(-3px);
-	}
-
-	.detail-header__title {
-		font-size: 1.4rem;
-		font-weight: 700;
-		color: #2c2c54;
-		margin: 0;
-	}
-
-	.detail-section-title {
-		font-size: 1rem;
-		font-weight: 600;
-		color: #555;
-		margin: 1.5rem 0 0.75rem;
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-
-	.detail-section-title i {
-		color: #667eea;
-	}
-
-	/* File Uploader overrides for this page */
-	.file-uploader {
-		min-width: 325px;
-		background-color: #fff;
-		border-radius: 10px;
-		border: 1px solid #e0e0e0;
-	}
-
-	.file-uploader .uploader-header {
-		display: flex;
-		padding: 16px 20px;
-		background: linear-gradient(135deg, #f5f7ff 0%, #e8ebff 100%);
-		justify-content: space-between;
-		border-radius: 10px 10px 0 0;
-		align-items: center;
-	}
-
-	.uploader-header .uploader-title {
-		font-size: 1rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		color: #2c2c54;
-	}
-
-	.uploader-header .file-completed-status {
-		font-size: 0.9rem;
-		font-weight: 500;
-		color: #555;
-	}
-
-	.file-uploader .file-list {
-		list-style: none;
-		width: 100%;
-		padding-bottom: 8px;
-		max-height: 300px;
-		overflow-y: auto;
-		scrollbar-color: #999 transparent;
-		scrollbar-width: thin;
-	}
-
-	.file-uploader .file-list:has(li) {
-		padding: 16px 20px;
-	}
-
-	.file-list .file-item {
-		display: flex;
-		gap: 12px;
-		margin-bottom: 16px;
-	}
-
-	.file-list .file-item .file-extension {
-		height: 42px;
-		width: 42px;
-		color: #fff;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 10px;
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-		font-size: 0.75rem;
-	}
-
-	.file-list .file-item .file-content-wrapper {
-		flex: 1;
-	}
-
-	.file-list .file-item .file-content {
-		display: flex;
-		width: 100%;
-		justify-content: space-between;
-	}
-
-	.file-list .file-item .file-name {
-		font-size: 0.9rem;
-		font-weight: 600;
-	}
-
-	.file-list .file-item .file-info {
-		display: flex;
-		gap: 5px;
-	}
-
-	.file-list .file-item .file-info small {
-		color: #777;
-		margin-top: 3px;
-		display: block;
-		font-size: 0.8rem;
-	}
-
-	.file-list .file-item .file-info .file-status {
-		color: #667eea;
-	}
-
-	.file-list .file-item .cancel-button {
-		align-self: center;
-		border: none;
-		outline: none;
-		background: none;
-		cursor: pointer;
-		font-size: 1.2rem;
-	}
-
-	.file-list .file-item .cancel-button:hover {
-		color: #e3413f;
-	}
-
-	.file-list .file-item .file-progress-bar {
-		width: 100%;
-		height: 3px;
-		margin-top: 8px;
-		border-radius: 30px;
-		background-color: #e8e8e8;
-	}
-
-	.file-list .file-item .file-progress-bar .file-progress {
-		width: 0%;
-		height: inherit;
-		border-radius: inherit;
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	}
-
-	.file-uploader .file-upload-box {
-		margin: 8px 20px 20px;
-		border-radius: 8px;
-		min-height: 80px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		border: 2px dashed #c4b9f0;
-		transition: all 0.2s ease;
-	}
-
-	.file-uploader .file-upload-box.active {
-		border: 2px solid #667eea;
-		background-color: #f3f6ff;
-	}
-
-	.file-uploader .file-upload-box .box-title {
-		font-size: 0.95rem;
-		font-weight: 500;
-		color: #777;
-	}
-
-	.file-upload-box .box-title .file-browse-button {
-		color: #667eea;
-		cursor: pointer;
-	}
-
-	.file-upload-box .box-title .file-browse-button:hover {
-		text-decoration: underline;
-	}
-
-	/* Gallery section */
-	#folder-gallery-container {
-		margin-top: 8px;
-	}
-</style>
-
 <div id="folder-detail-page">
-	<div class="detail-header">
-		<div class="detail-header__left">
-			<a href="/Folder" class="detail-header__back" title="Quay lại">
-				<i class="fa-solid fa-arrow-left"></i>
-			</a>
-			<h2 class="detail-header__title">
-				<i class="fa-solid fa-folder-open me-2" style="color:#667eea"></i>@ViewBag.FolderName
-			</h2>
-		</div>
-	</div>
+    <div class="detail-header">
+        <div class="detail-header__left">
+            <a href="/Folder" class="detail-header__back" title="Quay lại">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="detail-header__title">
+                <i class="fa-solid fa-folder-open"></i>@ViewBag.FolderName
+            </h2>
+        </div>
+    </div>
 
-	<div class="detail-section-title">
-		<i class="fa-solid fa-cloud-arrow-up"></i> Upload ảnh
-	</div>
-	<div id="folder-uploader-container"></div>
+    <div class="detail-section-title">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Upload ảnh
+    </div>
+    <div id="folder-uploader-container"></div>
 
-	<div class="detail-section-title">
-		<i class="fa-solid fa-images"></i> Thư viện ảnh
-	</div>
-	<div id="folder-gallery-container"></div>
+    <div class="detail-section-title">
+        <i class="fa-solid fa-images"></i> Thư viện ảnh
+    </div>
+    <div id="folder-gallery-container"></div>
 </div>
 
 <script>
-	$(function () {
-		new App.FolderDetailPage("#folder-detail-page", {
-			folderId: "@ViewBag.FolderId"
-		});
-	});
+    $(function () {
+        new App.FolderDetailPage("#folder-detail-page", {
+            folderId: "@ViewBag.FolderId"
+        });
+    });
 </script>

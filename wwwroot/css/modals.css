@@ -1,0 +1,76 @@
+/* ============================================================
+   Modals - Skydash Style
+   ============================================================ */
+
+.modal-content {
+    border: none;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    font-family: var(--font-family);
+    overflow: hidden;
+}
+
+.modal-header {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-title {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-heading);
+}
+
+.modal-header .btn-close {
+    width: 28px;
+    height: 28px;
+    background-color: var(--color-primary-bg);
+    border-radius: 50%;
+    opacity: 1;
+    transition: all var(--transition-fast);
+    background-size: 10px;
+}
+
+.modal-header .btn-close:hover {
+    background-color: var(--color-danger-bg);
+    filter: invert(0) sepia(1) saturate(5) hue-rotate(330deg);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    color: var(--color-text);
+    font-size: 0.875rem;
+}
+
+.modal-footer {
+    background-color: var(--color-surface);
+    border-top: 1px solid var(--color-border-light);
+    padding: 1rem 1.5rem;
+    gap: 0.5rem;
+}
+
+/* ─── Backdrop ──────────────────────────────────────────── */
+.modal-backdrop.show {
+    opacity: 0.4;
+}
+
+/* ─── Message Modal (ManageLife specific) ───────────────── */
+#messageModal .modal-header.bg-success,
+#messageModal .modal-header.bg-danger,
+#messageModal .modal-header.bg-warning {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+#messageModal .modal-header.bg-success {
+    background-color: var(--color-success) !important;
+}
+
+#messageModal .modal-header.bg-danger {
+    background-color: var(--color-danger) !important;
+}
+
+#messageModal .modal-header.bg-warning {
+    background-color: var(--color-warning) !important;
+    color: #212529 !important;
+}

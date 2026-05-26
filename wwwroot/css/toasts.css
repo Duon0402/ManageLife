@@ -1,0 +1,115 @@
+/* ============================================================
+   Toast Notifications - Skydash Style
+   ============================================================ */
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+}
+
+/* ─── Legacy fadeIn/Out kept for backwards compat ───────── */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* ─── Toast Container ───────────────────────────────────── */
+.toast-container {
+    z-index: 1090;
+}
+
+/* ─── Toast Base ────────────────────────────────────────── */
+.toast {
+    font-family: var(--font-family);
+    font-size: 0.875rem;
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    animation: toastSlideIn 0.35s ease, toastSlideOut 0.35s ease 3s forwards;
+    min-width: 280px;
+    overflow: hidden;
+}
+
+.toast-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 0.75rem 1rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-heading);
+}
+
+.toast-body {
+    padding: 0.85rem 1rem;
+    color: var(--color-text);
+}
+
+/* ─── Toast Color Variants ──────────────────────────────── */
+.toast.bg-success .toast-header {
+    color: var(--color-success);
+}
+
+.toast.bg-danger .toast-header {
+    color: var(--color-danger);
+}
+
+.toast.bg-warning .toast-header {
+    color: #8a6700;
+}
+
+.toast.bg-info .toast-header {
+    color: var(--color-info);
+}
+
+.toast.bg-success {
+    background-color: var(--color-success-bg) !important;
+}
+
+.toast.bg-danger {
+    background-color: var(--color-danger-bg) !important;
+}
+
+.toast.bg-warning {
+    background-color: var(--color-warning-bg) !important;
+}
+
+.toast.bg-info {
+    background-color: var(--color-info-bg) !important;
+}
