@@ -1,5 +1,5 @@
-﻿using ManageLife.Base;
-using ManageLife.Commons;
+﻿using ManageLife.Commons;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.ViewModels;

@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.ViewModels;
@@ -18,11 +18,11 @@ namespace ManageLife.Controllers.Admin
             _languageService = languageService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken ct = default)
         {
             var viewModel = new TranslationViewModel();
 
-            var rs = await _languageService.GetListLanguagesAsync();
+            var rs = await _languageService.GetListLanguagesAsync(ct);
             if (rs.IsOk() && rs.Data.IsNotEmpty())
             {
                 viewModel.Languages = rs.Data.Select(x => new KeyValueModel(x.Id, x.Name)).ToList();
