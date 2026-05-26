@@ -33,8 +33,6 @@
                     onClick: () => console.log("Delete")
                 })
                 .setOptions({
-                    scrollY: 'calc(100vh - 395px)',
-                    scrollCollapse: true,
                     paging: false,
                     info: false,
                     ordering: true,

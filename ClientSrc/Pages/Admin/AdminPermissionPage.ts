@@ -35,8 +35,6 @@ namespace App {
 
         private initGrids(): void {
             const commonOptions = {
-                scrollY: 'calc(100vh - 395px)',
-                scrollCollapse: true,
                 paging: false,
                 info: false,
                 ordering: false,

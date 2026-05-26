@@ -5,6 +5,7 @@ namespace App {
         bodyHtml: string;
         footerHtml?: string;
         size?: 'sm' | 'md' | 'lg' | 'xl';
+        scrollable?: boolean;
         onShow?: (popupBody: JQuery<HTMLElement>) => void;
         onHidden?: () => void;
     }
@@ -13,7 +14,7 @@ namespace App {
         private options: IPopupOptions;
         private popupId: string;
         private $popupElement: JQuery<HTMLElement>;
-        private bootstrapModal: any; // Using any for bootstrap global
+        private bootstrapModal: any;
 
         constructor(options: IPopupOptions) {
             this.options = options;
@@ -23,9 +24,11 @@ namespace App {
 
         private generateHtml(): JQuery<HTMLElement> {
             const sizeClass = this.options.size ? `modal-${this.options.size}` : '';
+            const scrollClass = this.options.scrollable ? 'modal-dialog-scrollable' : '';
+
             const html = `
-                <div class="modal fade" id="${this.popupId}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered ${sizeClass}">
+                <div class="modal fade ml-popup" id="${this.popupId}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered ${sizeClass} ${scrollClass}">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title">${this.options.title}</h5>
@@ -80,6 +83,11 @@ namespace App {
             return this;
         }
 
+        public setTitle(title: string): this {
+            this.$popupElement.find('.modal-title').text(title);
+            return this;
+        }
+
         public destroy(): void {
             if (this.bootstrapModal) {
                 this.bootstrapModal.dispose();
@@ -89,6 +97,10 @@ namespace App {
 
         public getPopupBody(): JQuery<HTMLElement> {
             return this.$popupElement.find('.modal-body');
+        }
+
+        public getElement(): JQuery<HTMLElement> {
+            return this.$popupElement;
         }
     }
 }
