@@ -1,17 +1,3 @@
-<<<<<<< Updated upstream
-﻿/* ============================================================
-   Grid Table - DataGrid Layout Specific Styles
-   ============================================================ */
-
-/* Hide DataTables built-in search label (search is custom-handled) */
-.dt-search label,
-[id$="_wrapper"] .dt-search label {
-    display: none;
-}
-
-.grid-container table.dataTable th,
-.grid-container table.dataTable td {
-=======
 /* ===========================
    GRID / DATA TABLE
    Bootstrap 5 DataTables + SkyDash theme
@@ -160,7 +146,6 @@
     display: inline-flex !important;
     align-items: center !important;
     gap: 0.35rem !important;
->>>>>>> Stashed changes
     white-space: nowrap;
 }
 
@@ -189,58 +174,6 @@
     white-space: nowrap;
 }
 
-<<<<<<< Updated upstream
-.grid-container table.dataTable thead th[title] {
-    cursor: help;
-}
-
-/* ─── Admin DataGrid Layout Container ───────────────────── */
-#admin-layout-container {
-    display: flex;
-    flex-direction: column;
-    min-height: calc(100% - 40px);
-    gap: 0.75rem;
-}
-
-/* Toolbar card at top */
-#admin-layout-container .tooltip-container {
-    background-color: var(--color-surface);
-    border-radius: var(--radius-xl) !important;
-    box-shadow: var(--shadow-sm);
-    border: none !important;
-    padding: 0.5rem 1rem;
-    min-height: 56px;
-    display: flex;
-    align-items: center;
-}
-
-/* Title in toolbar */
-#admin-layout-container .tooltip-item-start .text-uppercase {
-    font-size: 0.8125rem;
-    font-weight: var(--font-weight-bold);
-    letter-spacing: 0.05em;
-    color: var(--color-heading);
-}
-
-/* Form filter card */
-#admin-layout-container .form-container {
-    border-radius: var(--radius-xl) !important;
-    box-shadow: var(--shadow-sm);
-    border: none !important;
-}
-
-/* Main grid card */
-#admin-layout-container .grid-container {
-    border-radius: var(--radius-xl) !important;
-    box-shadow: var(--shadow-sm);
-    border: none !important;
-    flex: 1;
-}
-
-#admin-layout-container .grid-container .card-body {
-    padding: 0;
-}
-=======
 .grid-container table.dataTable > thead > tr > th:last-child,
 .grid-container table.dataTable > thead > tr > td:last-child {
     border-right: none !important;
@@ -352,4 +285,3 @@
 .grid-container .dt-scroll-body {
     border-bottom: none !important;
 }
->>>>>>> Stashed changes
