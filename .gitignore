@@ -363,3 +363,7 @@ MigrationBackup/
 FodyWeavers.xsd
 /wwwroot/js/app.js
 /wwwroot/js/app.js.map
+
+# Production secrets - deploy manually via file manager
+appsettings.Production.json
+dataprotection-keys/
