@@ -79,6 +79,8 @@ namespace App {
         autoWidth?: boolean;
         /** Scroll Y height */
         scrollY?: string;
+        /** Scroll X (horizontal) */
+        scrollX?: boolean;
         /** Scroll collapse */
         scrollCollapse?: boolean;
         /** Responsive mode */

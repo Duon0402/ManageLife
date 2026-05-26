@@ -54,12 +54,51 @@
 /* ===== TABLE ROW — fills remaining height ===== */
 .grid-container .dt-layout-table {
     flex: 1;
-    overflow: auto;
+    overflow: hidden;
     min-height: 0;
 }
 
+/* Cell fills the row via align-items:stretch, becomes flex column for .dt-scroll */
 .grid-container .dt-layout-table .dt-layout-cell {
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ===== scrollX scroll containers (.dt-scroll created by DataTables) ===== */
+.grid-container .dt-scroll {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.grid-container .dt-scroll-head {
+    flex-shrink: 0;
+    overflow: hidden !important;
+}
+
+.grid-container .dt-scroll-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: #d0d3e0 transparent;
+}
+
+.grid-container .dt-scroll-body::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.grid-container .dt-scroll-body::-webkit-scrollbar-thumb {
+    background: #d0d3e0;
+    border-radius: 4px;
+}
+
+.grid-container .dt-scroll-body::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 /* ===== FOOTER ROW: info + paging ===== */
@@ -293,7 +332,8 @@
 
 /* ===== PERMISSION PAGE — two-panel layout ===== */
 .permission-wrap {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
 }
 

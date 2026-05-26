@@ -14,6 +14,7 @@ namespace App {
             ordering: false,
             searching: true,
             autoWidth: true,
+            scrollX: true,
             destroy: true
         };
         private dataSource: IGridDataSource<T> | null = null;

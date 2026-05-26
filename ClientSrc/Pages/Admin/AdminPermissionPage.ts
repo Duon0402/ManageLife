@@ -43,6 +43,7 @@ namespace App {
             const commonOptions = {
                 rowId: 'id',
                 dom: 't',
+                scrollX: true,
                 columnDefs: [
                     {
                         orderable: false,
