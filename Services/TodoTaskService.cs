@@ -1,10 +1,9 @@
 ﻿using LinqKit;
-using ManageLife.Base;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
-using ManageLife.Interfaces.Services;
 using ManageLife.Models;
 
 namespace ManageLife.Services
@@ -18,7 +17,7 @@ namespace ManageLife.Services
             _repo = repo;
         }
 
-        public async Task<Result> CreateTodoTask(CreateTodoTaskRequest request)
+        public async Task<Result> CreateTodoTask(CreateTodoTaskRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -48,7 +47,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteTodoTask(DeleteTodoTaskRequest request)
+        public async Task<Result> DeleteTodoTask(DeleteTodoTaskRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -83,7 +82,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<TodoTaskModel>>> GetListTodoTasks(GetListTodoTasksRequest request)
+        public async Task<Result<List<TodoTaskModel>>> GetListTodoTasks(GetListTodoTasksRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -98,7 +97,7 @@ namespace ManageLife.Services
                 var predicate = PredicateBuilder.New<TodoTaskEntity>(x => x.IsDeleted == false);
                 if (request.TodoListId.IsNotEmpty())
                 {
-                    predicate.And(x => x.TodoListId == request.TodoListId);
+                    predicate = predicate.And(x => x.TodoListId == request.TodoListId);
                 }
                 if (request.FromDate.HasValue && request.FromDate != DateTime.MinValue)
                 {
@@ -129,7 +128,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<TodoTaskModel>> GetTodoTaskById(GetTodoTaskByIdRequest request)
+        public async Task<Result<TodoTaskModel>> GetTodoTaskById(GetTodoTaskByIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -158,7 +157,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> UpdateTodoTask(UpdateTodoTaskRequest request)
+        public async Task<Result> UpdateTodoTask(UpdateTodoTaskRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -171,8 +170,13 @@ namespace ManageLife.Services
                 }
 
                 var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id);
-                //TODO: Hoàn thiện nốt phần UpdateTodoTask
-                return Result.Ok();
+                if (entity == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                throw new NotImplementedException("UpdateTodoTask chưa được implement.");
             }
             catch (Exception ex)
             {

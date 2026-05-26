@@ -1,6 +1,5 @@
 ﻿using ManageLife.Contexts;
 using ManageLife.Interfaces;
-using ManageLife.Interfaces.Services;
 using ManageLife.Services;
 
 namespace ManageLife.Extensions
@@ -11,6 +10,7 @@ namespace ManageLife.Extensions
         {
             services.AddScoped<IUserTelegramConnectionService, UserTelegramConnectionService>();
             services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IUserContext, UserContext>();
             services.AddScoped<ITranslationContext, TranslationContext>();
             services.AddScoped<ILanguageContext, LanguageContext>();
             services.AddScoped<IExceptionItemService, ExceptionItemService>();
@@ -30,6 +30,10 @@ namespace ManageLife.Extensions
             services.AddScoped<ICronJobService, CronJobService>();
             services.AddScoped<ITelegramFileService, TelegramFileService>();
             services.AddSingleton<ITelegramUploadQueue, TelegramUploadQueue>();
+            services.AddScoped<IFolderService, FolderService>();
+            services.AddScoped<IChatService, ChatService>();
+            services.AddSingleton<YtDlpManager>();
+            services.AddScoped<IVideoDownloaderService, VideoDownloaderService>();
             return services;
         }
     }

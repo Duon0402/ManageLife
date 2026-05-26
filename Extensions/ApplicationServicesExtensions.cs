@@ -1,13 +1,22 @@
-﻿using ManageLife.Base;
+﻿using AutoMapper;
+using ManageLife.ApiClients;
+using ManageLife.Core;
 using ManageLife.Data;
 using ManageLife.Helpers;
+using ManageLife.Interfaces;
+using ManageLife.Services;
+using ManageLife.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using StackExchange.Redis;
+using System.Net.Http.Headers;
 using System.Text;
+using Telegram.Bot;
 
 namespace ManageLife.Extensions
 {
@@ -18,14 +27,36 @@ namespace ManageLife.Extensions
             // Set EPPlus license 1 lần
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
+            services.AddApplicationSettings(config);
             services.AddApplicationCustomServices();
             services.AddRepositories();
+
+            // DataProtection: lưu key ra file để key sống qua app restart (tránh user bị logout)
+            var dpKeysPath = Path.Combine(AppContext.BaseDirectory, "dataprotection-keys");
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(dpKeysPath))
+                .SetApplicationName("ManageLife");
             services.AddHttpContextAccessor();
             services.AddScoped<IMenuRegister, MenuRegister>();
             services.AddHttpClient();
 
+            services.AddSingleton<TelegramBotClient>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<TelegramSettings>>().Value;
+                return new TelegramBotClient(settings.BotToken
+                    ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured."));
+            });
+
+            services.AddHttpClient<CronJobApiClient>((sp, client) =>
+            {
+                var settings = sp.GetRequiredService<IOptions<CronJobSettings>>().Value;
+                client.BaseAddress = new Uri(settings.BaseUrl);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+                    settings.ApiKey ?? throw new InvalidOperationException("CronJob:ApiKey is not configured."));
+            });
+
             #region JWT Authentication
-            var key = Encoding.UTF8.GetBytes(config["Jwt:Key"]!);
+            var jwt = config.GetSection(JwtSettings.Section).Get<JwtSettings>()!;
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -47,9 +78,9 @@ namespace ManageLife.Extensions
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = config["Jwt:Issuer"],
-                        ValidAudience = config["Jwt:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidIssuer = jwt.Issuer,
+                        ValidAudience = jwt.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
                         ClockSkew = TimeSpan.Zero
                     };
                 });
@@ -57,8 +88,8 @@ namespace ManageLife.Extensions
             services.AddAuthorization();
             #endregion
 
-            #region AddAutoMapper
-            services.AddAutoMapper(typeof(AutoMapperProfiles));
+            #region AutoMapper
+            services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapperProfiles>());
             #endregion
 
             #region AddDbContext
@@ -82,11 +113,12 @@ namespace ManageLife.Extensions
             #endregion
 
             #region Redis
+            var redisSettings = config.GetSection(RedisSettings.Section).Get<RedisSettings>()!;
             var redisConfig = new ConfigurationOptions
             {
-                EndPoints = { config["Redis:EndPoints"]! },
-                User = config["Redis:User"] ?? "default",
-                Password = config["Redis:Password"] ?? "",
+                EndPoints = { redisSettings.EndPoints },
+                User = redisSettings.User,
+                Password = redisSettings.Password,
             };
 
             var redis = ConnectionMultiplexer.Connect(redisConfig);
@@ -94,7 +126,7 @@ namespace ManageLife.Extensions
             #endregion
 
             #region SeriLog
-            services.AddScoped(typeof(IAppLogger<>), typeof(AppLogger<>));
+            services.AddSingleton(typeof(IAppLogger<>), typeof(AppLogger<>));
             #endregion
 
             #region Unit of Work 
@@ -102,6 +134,12 @@ namespace ManageLife.Extensions
             #endregion
 
             return services;
+        }
+
+        public static WebApplication UseMapperBase(this WebApplication app)
+        {
+            MapperBase.Configure(app.Services.GetRequiredService<IMapper>());
+            return app;
         }
     }
 

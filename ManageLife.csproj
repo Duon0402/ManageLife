@@ -1,40 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>a6c96763-0f47-4038-a99b-adee52e77449</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Clients\Core\Commons\**" />
-	  <Content Remove="Clients\Core\Commons\**" />
-	  <EmbeddedResource Remove="Clients\Core\Commons\**" />
-	  <None Remove="Clients\Core\Commons\**" />
-	  <TypeScriptCompile Remove="Clients\Core\Commons\**" />
-	  <TypeScriptCompile Remove="node_modules\**" />
+		<Content Update="appsettings.Production.json">
+			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AutoMapper" Version="13.0.1" />
-		<PackageReference Include="EPPlus" Version="6.2.19" />
-		<PackageReference Include="Hangfire.MySqlStorage" Version="2.0.3" />
-		<PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="6.1.7" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.36" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.36" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.36">
+		<Compile Remove="ClientSrc\Core\Commons\**" />
+		<Content Remove="ClientSrc\Core\Commons\**" />
+		<EmbeddedResource Remove="ClientSrc\Core\Commons\**" />
+		<None Remove="ClientSrc\Core\Commons\**" />
+		<TypeScriptCompile Remove="ClientSrc\Core\Commons\**" />
+		<TypeScriptCompile Remove="node_modules\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="16.1.1" />
+		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+		<PackageReference Include="EPPlus" Version="7.0.0" />
+		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+		<PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="8.1.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.13">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.36">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.13">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.9.3">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.3" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
 		<PackageReference Include="QRCoder" Version="1.7.0" />
 		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
 		<PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
@@ -46,11 +54,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Clients\Commons\" />
-		<Folder Include="Clients\Core\Popup\" />
-		<Folder Include="Clients\Services\" />
-		<Folder Include="Middlewares\" />
-		<Folder Include="Migrations\" />
+		<Folder Include="ClientSrc\Commons\" />
+		<Folder Include="ClientSrc\Core\Gallary\" />
+		<Folder Include="ClientSrc\Core\Popup\" />
+		<Folder Include="ClientSrc\Services\" />
+		<Folder Include="Middleware\" />
+		<Folder Include="Data\Migrations\" />
 	</ItemGroup>
 
 	<Target Name="CompileTypeScript" BeforeTargets="Build">

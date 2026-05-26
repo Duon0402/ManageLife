@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 
@@ -13,44 +13,37 @@ namespace ManageLife.Services
             _repo = repo;
         }
 
-        public Task<Result> CreateSettingAsync(CreateSettingRequest request)
+        public Task<Result> CreateSettingAsync(CreateSettingRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Result> DeleteSettingAsync(DeleteSettingRequest request)
+        public Task<Result> DeleteSettingAsync(DeleteSettingRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Result<List<SettingModel>>> GetListSettingsAsync(GetListSettingsRequest request)
+        public Task<Result<List<SettingModel>>> GetListSettingsAsync(GetListSettingsRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Result<SettingModel>> GetSettingByIdAsync(GetSettingByIdRequest request)
+        public Task<Result<SettingModel>> GetSettingByIdAsync(GetSettingByIdRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Result<SettingModel>> GetSettingByKeyAsync(GetSettingByKeyRequest request)
+        public Task<Result<SettingModel>> GetSettingByKeyAsync(GetSettingByKeyRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public async Task RegisterSettingsAsync(List<SettingModel> settings)
+        public async Task RegisterSettingsAsync(List<SettingModel> settings, CancellationToken ct = default)
         {
-            try
-            {
-                await Task.CompletedTask;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            await Task.CompletedTask;
         }
 
-        public Task<Result> UpdateSettingAsync(UpdateSettingRequest request)
+        public Task<Result> UpdateSettingAsync(UpdateSettingRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }

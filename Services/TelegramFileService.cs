@@ -1,14 +1,15 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.Settings;
+using Microsoft.Extensions.Options;
 using Telegram.Bot;
 
 namespace ManageLife.Services
 {
     public class TelegramFileService : ITelegramFileService
     {
-        private readonly IConfiguration _config;
         private readonly string _botToken;
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
@@ -17,23 +18,22 @@ namespace ManageLife.Services
         private readonly ITelegramUploadQueue _queue;
         private readonly string _tempFolder = "temp";
 
-        public TelegramFileService(IFileRepository repo, IConfiguration config, IAppLogger<TelegramFileService> logger, ITelegramUploadQueue queue)
+        public TelegramFileService(IFileRepository repo, IOptions<TelegramSettings> options, IAppLogger<TelegramFileService> logger, ITelegramUploadQueue queue, TelegramBotClient botClient)
         {
-            _config = config;
+            var settings = options.Value;
             _repo = repo;
             _logger = logger;
             _queue = queue;
-            _botToken = _config["TelegramSettings:BotToken"]
-                ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured.");
-            _chatId = _config["TelegramSettings:ChatIdFileStorage"]
-                ?? throw new InvalidOperationException("TelegramSettings:ChatIdFileStorage is not configured.");
-            _botClient = new TelegramBotClient(_botToken);
+            _botClient = botClient;
+            _botToken = settings.BotToken ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured.");
+            _chatId = settings.ChatIdFileStorage ?? throw new InvalidOperationException("TelegramSettings:ChatIdFileStorage is not configured.");
             Directory.CreateDirectory(_tempFolder);
         }
 
-        public async Task<Result<FileModel>> SaveTempFileAsync(IFormFile file, string? caption = null)
+        public async Task<Result<FileModel>> SaveTempFileAsync(IFormFile file, string? caption = null, CancellationToken ct = default)
         {
             string msg;
+            bool b;
             string? tempPath = null;
             try
             {
@@ -43,9 +43,52 @@ namespace ManageLife.Services
                     _logger.Debug(msg);
                     return Result.Error<FileModel>(Result.DATA_INVALID.Code, msg);
                 }
-                var id = IdHeper.NewId();
+                var id = IdHelper.NewId();
                 var extension = Path.GetExtension(file.FileName);
+
+                var model = new FileModel
+                {
+                    Id = id,
+                    FileName = file.FileName,
+                    FileType = file.ContentType,
+                    FileSize = file.Length,
+                    Extension = extension,
+                    Status = UploadStatus.Pending,
+                };
+
+                var entity = model.MapTo<FileEntity>();
+
+                // Fast path for files < 5MB: Upload directly from memory
+                if (file.Length < 5 * 1024 * 1024)
+                {
+                    _logger.Info($"Direct memory upload for small file: {file.FileName} ({(file.Length / 1024.0 / 1024.0):F2} MB)");
+                    entity.Status = UploadStatus.Uploading;
+                    b = await _repo.InsertAsync(entity);
+                    if (!b) return Result.Error<FileModel>(Result.DATA_NOT_CREATE.Code, "Could not save initial DB state");
+
+                    using var ms = new MemoryStream();
+                    await file.CopyToAsync(ms);
+                    ms.Position = 0;
+
+                    var input = new Telegram.Bot.Types.InputFileStream(ms, file.FileName);
+                    var message = await _botClient.SendDocument(chatId: _chatId!, document: input, caption: caption);
+                    var telegramFileId = message.Document?.FileId;
+                    if (telegramFileId.IsEmpty()) throw new Exception("Telegram FileId null directly");
+
+                    entity.FileId = telegramFileId;
+                    entity.Status = UploadStatus.Completed;
+                    await _repo.UpdateAsync(entity);
+
+                    model.Status = UploadStatus.Completed;
+                    model.FileId = telegramFileId;
+                    _logger.Info($"Memory upload success: {file.FileName}");
+                    return Result.Ok(model);
+                }
+
+                // Slow path for large files: Save to disk and queue
                 tempPath = Path.Combine(_tempFolder, id + extension);
+                entity.TempPath = tempPath;
+                model.TempPath = tempPath;
 
                 await using var fs = new FileStream(
                     tempPath,
@@ -56,21 +99,9 @@ namespace ManageLife.Services
                     useAsync: true);
 
                 await file.CopyToAsync(fs);
+                fs.Close();
 
-                var model = new FileModel
-                {
-                    Id = id,
-                    FileName = file.FileName,
-                    FileType = file.ContentType,
-                    FileSize = file.Length,
-                    Extension = extension,
-                    TempPath = tempPath,
-                    Status = UploadStatus.Pending,
-                };
-
-                var entity = model.MapTo<FileEntity>();
-                var b = await _repo.InsertAsync(entity);
-
+                b = await _repo.InsertAsync(entity);
                 if (!b)
                 {
                     File.Delete(tempPath);
@@ -93,13 +124,37 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result<string>> GetFileUrlByFileIdAsync(string fileId)
+        public async Task<Result<string>> GetFileUrlByFileIdAsync(string fileId, CancellationToken ct = default)
         {
-            //TODO: Triển khai phần này nếu upload lên tele thì lấy ở tele không thì lấy ở local
-            throw new NotImplementedException();
+            try
+            {
+                var file = await _botClient.GetFile(fileId);
+                if (file == null || string.IsNullOrEmpty(file.FilePath))
+                {
+                    return Result.Error<string>(Result.DATA_NOT_EXISTED.Code, "Could not get file path from Telegram");
+                }
+
+                var url = $"https://api.telegram.org/file/bot{_botToken}/{file.FilePath}";
+                return Result.Ok(url);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Error getting file URL for Telegram FileId: {fileId}");
+                return Result.Exception<string>("Error getting file URL from Telegram", ex);
+            }
         }
 
-        public async Task<Result> UploadToTelegramAsync(string fileId)
+        public async Task<Result<FileEntity>> GetFileEntityAsync(string fileId, CancellationToken ct = default)
+        {
+            var entity = await _repo.GetAsync(fileId);
+            if (entity == null)
+            {
+                return Result.Error<FileEntity>(Result.DATA_NOT_EXISTED.Code, "File not found in database");
+            }
+            return Result.Ok(entity);
+        }
+
+        public async Task<Result> UploadToTelegramAsync(string fileId, CancellationToken ct = default)
         {
             string msg;
             FileEntity? entity = null;
@@ -164,6 +219,27 @@ namespace ManageLife.Services
                 msg = $"Upload fail: {fileId}";
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
+            }
+        }
+        public async Task<Result<Stream>> DownloadFileStreamAsync(string telegramFileId, CancellationToken ct = default)
+        {
+            try
+            {
+                var file = await _botClient.GetFile(telegramFileId);
+                if (file == null || string.IsNullOrEmpty(file.FilePath))
+                {
+                    return Result.Error<Stream>(Result.DATA_NOT_EXISTED.Code, "Could not get file path from Telegram");
+                }
+
+                var ms = new MemoryStream();
+                await _botClient.DownloadFile(file.FilePath, ms);
+                ms.Position = 0;
+                return Result.Ok<Stream>(ms);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Error downloading file stream for {telegramFileId}");
+                return Result.Exception<Stream>("Error downloading file from Telegram", ex);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
@@ -22,7 +22,7 @@ namespace ManageLife.Services
             _repoUser = repoUser;
         }
 
-        public async Task<Result> CreateUserTelegramConnectionAsync(CreateUserTelegramConnectionRequest request)
+        public async Task<Result> CreateUserTelegramConnectionAsync(CreateUserTelegramConnectionRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -62,7 +62,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteUserTelegramConnectionAsync(DeleteUserTelegramConnectionRequest request)
+        public async Task<Result> DeleteUserTelegramConnectionAsync(DeleteUserTelegramConnectionRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -101,7 +101,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<UserTelegramConnectionModel>>> GetListUserTelegramConnectionsAsync()
+        public async Task<Result<List<UserTelegramConnectionModel>>> GetListUserTelegramConnectionsAsync(CancellationToken ct = default)
         {
             string msg;
             try
@@ -118,7 +118,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByChatIdAsync(GetUserTelegramConnectionByChatIdRequest request)
+        public async Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByChatIdAsync(GetUserTelegramConnectionByChatIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -150,7 +150,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByUserIdAsync(GetUserTelegramConnectionByUserIdRequest request)
+        public async Task<Result<UserTelegramConnectionModel>> GetUserTelegramConnectionByUserIdAsync(GetUserTelegramConnectionByUserIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -182,7 +182,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> UpdateUserTelegramConnectionAsync(UpdateUserTelegramConnectionRequest request)
+        public async Task<Result> UpdateUserTelegramConnectionAsync(UpdateUserTelegramConnectionRequest request, CancellationToken ct = default)
         {
             string msg;
             try

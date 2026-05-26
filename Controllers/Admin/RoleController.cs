@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,26 +22,23 @@ namespace ManageLife.Controllers.Admin
 
         [ViewPermission]
         [HttpGet]
-        public async Task<Result<List<RoleModel>>> GetListRoles()
+        public async Task<Result<List<RoleModel>>> GetListRoles(CancellationToken ct)
         {
-            var rs = await _service.GetListRolesAsync();
-            return rs;
+            return await _service.GetListRolesAsync(ct);
         }
 
         [InsertPermission]
         [HttpPost]
-        public async Task<Result> CreateRole([FromBody] CreateRoleRequest request)
+        public async Task<Result> CreateRole([FromBody] CreateRoleRequest request, CancellationToken ct)
         {
-            var rs = await _service.CreateRoleAsync(request);
-            return rs;
+            return await _service.CreateRoleAsync(request, ct);
         }
 
         [DeletePermission]
         [HttpPost]
-        public async Task<Result> DeleteRole([FromBody] DeleteRoleRequest request)
+        public async Task<Result> DeleteRole([FromBody] DeleteRoleRequest request, CancellationToken ct)
         {
-            var rs = await _service.DeleteRoleAsync(request);
-            return rs;
+            return await _service.DeleteRoleAsync(request, ct);
         }
     }
 }

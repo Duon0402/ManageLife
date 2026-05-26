@@ -1,5 +1,5 @@
-﻿using ManageLife.Base;
-using ManageLife.Commons;
+﻿using ManageLife.Commons;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.ViewModels;
@@ -57,17 +57,17 @@ namespace ManageLife.Controllers.Admin
             return View("Index", viewModel);
         }
 
-        [HttpPost]
+        [HttpGet]
         [ViewPermission]
-        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByUserId([FromBody] GetAssignedPermissionsByUserIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByUserId([FromQuery] GetAssignedPermissionsByUserIdRequest request, CancellationToken ct)
         {
             var rs = await _service.GetAssignedPermissionsByUserIdAsync(request);
             return rs;
         }
 
-        [HttpPost]
+        [HttpGet]
         [ViewPermission]
-        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserId([FromBody] GetUnassignedPermissionsByUserIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserId([FromQuery] GetUnassignedPermissionsByUserIdRequest request, CancellationToken ct)
         {
             var rs = await _service.GetUnassignedPermissionsByUserIdAsync(request);
             return rs;
@@ -89,17 +89,17 @@ namespace ManageLife.Controllers.Admin
             return rs;
         }
 
-        [HttpPost]
+        [HttpGet]
         [ViewPermission]
-        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByRoleId([FromBody] GetAssignedPermissionsByRoleIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByRoleId([FromQuery] GetAssignedPermissionsByRoleIdRequest request, CancellationToken ct)
         {
             var rs = await _service.GetAssignedPermissionsByRoleIdAsync(request);
             return rs;
         }
 
-        [HttpPost]
+        [HttpGet]
         [ViewPermission]
-        public async Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleId([FromBody] GetUnAssignedPermissionsByRoleIdRequest request)
+        public async Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleId([FromQuery] GetUnAssignedPermissionsByRoleIdRequest request, CancellationToken ct)
         {
             var rs = await _service.GetUnAssignedPermissionsByRoleIdAsync(request);
             return rs;

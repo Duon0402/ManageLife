@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;

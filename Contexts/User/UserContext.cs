@@ -1,26 +1,25 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 
 namespace ManageLife.Contexts
 {
-    public static class UserContext
+    public class UserContext : IUserContext
     {
-        private static IHttpContextAccessor? _httpContextAccessor;
+        private readonly IHttpContextAccessor _accessor;
 
-        public static void Configure(IHttpContextAccessor httpContextAccessor)
+        public UserContext(IHttpContextAccessor accessor)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _accessor = accessor;
         }
 
-        public static HttpContext? Current => _httpContextAccessor?.HttpContext;
+        private ClaimsPrincipal? User => _accessor.HttpContext?.User;
 
-        public static ClaimsPrincipal? User => Current?.User;
+        public string? GetUserId() => User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        public static string? GetUserId() => User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        public string? GetUserName() => User?.FindFirstValue(ClaimTypes.Name);
 
-        public static string? GetUserName() => User?.FindFirstValue(ClaimTypes.Name);
+        public IEnumerable<string> GetUserRoles()
+            => User?.FindAll(ClaimTypes.Role).Select(c => c.Value) ?? Enumerable.Empty<string>();
 
-        public static IEnumerable<string> GetUserRoles() => User?.FindAll(ClaimTypes.Role).Select(c => c.Value) ?? Enumerable.Empty<string>();
-
-        public static bool HasRole(string role) => User?.IsInRole(role) ?? false;
+        public bool HasRole(string role) => User?.IsInRole(role) ?? false;
     }
 }

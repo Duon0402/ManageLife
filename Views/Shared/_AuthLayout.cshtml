@@ -1,0 +1,9 @@
+@{
+    Layout = RazorPageConst.Layout.RootLayout;
+    this.UseCss(new ResourceLink("~/css/auth-layout.css"));
+}
+@RenderBody()
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}

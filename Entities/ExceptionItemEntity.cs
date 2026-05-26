@@ -1,13 +1,13 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 
 namespace ManageLife.Entities
 {
     public class ExceptionItemEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
     {
-        public string Type { get; set; } = null!;
-        public string Value { get; set; } = null!;
+        public string Type { get; set; } = default!;
+        public string Value { get; set; } = default!;
         public string? Description { get; set; }
-        public string CreatedUser { get; set; } = null!;
+        public string CreatedUser { get; set; } = default!;
         public DateTime CreatedTime { get; set; }
         public string? UpdatedUser { get; set; }
         public DateTime? UpdatedTime { get; set; }

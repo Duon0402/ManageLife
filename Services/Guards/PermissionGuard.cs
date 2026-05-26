@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Interfaces;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -33,44 +33,46 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpPost]
-        public async Task<Result> Register([FromBody] RegisterAccountRequest model)
+        public async Task<Result> Register([FromBody] RegisterAccountRequest model, CancellationToken ct)
         {
-            var rs = await _userService.RegisterAsync(model);
-            return rs;
+            return await _userService.RegisterAsync(model, ct);
         }
 
         [HttpPost]
-        public async Task<Result> Login([FromBody] LoginAccountRequest model)
+        public async Task<Result> Login([FromBody] LoginAccountRequest model, CancellationToken ct)
         {
-            var rs = await _userService.LoginAsync(model);
-            return rs;
-        }
-
-        [Authorize]
-        [HttpPost]
-        public async Task<Result> RefreshToken()
-        {
-            var refreshToken = Request.Cookies["refreshToken"];
-            var rs = await _tokenService.RefreshTokenAsync(refreshToken);
-            return rs;
+            return await _userService.LoginAsync(model, ct);
         }
 
         [Authorize]
         [HttpPost]
-        public async Task<Result> Logout()
+        public async Task<Result> RefreshToken(CancellationToken ct)
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var rs = await _userService.LogoutAsync(refreshToken);
-            return rs;
+            return await _tokenService.RefreshTokenAsync(refreshToken, ct);
         }
 
         [Authorize]
         [HttpPost]
-        public async Task<Result> ChangePassword([FromBody] ChangePasswordRequest request)
+        public async Task<Result> Logout(CancellationToken ct)
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var rs = await _userService.ChangePasswordAsync(request, refreshToken);
-            return rs;
+            return await _userService.LogoutAsync(refreshToken, ct);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View("ChangePassword");
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<Result> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            return await _userService.ChangePasswordAsync(request, refreshToken, ct);
         }
     }
 }

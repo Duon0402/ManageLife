@@ -1,4 +1,5 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Contexts;
+using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 
@@ -6,7 +7,7 @@ namespace ManageLife.Repositories
 {
     public class FileRepository : RepositoryBase<FileEntity>, IFileRepository
     {
-        public FileRepository(IUnitOfWork uow) : base(uow)
+        public FileRepository(IUnitOfWork uow, IUserContext userContext) : base(uow, userContext)
         {
         }
     }

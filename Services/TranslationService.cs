@@ -1,5 +1,5 @@
 ﻿using LinqKit;
-using ManageLife.Base;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Extensions;
@@ -25,7 +25,7 @@ namespace ManageLife.Services
             _uow = uow;
         }
 
-        public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request)
+        public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -75,7 +75,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request)
+        public async Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -92,10 +92,17 @@ namespace ManageLife.Services
                     return Result.DATA_NOT_EXISTED;
                 }
 
+                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == entity.LanguageId);
+
                 b = await _repo.DeleteAsync(entity);
                 if (!b)
                 {
                     return Result.DATA_NOT_DELETE;
+                }
+
+                if (language != null)
+                {
+                    await _cache.RemoveAsync(CacheSettings.Translations(language.Code));
                 }
 
                 return Result.Ok();
@@ -107,7 +114,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request)
+        public async Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -126,9 +133,18 @@ namespace ManageLife.Services
 
                 if (dictionary.IsEmpty())
                 {
-                    dictionary = await _repo.Query().Include(t => t.Language)
-                        .Where(l => l.Language != null && l.Language.Code == request.LanguageCode)
-                        .ToDictionaryAsync(t => t.Key, t => t.Value);
+                    var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                    if (language != null)
+                    {
+                        var list = await _repo.Query(true)
+                            .Where(t => t.LanguageId == language.Id)
+                            .ToListAsync();
+                        dictionary = list.ToDictionary(t => t.Key, t => t.Value);
+                    }
+                    else
+                    {
+                        dictionary = new Dictionary<string, string>();
+                    }
 
                     if (dictionary.IsNotEmpty())
                     {
@@ -145,7 +161,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<TranslationModel>>> GetListTranslationsAsync(GetListTranslationsRequest request)
+        public async Task<Result<List<TranslationModel>>> GetListTranslationsAsync(GetListTranslationsRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -156,10 +172,18 @@ namespace ManageLife.Services
 
                 if (request?.LanguageCode.IsNotEmpty() == true)
                 {
-                    predicate = predicate.And(x => x.Language != null && x.Language.Code == request.LanguageCode);
+                    var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                    if (language != null)
+                    {
+                        predicate = predicate.And(x => x.LanguageId == language.Id);
+                    }
+                    else
+                    {
+                        return Result.Ok(new List<TranslationModel>());
+                    }
                 }
 
-                var entities = await _repo.Query(true).Include(x => x.Language).Where(predicate).ToListAsync();
+                var entities = await _repo.Query(true).Where(predicate).ToListAsync();
 
                 if (entities.IsNotEmpty())
                 {
@@ -175,12 +199,12 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request)
+        public Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request)
+        public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request, CancellationToken ct = default)
         {
             string msg;
             try
@@ -191,10 +215,15 @@ namespace ManageLife.Services
                     return Result.Error<TranslationModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.Query()
-                    .Include(l => l.Language)
-                    .Where(x => x.Language!.Code == request.LanguageCode && x.Key == request.Key)
-                    .FirstOrDefaultAsync();
+                var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                if (language == null)
+                {
+                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var entity = await _repo.FirstOrDefaultAsync(
+                    x => x.LanguageId == language.Id && x.Key == request.Key);
 
                 if (entity == null)
                 {
@@ -212,7 +241,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request)
+        public async Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -235,11 +264,13 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var languages = data.Select(x => x.Language);
+                var languagesList = data.Select(x => x.Language).ToList();
 
                 var existingEntities = await _repo.Query()
-                    .Include(x => x.Language)
-                    .Where(x => x.Language != null && (languages.Contains(x.Language.Name) || languages.Contains(x.Language.Code)))
+                    .Join(_languageRepo.Query().Where(l => languagesList.Contains(l.Name) || languagesList.Contains(l.Code)),
+                        t => t.LanguageId,
+                        l => l.Id,
+                        (t, l) => t)
                     .ToListAsync();
 
                 var insertEntities = new List<TranslationEntity>();
@@ -276,7 +307,7 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request)
+        public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }

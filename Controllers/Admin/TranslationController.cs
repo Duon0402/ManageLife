@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.ViewModels;
@@ -18,11 +18,11 @@ namespace ManageLife.Controllers.Admin
             _languageService = languageService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken ct = default)
         {
             var viewModel = new TranslationViewModel();
 
-            var rs = await _languageService.GetListLanguagesAsync();
+            var rs = await _languageService.GetListLanguagesAsync(ct);
             if (rs.IsOk() && rs.Data.IsNotEmpty())
             {
                 viewModel.Languages = rs.Data.Select(x => new KeyValueModel(x.Id, x.Name)).ToList();
@@ -31,17 +31,35 @@ namespace ManageLife.Controllers.Admin
             return View(viewModel);
         }
 
-        [HttpPost]
-        public async Task<Result<List<TranslationModel>>> GetListTranslations([FromBody] GetListTranslationsRequest request)
+        [HttpGet]
+        [ViewPermission]
+        public async Task<Result<List<TranslationModel>>> GetListTranslations([FromQuery] GetListTranslationsRequest request, CancellationToken ct)
         {
             var rs = await _service.GetListTranslationsAsync(request);
             return rs;
         }
 
         [HttpPost]
+        [InsertPermission]
         public async Task<Result> CreateTranslation([FromBody] CreateTranslationRequest request)
         {
             var rs = await _service.CreateTranslationAsync(request);
+            return rs;
+        }
+
+        [HttpPost]
+        [UpdatePermission]
+        public async Task<Result> UpdateTranslation([FromBody] UpdateTranslationRequest request)
+        {
+            var rs = await _service.UpdateTranslationAsync(request);
+            return rs;
+        }
+
+        [HttpPost]
+        [DeletePermission]
+        public async Task<Result> DeleteTranslation([FromBody] DeleteTranslationRequest request)
+        {
+            var rs = await _service.DeleteTranslationAsync(request);
             return rs;
         }
     }

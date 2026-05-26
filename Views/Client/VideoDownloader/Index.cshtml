@@ -1,0 +1,339 @@
+@{
+    ViewData["Title"] = "Video Downloader";
+}
+
+<style>
+    .vdl-page {
+        padding: 1.75rem 2rem;
+        background: #f5f7ff;
+        min-height: calc(100vh - 108px);
+    }
+
+    /* ── Page header ─────────────────── */
+    .vdl-header {
+        margin-bottom: 1.75rem;
+    }
+
+    .vdl-header h1 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c2c54;
+        margin: 0 0 4px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .vdl-header h1 i {
+        color: #4b49ac;
+    }
+
+    .vdl-breadcrumb {
+        font-size: 0.78rem;
+        color: #9ea5b5;
+    }
+
+    .vdl-breadcrumb a {
+        color: #4b49ac;
+        text-decoration: none;
+    }
+
+    .vdl-breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    /* ── Card ────────────────────────── */
+    .vdl-card {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #e8eaf0;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .vdl-card-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: #9ea5b5;
+        margin-bottom: 1rem;
+    }
+
+    /* ── URL Input ───────────────────── */
+    .vdl-search-wrap {
+        display: flex;
+        gap: 0.6rem;
+    }
+
+    .vdl-input {
+        flex: 1;
+        border: 1.5px solid #e8eaf0;
+        border-radius: 8px;
+        padding: 0.65rem 1rem;
+        font-size: 0.875rem;
+        color: #2c2c54;
+        background: #f9f9ff;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .vdl-input:focus {
+        border-color: #4b49ac;
+        box-shadow: 0 0 0 3px rgba(75, 73, 172, 0.12);
+        background: #fff;
+    }
+
+    .vdl-input::placeholder {
+        color: #b5bccc;
+    }
+
+    .vdl-btn-primary {
+        background: #4b49ac;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.65rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .vdl-btn-primary:hover {
+        background: #3d3c8e;
+        box-shadow: 0 4px 14px rgba(75, 73, 172, 0.38);
+    }
+
+    .vdl-supported {
+        margin-top: 0.6rem;
+        font-size: 0.76rem;
+        color: #b5bccc;
+    }
+
+    .vdl-supported b {
+        color: #7978d9;
+        font-weight: 600;
+    }
+
+    /* ── Error ───────────────────────── */
+    .vdl-error {
+        background: #fff5f5;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.84rem;
+        color: #c0392b;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .vdl-error i {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    /* ── Result ──────────────────────── */
+    .vdl-result-inner {
+        display: flex;
+        gap: 1.25rem;
+        align-items: flex-start;
+    }
+
+    .vdl-thumb {
+        width: 110px;
+        height: 148px;
+        object-fit: cover;
+        border-radius: 8px;
+        flex-shrink: 0;
+        background: #f0eeff;
+        border: 1px solid #e8eaf0;
+    }
+
+    .vdl-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .vdl-video-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #2c2c54;
+        margin-bottom: 0.6rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .vdl-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .vdl-meta-item {
+        font-size: 0.8rem;
+        color: #6c7383;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .vdl-meta-item i {
+        color: #7978d9;
+        font-size: 0.75rem;
+    }
+
+    .vdl-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .vdl-btn-dl {
+        background: #4b49ac;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.1rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .vdl-btn-dl:hover {
+        background: #3d3c8e;
+        box-shadow: 0 4px 12px rgba(75, 73, 172, 0.35);
+    }
+
+    .vdl-btn-dl-outline {
+        background: transparent;
+        color: #4b49ac;
+        border: 1.5px solid #d6d5f0;
+        border-radius: 8px;
+        padding: 0.5rem 1.1rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s;
+    }
+
+    .vdl-btn-dl-outline:hover {
+        background: rgba(75, 73, 172, 0.07);
+        border-color: #4b49ac;
+    }
+
+    .vdl-music-badge {
+        margin-top: 0.75rem;
+        background: rgba(75, 73, 172, 0.07);
+        border-radius: 6px;
+        padding: 0.38rem 0.7rem;
+        font-size: 0.76rem;
+        color: #4b49ac;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-weight: 500;
+    }
+
+    .vdl-music-badge i {
+        font-size: 0.7rem;
+    }
+
+    /* ── Responsive ──────────────────── */
+    @@media (max-width: 576px) {
+        .vdl-page { padding: 1rem; }
+        .vdl-search-wrap { flex-direction: column; }
+        .vdl-btn-primary { justify-content: center; }
+        .vdl-result-inner { flex-direction: column; }
+        .vdl-thumb { width: 100%; height: 200px; }
+    }
+</style>
+
+<div class="vdl-page" id="video-downloader-page">
+
+    <!-- Page header -->
+    <div class="vdl-header">
+        <h1><i class="fa-solid fa-download"></i> Video Downloader</h1>
+        <div class="vdl-breadcrumb">
+            <a href="/">Trang chủ</a> / Tiện ích / Video Downloader
+        </div>
+    </div>
+
+    <!-- Search card -->
+    <div class="vdl-card">
+        <div class="vdl-card-title">Nhập link video</div>
+        <div class="vdl-search-wrap">
+            <input type="text" id="video-url-input" class="vdl-input"
+                   placeholder="Dán link TikTok, YouTube, Instagram..." />
+            <button class="vdl-btn-primary btn-get-info">
+                <i class="fa-solid fa-magnifying-glass"></i> Lấy thông tin
+            </button>
+        </div>
+        <div class="vdl-supported">
+            Hỗ trợ: <b>TikTok</b> · <b>YouTube</b> · <b>Instagram</b> · <b>Twitter/X</b> · và nhiều nền tảng khác
+        </div>
+    </div>
+
+    <!-- Error -->
+    <div id="video-error" class="vdl-error d-none">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span></span>
+    </div>
+
+    <!-- Result card -->
+    <div id="video-result" class="vdl-card d-none">
+        <div class="vdl-card-title">Thông tin video</div>
+        <div class="vdl-result-inner">
+            <img id="video-thumbnail" src="" alt="Thumbnail" class="vdl-thumb" />
+            <div class="vdl-info">
+                <div id="video-title" class="vdl-video-title"></div>
+                <div class="vdl-meta">
+                    <div class="vdl-meta-item">
+                        <i class="fa-solid fa-user"></i>
+                        <span id="video-author"></span>
+                    </div>
+                    <div class="vdl-meta-item">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="video-duration"></span>
+                    </div>
+                </div>
+                <div class="vdl-actions">
+                    <button class="vdl-btn-dl btn-download-video">
+                        <i class="fa-solid fa-download"></i> Video (MP4)
+                    </button>
+                    <button class="vdl-btn-dl-outline btn-download-audio d-none">
+                        <i class="fa-solid fa-music"></i> Âm thanh (MP3)
+                    </button>
+                </div>
+                <div id="video-music-title" class="vdl-music-badge d-none">
+                    <i class="fa-solid fa-music"></i>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(function () {
+        new App.VideoDownloaderPage("#video-downloader-page");
+    });
+</script>

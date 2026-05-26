@@ -1,0 +1,14 @@
+﻿using ManageLife.Contexts;
+using ManageLife.Core;
+using ManageLife.Entities;
+using ManageLife.Interfaces;
+
+namespace ManageLife.Repositories
+{
+    public class ChatMessageRepository : RepositoryBase<ChatMessageEntity>, IChatMessageRepository
+    {
+        public ChatMessageRepository(IUnitOfWork uow, IUserContext userContext) : base(uow, userContext)
+        {
+        }
+    }
+}

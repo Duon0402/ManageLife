@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(dotnet run *)",
+      "Read(//c/Users/duong/.nuget/packages/automapper/16.1.1/**)",
+      "Read(//c/Users/duong/.nuget/**)"
+    ]
+  }
+}

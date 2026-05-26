@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+﻿using ManageLife.Core;
 
 namespace ManageLife.Entities
 {
@@ -6,7 +6,6 @@ namespace ManageLife.Entities
     {
         public long ChatId { get; set; } = default!;
         public string UserId { get; set; } = default!;
-        public UserEntity? User { get; set; }
         public string CreatedUser { get; set; } = default!;
         public DateTime CreatedTime { get; set; }
         public string? UpdatedUser { get; set; }

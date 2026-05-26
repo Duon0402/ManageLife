@@ -1,47 +1,87 @@
-﻿@{
+@{
     var currentLanguageCode = LanguageContext.GetCurrentLanguage();
     var currentLanguageName = await LanguageContext.GetCurrentLanguageNameAsync(currentLanguageCode);
+    var displayName = UserContext.GetUserName() ?? "";
+    var currentPath = Context.Request.Path.Value ?? "";
 }
 
-<header class="header d-flex justify-content-between align-items-center px-5" id="client-header">
-    <div class="logo d-flex align-items-center">
-        <a href="/">
-            <h3 class="brand">Manage Life</h3>
-        </a>
-    </div>
+<header class="header" id="client-header">
+    <input type="hidden" id="currentLangCode" value="@currentLanguageCode" />
 
-    <nav class="nav-menu d-flex align-items-center">
-        <ul class="nav">
-            <li class="nav-item">
-                <a class="nav-link px-3" href="/">@T(TranslationKey.Client.Header.Menu.Home)</a>
-            </li>
+    <div class="header__inner">
+        <!-- Logo -->
+        <div class="header__logo">
+            <a href="/">
+                <h3 class="brand">Manage Life</h3>
+            </a>
+        </div>
 
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle px-3" href="#" data-bs-toggle="dropdown">
-                    @T(TranslationKey.Client.Header.Menu.Utility.Title)
-                </a>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="/Utility/EmailDailyReport">
-                            @T(TranslationKey.Client.Header.Menu.Utility.EmailDailyReport)
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </nav>
+        <!-- Hamburger (mobile) -->
+        <button class="header__toggle" id="header-toggle" type="button" aria-label="Toggle menu">
+            <span class="header__toggle-bar"></span>
+            <span class="header__toggle-bar"></span>
+            <span class="header__toggle-bar"></span>
+        </button>
 
-    <div class="language">
-        <div class="dropdown">
-            <button id="currentLangBtn" class="dropdown-toggle btn btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                @currentLanguageName
-            </button>
-            <ul class="dropdown-menu" id="languageMenu"></ul>
+        <!-- Nav -->
+        <nav class="header__nav" id="header-nav">
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link @(currentPath == "/" ? "active" : "")" href="/">
+                        @T(TranslationKey.Client.Header.Menu.Home)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentPath.StartsWith("/Folder") ? "active" : "")" href="/Folder">
+                        Photo Albums
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle @(currentPath.StartsWith("/Utility") || currentPath.StartsWith("/VideoDownloader") ? "active" : "")"
+                       href="#" data-bs-toggle="dropdown">
+                        @T(TranslationKey.Client.Header.Menu.Utility.Title)
+                    </a>
+                    <ul class="dropdown-menu header__dropdown">
+                        <li>
+                            <a class="dropdown-item @(currentPath.StartsWith("/Utility/EmailDailyReport") ? "active" : "")"
+                               href="/Utility/EmailDailyReport">
+                                <i class="fa-solid fa-envelope me-2"></i>
+                                @T(TranslationKey.Client.Header.Menu.Utility.EmailDailyReport)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item @(currentPath.StartsWith("/VideoDownloader") ? "active" : "")"
+                               href="/VideoDownloader">
+                                <i class="fa-solid fa-download me-2"></i>
+                                Video Downloader
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Right: User + Language -->
+        <div class="header__right" id="header-right">
+            @if (displayName.IsNotEmpty())
+            {
+                <div class="header__user">
+                    <i class="fa-solid fa-circle-user"></i>
+                    <span>@displayName</span>
+                </div>
+            }
+            <div class="header__lang">
+                <div class="dropdown">
+                    <button id="currentLangBtn" class="dropdown-toggle btn btn-light btn-sm" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-globe me-1"></i> @currentLanguageName
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" id="languageMenu"></ul>
+                </div>
+            </div>
         </div>
     </div>
 </header>
-
-<input type="hidden" id="currentLangCode" value="@currentLanguageCode" />
 
 <script>
     $(function () {

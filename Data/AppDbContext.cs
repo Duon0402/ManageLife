@@ -28,114 +28,55 @@ namespace ManageLife.Data
         public DbSet<TodoListEntity> TodoLists { get; set; } = default!;
         public DbSet<TodoTaskEntity> TodoTasks { get; set; } = default!;
         public DbSet<UserTelegramConnectionEntity> UserTelegramConnections { get; set; } = default!;
+        public DbSet<FolderEntity> Folders { get; set; } = default!;
+        public DbSet<FolderFileEntity> FolderFiles { get; set; } = default!;
+        public DbSet<ChatMessageEntity> ChatMessages { get; set; } = default!;
+        public DbSet<ChatRoomMemberEntity> ChatRoomMembers { get; set; } = default!;
+        public DbSet<ChatRoomEntity> ChatRooms { get; set; } = default!;
+        public DbSet<ChatRoomUserStateEntity> ChatRoomUserStates { get; set; } = default!;
         #endregion
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(builder);
 
-            #region Language & Translation
-            modelBuilder.Entity<LanguageEntity>()
-                .HasIndex(x => x.Code)
-                .IsUnique();
-
-            modelBuilder.Entity<TranslationEntity>()
-                .HasIndex(x => new { x.Key, x.LanguageId })
-                .IsUnique();
-
-            modelBuilder.Entity<TranslationEntity>()
-                .HasOne(t => t.Language)
-                .WithMany(l => l.Translations)
-                .HasForeignKey(t => t.LanguageId);
-            #endregion
-
-            #region UserRole
-            modelBuilder.Entity<UserRoleEntity>()
-                .HasKey(ur => new { ur.UserId, ur.RoleId });
-
-            modelBuilder.Entity<UserRoleEntity>()
-                .HasOne(ur => ur.User)
-                .WithMany(u => u.UserRoles)
-                .HasForeignKey(ur => ur.UserId);
-
-            modelBuilder.Entity<UserRoleEntity>()
-                .HasOne(ur => ur.Role)
-                .WithMany(r => r.UserRoles)
-                .HasForeignKey(ur => ur.RoleId);
-            #endregion
-
-            #region RolePermission
-            modelBuilder.Entity<RolePermissionEntity>()
+            builder.Entity<RolePermissionEntity>()
                 .HasKey(rp => new { rp.RoleId, rp.PermissionId });
 
-            modelBuilder.Entity<RolePermissionEntity>()
-                .HasOne(rp => rp.Role)
-                .WithMany(r => r.RolePermissions)
-                .HasForeignKey(rp => rp.RoleId);
-
-            modelBuilder.Entity<RolePermissionEntity>()
-                .HasOne(rp => rp.Permission)
-                .WithMany(p => p.RolePermissions)
-                .HasForeignKey(rp => rp.PermissionId);
-            #endregion
-
-            #region UserPermission
-            modelBuilder.Entity<UserPermissionEntity>()
+            builder.Entity<UserPermissionEntity>()
                 .HasKey(up => new { up.UserId, up.PermissionId });
 
-            modelBuilder.Entity<UserPermissionEntity>()
-                .HasOne(up => up.User)
-                .WithMany(u => u.UserPermissions)
-                .HasForeignKey(up => up.UserId);
+            builder.Entity<UserRoleEntity>()
+                .HasKey(ur => new { ur.UserId, ur.RoleId });
 
-            modelBuilder.Entity<UserPermissionEntity>()
-                .HasOne(up => up.Permission)
-                .WithMany(p => p.UserPermissions)
-                .HasForeignKey(up => up.PermissionId);
-            #endregion
+            builder.Entity<FolderFileEntity>()
+                .HasKey(ff => new { ff.FolderId, ff.FileId });
 
-            #region Todo
-            modelBuilder.Entity<TodoListEntity>()
-                .HasMany(l => l.Tasks)
-                .WithOne(t => t.TodoList)
-                .HasForeignKey(t => t.TodoListId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<ChatRoomMemberEntity>()
+                .HasIndex(x => x.UserId);
 
-            modelBuilder.Entity<TodoTaskEntity>()
-                .HasMany(t => t.SubTasks)
-                .WithOne(st => st.ParentTask)
-                .HasForeignKey(st => st.ParentTaskId)
-                .OnDelete(DeleteBehavior.Cascade);
-            #endregion
+            builder.Entity<ChatMessageEntity>()
+                .HasIndex(x => new { x.RoomId, x.CreatedTime });
 
-            #region UserTelegramConnection
+            builder.Entity<ChatRoomEntity>()
+                .HasIndex(x => x.PrivateKey)
+                .IsUnique()
+                .HasFilter("[PrivateKey] IS NOT NULL");
 
-            modelBuilder.Entity<UserTelegramConnectionEntity>(entity =>
-            {
-                entity.ToTable("UserTelegramConnections");
+            builder.Entity<ChatRoomMemberEntity>()
+                .HasKey(x => new { x.RoomId, x.UserId });
 
-                entity.HasKey(x => x.Id);
+            builder.Entity<ChatRoomUserStateEntity>()
+                .HasKey(x => new { x.RoomId, x.UserId });
 
-                entity.HasIndex(x => x.ChatId)
-                    .IsUnique();
+            builder.Entity<UserRefreshTokenEntity>()
+                .HasIndex(x => x.RefreshToken);
 
-                entity.HasIndex(x => x.UserId)
-                    .IsUnique();
+            builder.Entity<UserRefreshTokenEntity>()
+                .HasIndex(x => new { x.UserId, x.IsRevoked, x.ExpiryTime });
 
-                entity.HasOne(x => x.User)
-                    .WithOne()
-                    .HasForeignKey<UserTelegramConnectionEntity>(x => x.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.Property(x => x.ChatId)
-                    .IsRequired();
-
-                entity.Property(x => x.UserId)
-                    .IsRequired();
-
-            });
-
-            #endregion
+            builder.Entity<TranslationEntity>()
+                .HasIndex(x => x.LanguageId);
         }
     }
 }

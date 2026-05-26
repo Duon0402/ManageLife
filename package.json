@@ -5,5 +5,8 @@
     "@types/datatables.net": "^1.10.28",
     "@types/datatables.net-buttons": "^1.4.10",
     "@types/jquery": "^3.5.33"
+  },
+  "dependencies": {
+    "photoswipe": "^5.4.4"
   }
 }

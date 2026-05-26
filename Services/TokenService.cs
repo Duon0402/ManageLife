@@ -1,11 +1,13 @@
-﻿using LinqKit;
-using ManageLife.Base;
+using LinqKit;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.Settings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,30 +18,39 @@ namespace ManageLife.Services
 {
     public class TokenService : ITokenService
     {
-        private readonly IConfiguration _config;
+        private readonly JwtSettings _jwt;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserRefreshTokenRepository _refreshRepo;
         private readonly IUserRepository _userRepo;
+        private readonly IRoleRepository _roleRepo;
+        private readonly IUserRoleRepository _userRoleRepo;
         private readonly IUnitOfWork _uow;
+        private readonly ICacheService _cache;
 
         public TokenService(
             IUserRefreshTokenRepository refreshRepo,
             IUserRepository userRepo,
-            IConfiguration config,
+            IRoleRepository roleRepo,
+            IUserRoleRepository userRoleRepo,
+            IOptions<JwtSettings> jwtOptions,
             IHttpContextAccessor httpContextAccessor,
-            IUnitOfWork uow)
+            IUnitOfWork uow,
+            ICacheService cache)
         {
-            _config = config;
+            _jwt = jwtOptions.Value;
             _httpContextAccessor = httpContextAccessor;
             _refreshRepo = refreshRepo;
             _userRepo = userRepo;
+            _roleRepo = roleRepo;
+            _userRoleRepo = userRoleRepo;
             _uow = uow;
+            _cache = cache;
         }
 
         #region Access Token
         public string GenerateAccessToken(string userId, string username, string securityStamp, IEnumerable<string> roles)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
@@ -51,8 +62,8 @@ namespace ManageLife.Services
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
+                issuer: _jwt.Issuer,
+                audience: _jwt.Audience,
                 claims: claims,
                 expires: DateTimeHelper.UtcNow().AddMinutes(30),
                 signingCredentials: creds
@@ -73,10 +84,12 @@ namespace ManageLife.Services
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = _config["Jwt:Issuer"],
-                ValidAudience = _config["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)),
-                ClockSkew = TimeSpan.Zero
+                ValidIssuer = _jwt.Issuer,
+                ValidAudience = _jwt.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key)),
+                ClockSkew = TimeSpan.Zero,
+                NameClaimType = ClaimTypes.Name,
+                RoleClaimType = ClaimTypes.Role
             };
 
             try
@@ -88,6 +101,34 @@ namespace ManageLife.Services
                 return null;
             }
         }
+
+        public async Task<bool> ValidateSecurityStampAsync(ClaimsPrincipal principal, CancellationToken ct = default)
+        {
+            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var stampInToken = principal.FindFirstValue(JwtConst.SECURITY_STAMP);
+
+            if (userId.IsEmpty() || stampInToken.IsEmpty())
+                return false;
+
+            var cacheItem = CacheSettings.SecurityStamp(userId!);
+            var cachedStamp = await _cache.TryGetValueAsync<string>(cacheItem);
+
+            if (cachedStamp != null)
+                return string.Equals(cachedStamp, stampInToken, StringComparison.Ordinal);
+
+            // Cache miss → query DB và cache lại
+            var user = await _userRepo.GetAsync(userId!);
+            if (user == null || user.IsDeleted || !user.IsActive || user.SecurityStamp.IsEmpty())
+                return false;
+
+            await _cache.SetAsync(user.SecurityStamp!, cacheItem);
+            return string.Equals(user.SecurityStamp, stampInToken, StringComparison.Ordinal);
+        }
+
+        public async Task InvalidateSecurityStampCacheAsync(string userId, CancellationToken ct = default)
+        {
+            await _cache.RemoveAsync(CacheSettings.SecurityStamp(userId));
+        }
         #endregion
 
         #region Refresh Token
@@ -97,7 +138,7 @@ namespace ManageLife.Services
             return Convert.ToBase64String(randomBytes);
         }
 
-        public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken)
+        public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken, CancellationToken ct = default)
         {
             string msg;
             bool b;
@@ -113,12 +154,20 @@ namespace ManageLife.Services
                 }
 
                 var tokenEntity = await _refreshRepo.Query()
-                    .Include(r => r.User)
                     .FirstOrDefaultAsync(r => r.RefreshToken == refreshToken &&
                                               r.ExpiryTime > DateTimeHelper.UtcNow() &&
                                               r.IsRevoked == false);
 
-                if (tokenEntity?.User == null || tokenEntity.User.IsDeleted || !tokenEntity.User.IsActive)
+                if (tokenEntity == null)
+                {
+                    ClearTokensCookie();
+                    msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
+                }
+
+                var user = await _userRepo.GetAsync(tokenEntity.UserId);
+
+                if (user == null || user.IsDeleted || !user.IsActive)
                 {
                     ClearTokensCookie();
                     msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
@@ -144,7 +193,7 @@ namespace ManageLife.Services
                 var newRefreshToken = GenerateRefreshToken();
                 var newRefreshEntity = new UserRefreshTokenEntity
                 {
-                    Id = IdHeper.NewId(),
+                    Id = IdHelper.NewId(),
                     UserId = tokenEntity.UserId,
                     RefreshToken = newRefreshToken,
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
@@ -160,12 +209,12 @@ namespace ManageLife.Services
 
                 await _uow.CommitAsync();
 
-                var roles = await _userRepo.Query()
-                    .Where(u => u.Id == tokenEntity.UserId)
-                    .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
+                var roles = await _userRoleRepo.Query(true)
+                    .Where(ur => ur.UserId == tokenEntity.UserId)
+                    .Join(_roleRepo.Query(true), ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
                     .ToListAsync();
 
-                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, tokenEntity.User.UserName, IdHeper.NewId(), roles);
+                var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, user.SecurityStamp!, roles);
 
                 SetTokensCookie(newAccessToken, newRefreshToken);
 
@@ -214,10 +263,9 @@ namespace ManageLife.Services
         }
         #endregion
 
-        public async Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null)
+        public async Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null, CancellationToken ct = default)
         {
             string msg;
-            bool b;
             try
             {
                 var predicate = PredicateBuilder.New<UserRefreshTokenEntity>(x => x.ExpiryTime <= DateTimeHelper.UtcNow() || x.IsRevoked);
@@ -227,18 +275,7 @@ namespace ManageLife.Services
                     predicate = predicate.And(x => x.UserId == userId);
                 }
 
-                var entities = await _refreshRepo.Query().Where(predicate).ToListAsync();
-
-                if (entities.IsNotEmpty())
-                {
-                    b = await _refreshRepo.BulkDeleteAsync(entities);
-
-                    if (!b)
-                    {
-                        msg = TranslationKey.Common.Message.DeleteError;
-                        return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
-                    }
-                }
+                await _refreshRepo.Query().Where(predicate).ExecuteDeleteAsync(ct);
 
                 return Result.Ok();
             }

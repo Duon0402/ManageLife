@@ -1,14 +1,15 @@
-﻿using ManageLife.Base;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ManageLife.Data
 {
     public static class Seed
     {
-        public static async Task SeedData(AppDbContext context)
+        public static async Task SeedData(AppDbContext context, IConfiguration config)
         {
             using var transaction = await context.Database.BeginTransactionAsync();
             try
@@ -18,7 +19,7 @@ namespace ManageLife.Data
                 {
                     adminRole = new RoleEntity
                     {
-                        Id = IdHeper.NewId(),
+                        Id = IdHelper.NewId(),
                         Code = RoleConst.Admin,
                         Name = "Admin",
                         Description = "Quản trị viên",
@@ -33,7 +34,7 @@ namespace ManageLife.Data
                 {
                     userRole = new RoleEntity
                     {
-                        Id = IdHeper.NewId(),
+                        Id = IdHelper.NewId(),
                         Code = RoleConst.User,
                         Name = "User",
                         Description = "Người dùng",
@@ -50,12 +51,14 @@ namespace ManageLife.Data
                 {
                     adminUser = new UserEntity
                     {
-                        Id = IdHeper.NewId(),
+                        Id = IdHelper.NewId(),
                         UserName = "admin",
                         Email = "admin@system.local",
                         FullName = "Administrator",
                         HashPassword = PasswordHelper.HashPassword(
-                            Environment.GetEnvironmentVariable("ADMIN_DEFAULT_PASSWORD") ?? "D@ngDuong0402"
+                            config["ADMIN_DEFAULT_PASSWORD"]
+                                ?? throw new InvalidOperationException(
+                                    "ADMIN_DEFAULT_PASSWORD is required. Set via User Secrets (dev) or environment variable (prod).")
                         ),
                         IsActive = true,
                         CreatedUser = SystemUsers.System,

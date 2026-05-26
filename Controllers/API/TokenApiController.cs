@@ -1,4 +1,4 @@
-﻿using ManageLife.Base;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,14 +15,12 @@ namespace ManageLife.Controllers.API
         }
 
         [HttpPost("cleanup-refresh-tokens")]
-        public async Task<IActionResult> CleanupRefreshTokens()
+        public async Task<IActionResult> CleanupRefreshTokens(CancellationToken ct)
         {
-            var rs = await _tokenService.CleanupRefreshTokensAsync();
+            var rs = await _tokenService.CleanupRefreshTokensAsync(ct: ct);
 
             if (rs.IsOk())
-            {
                 return Ok();
-            }
 
             return BadRequest(rs.Message);
         }
