@@ -20,5 +20,11 @@ namespace ManageLife.Commons
 
         public static CacheItem SecurityStamp(string userId)
             => new($"{_prefix}security_stamp:{userId}", expiry: TimeSpan.FromDays(7));
+
+        public static CacheItem RoleAssignedPermissions(string roleId)
+            => new($"{_prefix}role_permissions:assigned:{roleId}");
+
+        public static CacheItem RoleUnassignedPermissions(string roleId)
+            => new($"{_prefix}role_permissions:unassigned:{roleId}");
     }
 }

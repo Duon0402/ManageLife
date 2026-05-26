@@ -384,6 +384,11 @@ namespace ManageLife.Services
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
+                var cacheItem = CacheSettings.RoleAssignedPermissions(request.RoleId);
+                var cached = await _cache.TryGetValueAsync<List<PermissionModel>>(cacheItem);
+                if (cached != null)
+                    return Result.Ok(cached);
+
                 var entities = await _repoRolePermission.Query(true)
                     .Where(rp => rp.RoleId == request.RoleId)
                     .Join(
@@ -394,13 +399,11 @@ namespace ManageLife.Services
                     )
                     .ToListAsync();
 
-                if (entities.IsEmpty())
-                {
-                    return Result.Ok(new List<PermissionModel>());
-                }
+                var models = entities.IsNotEmpty()
+                    ? entities.MapToList<PermissionModel>()
+                    : new List<PermissionModel>();
 
-                var models = entities.MapToList<PermissionModel>();
-
+                await _cache.SetAsync(models, cacheItem);
                 return Result.Ok(models);
             }
             catch (Exception ex)
@@ -423,17 +426,24 @@ namespace ManageLife.Services
                     _logger.Debug(msg);
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
+
+                var cacheItem = CacheSettings.RoleUnassignedPermissions(request.RoleId);
+                var cached = await _cache.TryGetValueAsync<List<PermissionModel>>(cacheItem);
+                if (cached != null)
+                    return Result.Ok(cached);
+
                 var entities = await _repoPermission.Query(true)
                     .Where(p =>
                         !_repoRolePermission.Query(true)
                             .Any(rp => rp.RoleId == request.RoleId && rp.PermissionId == p.Id)
                     )
                     .ToListAsync();
-                if (entities.IsEmpty())
-                {
-                    return Result.Ok(new List<PermissionModel>());
-                }
-                var models = entities.MapToList<PermissionModel>();
+
+                var models = entities.IsNotEmpty()
+                    ? entities.MapToList<PermissionModel>()
+                    : new List<PermissionModel>();
+
+                await _cache.SetAsync(models, cacheItem);
                 return Result.Ok(models);
             }
             catch (Exception ex)
@@ -486,16 +496,22 @@ namespace ManageLife.Services
 
                 }
 
-                // clear cache của toàn bộ user thuộc role này
+                // clear cache của toàn bộ user thuộc role này + role permission cache
                 var affectedUserIds = await _repoUserRole.Query(true)
                     .Where(ur => ur.RoleId == role.Id)
                     .Select(ur => ur.UserId)
                     .ToListAsync();
 
+                var roleCacheItems = new List<CacheItem>
+                {
+                    CacheSettings.RoleAssignedPermissions(role.Id),
+                    CacheSettings.RoleUnassignedPermissions(role.Id)
+                };
+                await _cache.RemoveAsync(roleCacheItems);
+
                 if (affectedUserIds.IsNotEmpty())
                 {
                     var cacheItems = affectedUserIds.SelectDistinctToList(id => CacheSettings.Permissions(id));
-
                     await _cache.RemoveAsync(cacheItems);
                 }
 
@@ -637,10 +653,16 @@ namespace ManageLife.Services
                     .Select(ur => ur.UserId)
                     .ToListAsync();
 
+                var roleCacheItems = new List<CacheItem>
+                {
+                    CacheSettings.RoleAssignedPermissions(request.ObjectId),
+                    CacheSettings.RoleUnassignedPermissions(request.ObjectId)
+                };
+                await _cache.RemoveAsync(roleCacheItems);
+
                 if (userIds.IsNotEmpty())
                 {
                     var cacheKeys = userIds.SelectDistinctToList(uid => CacheSettings.Permissions(uid));
-
                     await _cache.RemoveAsync(cacheKeys);
                 }
 

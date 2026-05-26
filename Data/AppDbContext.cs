@@ -68,6 +68,15 @@ namespace ManageLife.Data
 
             builder.Entity<ChatRoomUserStateEntity>()
                 .HasKey(x => new { x.RoomId, x.UserId });
+
+            builder.Entity<UserRefreshTokenEntity>()
+                .HasIndex(x => x.RefreshToken);
+
+            builder.Entity<UserRefreshTokenEntity>()
+                .HasIndex(x => new { x.UserId, x.IsRevoked, x.ExpiryTime });
+
+            builder.Entity<TranslationEntity>()
+                .HasIndex(x => x.LanguageId);
         }
     }
 }

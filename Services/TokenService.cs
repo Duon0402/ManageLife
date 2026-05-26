@@ -209,14 +209,9 @@ namespace ManageLife.Services
 
                 await _uow.CommitAsync();
 
-                var roleIds = await _userRoleRepo.Query()
+                var roles = await _userRoleRepo.Query(true)
                     .Where(ur => ur.UserId == tokenEntity.UserId)
-                    .Select(ur => ur.RoleId)
-                    .ToListAsync();
-
-                var roles = await _roleRepo.Query()
-                    .Where(r => roleIds.Contains(r.Id))
-                    .Select(r => r.Name)
+                    .Join(_roleRepo.Query(true), ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
                     .ToListAsync();
 
                 var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, user.SecurityStamp!, roles);
@@ -271,7 +266,6 @@ namespace ManageLife.Services
         public async Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null, CancellationToken ct = default)
         {
             string msg;
-            bool b;
             try
             {
                 var predicate = PredicateBuilder.New<UserRefreshTokenEntity>(x => x.ExpiryTime <= DateTimeHelper.UtcNow() || x.IsRevoked);
@@ -281,18 +275,7 @@ namespace ManageLife.Services
                     predicate = predicate.And(x => x.UserId == userId);
                 }
 
-                var entities = await _refreshRepo.Query().Where(predicate).ToListAsync();
-
-                if (entities.IsNotEmpty())
-                {
-                    b = await _refreshRepo.BulkDeleteAsync(entities);
-
-                    if (!b)
-                    {
-                        msg = TranslationKey.Common.Message.DeleteError;
-                        return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
-                    }
-                }
+                await _refreshRepo.Query().Where(predicate).ExecuteDeleteAsync(ct);
 
                 return Result.Ok();
             }

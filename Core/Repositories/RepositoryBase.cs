@@ -36,7 +36,7 @@ namespace ManageLife.Core
 
         public async Task<IEnumerable<T>> GetAllAsync(CancellationToken ct = default)
         {
-            return await _context.Set<T>().ToListAsync(ct);
+            return await _context.Set<T>().AsNoTracking().ToListAsync(ct);
         }
 
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate,
@@ -47,13 +47,13 @@ namespace ManageLife.Core
 
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken ct)
         {
-            return await _context.Set<T>().Where(predicate).ToListAsync(ct);
+            return await _context.Set<T>().AsNoTracking().Where(predicate).ToListAsync(ct);
         }
 
         private async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken ct,
             Expression<Func<T, object>>[] includes)
         {
-            IQueryable<T> query = _context.Set<T>();
+            IQueryable<T> query = _context.Set<T>().AsNoTracking();
             if (includes?.Any() == true)
             {
                 query = includes.Aggregate(query, (current, include) => current.Include(include));
@@ -226,13 +226,13 @@ namespace ManageLife.Core
 
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct)
         {
-            return await _context.Set<T>().FirstOrDefaultAsync(predicate, ct);
+            return await _context.Set<T>().AsNoTracking().FirstOrDefaultAsync(predicate, ct);
         }
 
         private async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct,
             Expression<Func<T, object>>[] includes)
         {
-            IQueryable<T> query = _context.Set<T>();
+            IQueryable<T> query = _context.Set<T>().AsNoTracking();
             if (includes?.Any() == true)
             {
                 query = includes.Aggregate(query, (current, include) => current.Include(include));
