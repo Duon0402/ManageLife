@@ -1,9 +1,52 @@
-﻿<header class="header d-flex justify-content-between align-items-center px-3">
-    <div class="d-flex align-items-center">
-        <button type="button" class="btn-toggle-sidebar" data-bs-toggle="collapse" data-bs-target="#sidebar"
-                aria-expanded="true" aria-controls="sidebar">
+@{
+    var displayName = UserContext.GetUserName() ?? "";
+    var initials = displayName.Length > 0 ? displayName[0].ToString().ToUpper() : "A";
+}
+
+<header class="admin-header" id="adminHeader">
+    <div class="header-left">
+        <button type="button" class="btn-toggle-sidebar" id="btnToggleSidebar" title="Toggle sidebar">
             <i class="fa-solid fa-bars"></i>
         </button>
-        <a href="/admin"><h3 class="brand">Manage Life</h3></a>
+        <a href="/admin" class="header-brand">
+            <i class="fa-solid fa-infinity"></i>
+            <span>ManageLife</span>
+        </a>
+    </div>
+
+    <div class="header-right">
+        <a href="/admin" class="header-icon-btn" title="Home">
+            <i class="fa-solid fa-house"></i>
+        </a>
+        <button type="button" class="header-icon-btn" title="Notifications">
+            <i class="fa-regular fa-bell"></i>
+        </button>
+        <div class="dropdown user-dropdown">
+            <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="user-avatar">@initials</div>
+                <span class="user-name">@displayName</span>
+                <i class="fa-solid fa-chevron-down dropdown-caret"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <i class="fa-regular fa-user"></i> Profile
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                    <a class="dropdown-item text-danger" href="/Auth/Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 </header>
+
+<script>
+    document.getElementById('btnToggleSidebar')?.addEventListener('click', function () {
+        const sidebar = document.getElementById('adminSidebar');
+        if (sidebar) sidebar.classList.toggle('collapsed');
+    });
+</script>
