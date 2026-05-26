@@ -9,11 +9,13 @@ namespace ManageLife.Controllers.Client
     public class LanguageController : WebClientControllerBase
     {
         private readonly ILanguageService _service;
+        private readonly ITranslationService _translationService;
         private readonly ILanguageContext _languageContext;
 
-        public LanguageController(ILanguageService service, ILanguageContext languageContext)
+        public LanguageController(ILanguageService service, ITranslationService translationService, ILanguageContext languageContext)
         {
             _service = service;
+            _translationService = translationService;
             _languageContext = languageContext;
         }
 
@@ -41,6 +43,14 @@ namespace ManageLife.Controllers.Client
         public async Task<Result<LanguageModel>> GetLanguageByCode([FromBody] GetLanguageByCodeRequest request, CancellationToken ct)
         {
             return await _service.GetLanguageByCodeAsync(request, ct);
+        }
+
+        [HttpGet]
+        public async Task<Result<Dictionary<string, string>>> GetTranslations(CancellationToken ct)
+        {
+            var languageCode = _languageContext.GetCurrentLanguage();
+            return await _translationService.GetDictionaryTranslationByLanguageCode(
+                new GetDictionaryTranslationByLanguageCodeRequest { LanguageCode = languageCode }, ct);
         }
     }
 }
