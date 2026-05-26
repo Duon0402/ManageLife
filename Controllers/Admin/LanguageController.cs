@@ -21,14 +21,15 @@ namespace ManageLife.Controllers.Admin
         }
 
         [HttpGet]
-        public async Task<Result<List<LanguageModel>>> GetListLanguages(CancellationToken ct)
+        [ViewPermission]
+        public async Task<Result<List<LanguageModel>>> GetList(CancellationToken ct)
         {
             return await _service.GetListLanguagesAsync(ct);
         }
 
         [InsertPermission]
         [HttpPost]
-        public async Task<Result> CreateLanguage([FromBody] CreateLanguageRequest request, CancellationToken ct)
+        public async Task<Result> Create([FromBody] CreateLanguageRequest request, CancellationToken ct)
         {
             return await _service.CreateLanguageAsync(request, ct);
         }
