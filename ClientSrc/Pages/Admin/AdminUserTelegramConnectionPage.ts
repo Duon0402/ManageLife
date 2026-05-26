@@ -32,13 +32,7 @@
                     title: 'Xóa',
                     onClick: () => console.log("Delete")
                 })
-                .setOptions({
-                    paging: false,
-                    info: false,
-                    ordering: true,
-                    searching: true,
-                    autoWidth: true
-                })
+                .setOptions({ ordering: true })
                 .setForm({
                     createTitle: 'Thêm mới',
                     editTitle: 'Cập nhật',

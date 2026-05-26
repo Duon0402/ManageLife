@@ -36,13 +36,7 @@ namespace App {
                         window.location.href = `/admin/permission/indexbyuser?userId=${data.id}`;
                     }
                 })
-                .setOptions({
-                    paging: false,
-                    info: false,
-                    ordering: false,
-                    searching: true,
-                    autoWidth: false
-                });
+                .setOptions({ autoWidth: false });
 
             this.gridBuilder.build();
         }

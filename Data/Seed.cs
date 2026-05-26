@@ -1,14 +1,15 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ManageLife.Data
 {
     public static class Seed
     {
-        public static async Task SeedData(AppDbContext context)
+        public static async Task SeedData(AppDbContext context, IConfiguration config)
         {
             using var transaction = await context.Database.BeginTransactionAsync();
             try
@@ -55,9 +56,9 @@ namespace ManageLife.Data
                         Email = "admin@system.local",
                         FullName = "Administrator",
                         HashPassword = PasswordHelper.HashPassword(
-                            Environment.GetEnvironmentVariable("ADMIN_DEFAULT_PASSWORD")
+                            config["ADMIN_DEFAULT_PASSWORD"]
                                 ?? throw new InvalidOperationException(
-                                    "ADMIN_DEFAULT_PASSWORD environment variable is required for seeding admin user.")
+                                    "ADMIN_DEFAULT_PASSWORD is required. Set via User Secrets (dev) or environment variable (prod).")
                         ),
                         IsActive = true,
                         CreatedUser = SystemUsers.System,

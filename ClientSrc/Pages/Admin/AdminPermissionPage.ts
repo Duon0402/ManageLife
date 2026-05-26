@@ -41,11 +41,6 @@ namespace App {
 
         private initGrids(): void {
             const commonOptions = {
-                paging: false,
-                info: false,
-                ordering: false,
-                searching: true,
-                autoWidth: true,
                 rowId: 'id',
                 dom: 't',
                 columnDefs: [

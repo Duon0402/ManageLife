@@ -47,13 +47,7 @@ namespace App {
                     title: 'Xóa',
                     onClick: (data) => this.deleteTranslation(data)
                 })
-                .setOptions({
-                    paging: false,
-                    info: false,
-                    ordering: true,
-                    searching: true,
-                    autoWidth: true
-                })
+                .setOptions({ ordering: true })
                 .setForm({
                     createTitle: 'Thêm bản dịch',
                     editTitle: 'Cập nhật bản dịch',

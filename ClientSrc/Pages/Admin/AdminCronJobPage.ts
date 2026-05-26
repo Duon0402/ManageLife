@@ -24,12 +24,7 @@ namespace App {
                     .render((data) => data ? 'Hoạt động' : 'Tạm dừng')
                 )
                 .addColumn({ field: 'url', title: 'URL' })
-                .setOptions({
-                    paging: false,
-                    info: false,
-                    searching: true,
-                    autoWidth: false
-                });
+                .setOptions({ autoWidth: false });
 
             this.gridBuilder.build();
         }

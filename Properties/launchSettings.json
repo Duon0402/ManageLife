@@ -14,16 +14,14 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7270;http://localhost:5145",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ADMIN_DEFAULT_PASSWORD": "D@ngDuong0402"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ADMIN_DEFAULT_PASSWORD": "D@ngDuong0402"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   }

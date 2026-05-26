@@ -42,13 +42,6 @@ namespace App {
                     title: 'Xóa',
                     onClick: (data) => this.deleteLanguage(data)
                 })
-                .setOptions({
-                    paging: false,
-                    info: false,
-                    ordering: false,
-                    searching: true,
-                    autoWidth: true
-                })
                 .setForm({
                     createTitle: 'Thêm ngôn ngữ',
                     editTitle: 'Cập nhật ngôn ngữ',

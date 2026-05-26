@@ -160,7 +160,8 @@
 
 /* ===== TABLE: Override Bootstrap 5 DT defaults ===== */
 .grid-container table.dataTable {
-    width: 100% !important;
+    min-width: 100% !important;
+    width: auto !important;
     margin: 0 !important;
     border-collapse: collapse !important;
 }
@@ -288,4 +289,29 @@
 /* ===== SCROLL WRAPPER (khi dùng scrollY) ===== */
 .grid-container .dt-scroll-body {
     border-bottom: none !important;
+}
+
+/* ===== PERMISSION PAGE — two-panel layout ===== */
+.permission-wrap {
+    height: 100%;
+    overflow: hidden;
+}
+
+.permission-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.permission-panel > div:not(.dt-container) {
+    flex-shrink: 0;
+}
+
+.permission-panel > .dt-container {
+    flex: 1 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
 }

@@ -42,13 +42,7 @@ namespace App {
                     title: 'Xóa',
                     onClick: (data) => this.deleteRole(data)
                 })
-                .setOptions({
-                    paging: false,
-                    info: false,
-                    ordering: false,
-                    searching: true,
-                    autoWidth: false
-                })
+                .setOptions({ autoWidth: false })
                 .setForm({
                     createTitle: 'Thêm mới Role',
                     editTitle: 'Cập nhật Role',
