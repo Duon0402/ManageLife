@@ -79,8 +79,8 @@ namespace App {
 
         private async saveTranslation(submission: IFormSubmission<TranslationModel>): Promise<void> {
             const url = submission.mode === 'create'
-                ? '/Admin/Translation/Create'
-                : '/Admin/Translation/Update';
+                ? '/Admin/Translation/CreateTranslation'
+                : '/Admin/Translation/UpdateTranslation';
 
             LoadingService.show();
             try {
@@ -103,7 +103,7 @@ namespace App {
             if (!ok) return;
 
             LoadingService.show();
-            ApiService.post('/Admin/Translation/Delete', { id: translation.id })
+            ApiService.post('/Admin/Translation/DeleteTranslation', { id: translation.id })
                 .then(response => {
                     LoadingService.hide();
                     if (response.isOk()) {
