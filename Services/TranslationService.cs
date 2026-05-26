@@ -92,10 +92,17 @@ namespace ManageLife.Services
                     return Result.DATA_NOT_EXISTED;
                 }
 
+                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == entity.LanguageId);
+
                 b = await _repo.DeleteAsync(entity);
                 if (!b)
                 {
                     return Result.DATA_NOT_DELETE;
+                }
+
+                if (language != null)
+                {
+                    await _cache.RemoveAsync(CacheSettings.Translations(language.Code));
                 }
 
                 return Result.Ok();
@@ -129,7 +136,7 @@ namespace ManageLife.Services
                     var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
                     if (language != null)
                     {
-                        var list = await _repo.Query()
+                        var list = await _repo.Query(true)
                             .Where(t => t.LanguageId == language.Id)
                             .ToListAsync();
                         dictionary = list.ToDictionary(t => t.Key, t => t.Value);
@@ -176,7 +183,7 @@ namespace ManageLife.Services
                     }
                 }
 
-                var entities = await _repo.Query().Where(predicate).ToListAsync();
+                var entities = await _repo.Query(true).Where(predicate).ToListAsync();
 
                 if (entities.IsNotEmpty())
                 {

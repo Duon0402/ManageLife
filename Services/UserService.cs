@@ -204,9 +204,9 @@ namespace ManageLife.Services
 
                 await _uow.CommitAsync(ct);
 
-                var roles = await _userRoleRepo.Query()
+                var roles = await _userRoleRepo.Query(true)
                     .Where(ur => ur.UserId == userEntity.Id)
-                    .Join(_roleRepo.Query(),
+                    .Join(_roleRepo.Query(true),
                         ur => ur.RoleId,
                         r => r.Id,
                         (ur, r) => r.Name)
@@ -319,18 +319,9 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
 
-                var allTokens = await _refreshRepo.Query()
+                await _refreshRepo.Query()
                     .Where(x => x.UserId == user.Id)
-                    .ToListAsync();
-                if (allTokens.Count > 0)
-                {
-                    b = await _refreshRepo.BulkDeleteAsync(allTokens);
-                    if (!b)
-                    {
-                        msg = "Không thể thu hồi phiên đăng nhập";
-                        return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
-                    }
-                }
+                    .ExecuteDeleteAsync(ct);
 
                 await _uow.CommitAsync();
 
@@ -350,7 +341,7 @@ namespace ManageLife.Services
         {
             try
             {
-                var entities = await _userRepo.Query().Where(x => x.IsDeleted == false).ToListAsync();
+                var entities = await _userRepo.Query(true).Where(x => x.IsDeleted == false).ToListAsync();
                 var models = entities.MapToList<UserModel>();
                 return Result.Ok(models);
             }

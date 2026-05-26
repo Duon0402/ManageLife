@@ -77,6 +77,8 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
+                await _cache.RemoveAsync(CacheSettings.Languages());
+
                 return Result.Ok();
             }
             catch (Exception ex)
@@ -113,6 +115,8 @@ namespace ManageLife.Services
                     msg = TranslationKey.Common.Message.DeleteError;
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
+
+                await _cache.RemoveAsync(CacheSettings.Languages());
 
                 return Result.Ok();
             }
@@ -246,6 +250,8 @@ namespace ManageLife.Services
                     msg = TranslationKey.Common.Message.UpdateError;
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
+
+                await _cache.RemoveAsync(CacheSettings.Languages());
 
                 return Result.Ok();
             }

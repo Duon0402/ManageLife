@@ -36,6 +36,9 @@ namespace ManageLife.Core
         public List<MenuItem> SubItems { get; set; }
         public MenuItemType MenuItemType { get; set; }
         public bool HasSubItems => SubItems.IsNotEmpty();
+
+        public MenuItem WithSubItems(List<MenuItem> subItems)
+            => new MenuItem(Title, MenuItemType, Icon, subItems, Url, PermissionCode);
     }
 
     public class MenuItem<TController> : MenuItem where TController : Controller

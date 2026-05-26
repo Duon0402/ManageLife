@@ -74,6 +74,7 @@ namespace ManageLife.Services
                 }
             }
 
+            // Build new instances to avoid mutating the shared cached list
             List<MenuItem> FilterRecursive(List<MenuItem> items)
             {
                 var result = new List<MenuItem>();
@@ -87,11 +88,9 @@ namespace ManageLife.Services
                     if (item.HasSubItems)
                     {
                         var filteredSub = FilterRecursive(item.SubItems);
-
-                        if (filteredSub.Count > 0 || hasPermission)
+                        if (filteredSub.Count > 0)
                         {
-                            item.SubItems = filteredSub;
-                            result.Add(item);
+                            result.Add(item.WithSubItems(filteredSub));
                         }
                     }
                     else if (hasPermission)
