@@ -7,7 +7,11 @@ namespace App {
         languageName: string;
     }
 
-    export class AdminTranslationPage extends BasePage {
+    interface TranslationPageModel {
+        languages: { key: string; value: string }[];
+    }
+
+    export class AdminTranslationPage extends BasePage<TranslationPageModel> {
         private gridBuilder!: GridBuilder<TranslationModel>;
 
         protected initialize(): void {
@@ -15,6 +19,11 @@ namespace App {
         }
 
         private initGrid(): void {
+            const languageOptions: ISelectOption[] = (this.model.languages || []).map(l => ({
+                value: l.key,
+                text: l.value
+            }));
+
             this.gridBuilder = new GridBuilder<TranslationModel>('#tblTranslations')
                 .setDataSource({ url: '/Admin/Translation/GetListTranslations' })
                 .addColumn({ field: 'key', title: 'Key' })
@@ -55,7 +64,7 @@ namespace App {
                         { name: 'id', label: 'ID', type: 'hidden' },
                         { name: 'key', label: 'Key', type: 'text', required: true, placeholder: 'Nhập key (vd: common.save)' },
                         { name: 'value', label: 'Value', type: 'textarea', required: true, placeholder: 'Nhập giá trị dịch' },
-                        { name: 'languageId', label: 'Language', type: 'select', required: true, options: [] }
+                        { name: 'languageId', label: 'Language', type: 'select', required: true, options: languageOptions }
                     ]
                 });
 

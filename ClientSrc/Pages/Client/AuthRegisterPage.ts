@@ -5,6 +5,20 @@ namespace App {
 
         protected bindEvents(): void {
             this.root.find("#registerForm").on("submit", (e) => this.handleRegister(e));
+            this.root.find("#togglePassword").on("click", () => this.toggleInput("#password", "#togglePasswordIcon"));
+            this.root.find("#toggleConfirm").on("click", () => this.toggleInput("#confirmPassword", "#toggleConfirmIcon"));
+        }
+
+        private toggleInput(inputSel: string, iconSel: string): void {
+            const input = this.root.find(inputSel);
+            const icon = this.root.find(iconSel);
+            if (input.attr("type") === "password") {
+                input.attr("type", "text");
+                icon.removeClass("fa-eye").addClass("fa-eye-slash");
+            } else {
+                input.attr("type", "password");
+                icon.removeClass("fa-eye-slash").addClass("fa-eye");
+            }
         }
 
         private handleRegister(event: JQuery.SubmitEvent): void {

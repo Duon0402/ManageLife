@@ -40,7 +40,7 @@ namespace ManageLife.Controllers.Admin
         }
 
         [HttpPost]
-        [Permission("CreateTranslation")]
+        [InsertPermission]
         public async Task<Result> CreateTranslation([FromBody] CreateTranslationRequest request)
         {
             var rs = await _service.CreateTranslationAsync(request);
@@ -48,7 +48,7 @@ namespace ManageLife.Controllers.Admin
         }
 
         [HttpPost]
-        [Permission("UpdateTranslation")]
+        [UpdatePermission]
         public async Task<Result> UpdateTranslation([FromBody] UpdateTranslationRequest request)
         {
             var rs = await _service.UpdateTranslationAsync(request);
@@ -56,7 +56,7 @@ namespace ManageLife.Controllers.Admin
         }
 
         [HttpPost]
-        [Permission("DeleteTranslation")]
+        [DeletePermission]
         public async Task<Result> DeleteTranslation([FromBody] DeleteTranslationRequest request)
         {
             var rs = await _service.DeleteTranslationAsync(request);
