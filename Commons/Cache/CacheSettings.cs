@@ -12,11 +12,12 @@ namespace ManageLife.Commons
         public static CacheItem Translations(string languageCode)
             => new($"{_prefix}translations:{languageCode}");
 
+        // Memory cache: data nhỏ, đọc trên mọi request, Redis latency cao (~150ms)
         public static CacheItem Languages()
-            => new($"{_prefix}languages");
+            => new($"{_prefix}languages", CacheMode.Memory);
 
         public static CacheItem MenuItems()
-            => new($"{_prefix}menu_items");
+            => new($"{_prefix}menu_items", CacheMode.Memory);
 
         public static CacheItem SecurityStamp(string userId)
             => new($"{_prefix}security_stamp:{userId}", expiry: TimeSpan.FromDays(7));

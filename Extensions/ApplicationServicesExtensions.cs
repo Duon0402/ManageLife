@@ -7,6 +7,7 @@ using ManageLife.Interfaces;
 using ManageLife.Services;
 using ManageLife.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -29,6 +30,12 @@ namespace ManageLife.Extensions
             services.AddApplicationSettings(config);
             services.AddApplicationCustomServices();
             services.AddRepositories();
+
+            // DataProtection: lưu key ra file để key sống qua app restart (tránh user bị logout)
+            var dpKeysPath = Path.Combine(AppContext.BaseDirectory, "dataprotection-keys");
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(dpKeysPath))
+                .SetApplicationName("ManageLife");
             services.AddHttpContextAccessor();
             services.AddScoped<IMenuRegister, MenuRegister>();
             services.AddHttpClient();
