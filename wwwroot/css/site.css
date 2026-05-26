@@ -1,10 +1,3 @@
-<<<<<<< Updated upstream
-/* ============================================================
-   Site.css - Global Base Styles (Skydash-aligned)
-   ============================================================ */
-
-/* ─── Base HTML ─────────────────────────────────────────── */
-=======
 /* ===========================
    SITE — Global Base Styles
    SkyDash Light Theme
@@ -39,7 +32,6 @@
 }
 
 /* ===== BASE ===== */
->>>>>>> Stashed changes
 html {
     font-size: 14px;
     position: relative;
@@ -49,149 +41,6 @@ html {
 @media (min-width: 768px) {
     html {
         font-size: 16px;
-<<<<<<< Updated upstream
-    }
-}
-
-/* ─── Scrollbar ─────────────────────────────────────────── */
-::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-muted);
-}
-
-/* ─── Toast Animations (legacy compat) ──────────────────── */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-}
-
-.toast {
-    animation: fadeIn 0.5s, fadeOut 0.5s 3s forwards;
-}
-
-/* ─── File Uploader ─────────────────────────────────────── */
-.file-uploader {
-    min-width: 325px;
-    background-color: var(--color-surface);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--color-border-light);
-    margin-top: 16px;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-}
-
-.file-uploader .uploader-header {
-    display: flex;
-    padding: 20px;
-    background-color: var(--color-primary-bg);
-    justify-content: space-between;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    align-items: center;
-}
-
-.file-uploader .uploader-toolbar {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.file-uploader .uploader-toolbar:has(button) {
-    padding: 20px;
-}
-
-.uploader-header .uploader-title {
-    font-size: 1rem;
-    font-weight: var(--font-weight-bold);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--color-heading);
-}
-
-.uploader-toolbar .upload-all-button,
-.uploader-toolbar .remove-all-button {
-    border: 2px solid;
-    padding: 4px 12px;
-    border-radius: var(--radius-pill);
-    background: transparent;
-    font-family: var(--font-family);
-    font-size: 0.8125rem;
-    font-weight: var(--font-weight-semibold);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.uploader-toolbar .upload-all-button {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-}
-
-.uploader-toolbar .upload-all-button:hover {
-    background: var(--color-primary);
-    color: white;
-}
-
-.uploader-toolbar .remove-all-button {
-    border-color: var(--color-danger);
-    color: var(--color-danger);
-}
-
-.uploader-toolbar .remove-all-button:hover {
-    background: var(--color-danger);
-    color: white;
-}
-
-.uploader-header .file-completed-status {
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text-dark);
-}
-
-.file-uploader .file-list {
-    list-style: none;
-    width: 100%;
-    padding-bottom: 10px;
-    max-height: 400px;
-    overflow-y: auto;
-    scrollbar-color: var(--color-border) transparent;
-    scrollbar-width: thin;
-}
-
-.file-uploader .file-list:has(li) {
-    padding: 20px;
-}
-=======
     }
 }
 
@@ -217,150 +66,12 @@ html {
         border: none;
         color: #fff;
     }
->>>>>>> Stashed changes
 
 .btn-outline-primary {
     border-color: var(--color-primary);
     color: var(--color-primary);
 }
 
-<<<<<<< Updated upstream
-.file-list .file-item .file-extension {
-    height: 50px;
-    width: 50px;
-    min-width: 50px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-lg);
-    background-color: var(--color-primary);
-    font-weight: var(--font-weight-bold);
-    font-size: 0.75rem;
-    letter-spacing: 0.04em;
-}
-
-.file-list .file-item .file-content-wrapper {
-    flex: 1;
-}
-
-.file-list .file-item .file-content {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-}
-
-.file-list .file-item .file-name {
-    font-size: 0.9rem;
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-dark);
-}
-
-.file-list .file-item .file-info {
-    display: flex;
-    gap: 5px;
-}
-
-.file-list .file-item .file-info small {
-    color: var(--color-text-muted);
-    margin-top: 5px;
-    display: block;
-    font-size: 0.8rem;
-    font-weight: var(--font-weight-medium);
-}
-
-.file-list .file-item .file-info .file-status {
-    color: var(--color-primary);
-}
-
-.file-list .file-item .file-actions {
-    display: flex;
-    align-items: start;
-}
-
-.file-list .file-item .file-actions button {
-    align-self: center;
-    border: none;
-    outline: none;
-    background: none;
-    cursor: pointer;
-    font-size: 1.1rem;
-    transition: color var(--transition-fast);
-}
-
-.file-list .file-item .file-actions .cancel-button {
-    font-size: 1.4rem;
-}
-
-.file-list .file-item .file-actions .upload-button:hover,
-.file-list .file-item .file-actions .retry-button:hover {
-    color: var(--color-primary);
-}
-
-.file-list .file-item .file-actions .remove-button:hover,
-.file-list .file-item .file-actions .cancel-button:hover {
-    color: var(--color-danger);
-}
-
-.file-list .file-item .file-progress-bar {
-    width: 100%;
-    height: 4px;
-    margin-top: 10px;
-    border-radius: 30px;
-    background-color: var(--color-border-light);
-    overflow: hidden;
-}
-
-.file-list .file-item .file-progress-bar .file-progress {
-    width: 50%;
-    height: inherit;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
-    transition: width 0.3s ease;
-}
-
-.file-uploader .file-upload-box {
-    margin: 10px 20px 20px;
-    border-radius: var(--radius-lg);
-    min-height: 100px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    border: 2px dashed var(--color-border);
-    transition: all var(--transition-base);
-    cursor: pointer;
-}
-
-.file-uploader .file-upload-box:hover,
-.file-uploader .file-upload-box.active {
-    border: 2px solid var(--color-primary);
-    background-color: var(--color-primary-bg);
-}
-
-.file-uploader .file-upload-box .box-title {
-    font-size: 0.9rem;
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text);
-    text-align: center;
-}
-
-.file-uploader .file-upload-box.active .box-title {
-    pointer-events: none;
-}
-
-.file-upload-box .box-title .file-browse-button {
-    color: var(--color-primary);
-    cursor: pointer;
-    font-weight: var(--font-weight-semibold);
-    text-decoration: none;
-}
-
-.file-upload-box .box-title .file-browse-button:hover {
-    text-decoration: underline;
-}
-=======
     .btn-outline-primary:hover,
     .btn-outline-primary:focus {
         background: var(--color-primary);
@@ -517,4 +228,3 @@ html {
     .ml-card .ml-card-body {
         padding: 1.25rem;
     }
->>>>>>> Stashed changes

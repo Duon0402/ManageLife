@@ -1,28 +1,21 @@
-﻿@{
+@{
     Layout = RazorPageConst.Layout.RootLayout;
     this.UseCss(
         new ResourceLink("~/css/admin-layout.css"),
-<<<<<<< Updated upstream
-        new ResourceLink("~/css/breadcrumbs.css"),
-        new ResourceLink("~/css/tables.css"),
-        new ResourceLink("~/css/admin-pages.css")
-=======
         new ResourceLink("~/css/popup.css")
->>>>>>> Stashed changes
     );
 }
 <div class="admin-layout">
     <partial name="Admin/_AdminHeader" />
 
-    <div class="d-flex flex-grow-1">
+    <div class="admin-body">
         <partial name="Admin/_AdminSidebar" />
 
-        <main class="content-container flex-grow-1 p-4">
+        <main class="content-container" id="mainContent">
             @if (Options.ShowBreadcrumb)
             {
                 <partial name="Admin/_AdminBreadcrumb" model="Options.Breadcrumb" />
             }
-
             @RenderBody()
         </main>
     </div>

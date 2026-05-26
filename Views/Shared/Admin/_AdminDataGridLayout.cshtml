@@ -19,21 +19,6 @@
     );
 }
 
-<<<<<<< Updated upstream
-<div id="admin-layout-container">
-    <div class="tooltip-container card d-flex flex-row justify-content-between align-items-center mb-0">
-        <div class="tooltip-item-start d-flex flex-row align-items-center gap-3">
-            @if (Options.ShowBackButton)
-            {
-                <button class="btn btn-sm btn-outline-secondary" id="back_btn">
-                    <i class="fa-solid fa-angle-left me-1"></i>
-                    <span>Back</span>
-                </button>
-            }
-            <div class="text-uppercase fw-bold">@title</div>
-        </div>
-        <div class="tooltip-item-center d-flex flex-row align-items-center gap-3">
-=======
 <div id="admin-layout-container" class="d-flex flex-column gap-3" style="height: calc(100% - 37px);">
 
     @* Toolbar *@
@@ -50,18 +35,13 @@
             </div>
             <div class="d-flex flex-row align-items-center gap-2">
             </div>
->>>>>>> Stashed changes
         </div>
     </div>
 
     @* Filter (optional) *@
     @if (Options.UseFormData)
     {
-<<<<<<< Updated upstream
-        <div class="card form-container overflow-auto" style="max-height: 120px;">
-=======
         <div class="card">
->>>>>>> Stashed changes
             <div class="card-body">
                 <div class="row g-3 align-items-center">
                     @RenderSection("FormData", required: false)
