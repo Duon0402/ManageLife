@@ -2,6 +2,7 @@
     var currentLanguageCode = LanguageContext.GetCurrentLanguage();
     var currentLanguageName = await LanguageContext.GetCurrentLanguageNameAsync(currentLanguageCode);
     var displayName = UserContext.GetUserName() ?? "";
+    var initials = displayName.Length > 0 ? displayName[0].ToString().ToUpper() : "?";
     var currentPath = Context.Request.Path.Value ?? "";
 }
 
@@ -65,14 +66,30 @@
         <div class="header__right" id="header-right">
             @if (displayName.IsNotEmpty())
             {
-                <div class="header__user">
-                    <i class="fa-solid fa-circle-user"></i>
-                    <span>@displayName</span>
+                <div class="dropdown header__user">
+                    <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="header__user-avatar">@initials</div>
+                        <span class="header__user-name">@displayName</span>
+                        <i class="fa-solid fa-chevron-down header__user-caret"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="/Auth/ChangePassword">
+                                <i class="fa-solid fa-key me-2"></i> Đổi mật khẩu
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#" id="client-logout-btn">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             }
             <div class="header__lang">
                 <div class="dropdown">
-                    <button id="currentLangBtn" class="dropdown-toggle btn btn-light btn-sm" type="button"
+                    <button id="currentLangBtn" class="header__lang-btn dropdown-toggle" type="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa-solid fa-globe me-1"></i> @currentLanguageName
                     </button>

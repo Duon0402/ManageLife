@@ -6,6 +6,7 @@ namespace App {
             this.currentLangCode = this.root.find('#currentLangCode').val() as string;
             this.loadLanguages();
             this.bindToggle();
+            this.bindLogout();
         }
 
         private bindToggle(): void {
@@ -58,6 +59,21 @@ namespace App {
                         $menu.append($('<li>').append($item));
                     });
                 }
+            });
+        }
+
+        private bindLogout(): void {
+            this.root.find('#client-logout-btn').on('click', (e) => {
+                e.preventDefault();
+                ApiService.post('/Auth/Logout', {}, { showLoading: true }).then(res => {
+                    if (res.isOk()) {
+                        window.location.href = '/Auth/Login';
+                    } else {
+                        ToastService.error(res.message || 'Đăng xuất thất bại');
+                    }
+                }).catch(() => {
+                    ToastService.error('Lỗi hệ thống');
+                });
             });
         }
 

@@ -78,24 +78,91 @@
     gap: 16px;
 }
 
-.layout .header__user {
+/* User dropdown */
+.layout .header__user .dropdown-toggle {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--color-primary);
+    background: transparent;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--color-text-dark, #2c2c54);
+    font-size: 0.875rem;
     font-weight: 500;
-    font-size: 0.9rem;
+    transition: background 0.15s;
+    box-shadow: none !important;
+}
+
+.layout .header__user .dropdown-toggle::after {
+    display: none;
+}
+
+.layout .header__user .dropdown-toggle:hover,
+.layout .header__user .dropdown-toggle:focus,
+.layout .header__user .dropdown-toggle:active {
+    background: rgba(75, 73, 172, 0.08);
+    box-shadow: none !important;
+    outline: none;
+}
+
+.layout .header__user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), #7978d9);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.layout .header__user-name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.layout .header__user i {
-    font-size: 1.3rem;
+.layout .header__user-caret {
+    color: var(--color-text, #6c7383);
+    font-size: 0.7rem;
+    transition: transform 0.2s;
 }
 
-.layout .header__lang button {
+.layout .header__user.show .header__user-caret {
+    transform: rotate(180deg);
+}
+
+/* Language button */
+.layout .header__lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
     border: none;
-    background-color: transparent;
+    color: var(--color-text-dark, #2c2c54);
     font-size: 0.85rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.15s;
+    box-shadow: none !important;
+}
+
+.layout .header__lang-btn::after {
+    display: none;
+}
+
+.layout .header__lang-btn:hover,
+.layout .header__lang-btn:focus,
+.layout .header__lang-btn:active {
+    background: rgba(75, 73, 172, 0.08);
+    box-shadow: none !important;
+    outline: none;
 }
 
 /* ─── Hamburger Toggle (hidden on desktop) ────────────────── */

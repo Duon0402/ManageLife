@@ -35,7 +35,7 @@
                 </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
-                    <a class="dropdown-item text-danger" href="/Auth/Logout">
+                    <a class="dropdown-item text-danger" href="#" id="admin-logout-btn">
                         <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
                     </a>
                 </li>
@@ -48,5 +48,18 @@
     document.getElementById('btnToggleSidebar')?.addEventListener('click', function () {
         const sidebar = document.getElementById('adminSidebar');
         if (sidebar) sidebar.classList.toggle('collapsed');
+    });
+
+    document.getElementById('admin-logout-btn')?.addEventListener('click', function (e) {
+        e.preventDefault();
+        ApiService.post('/Auth/Logout', {}, { showLoading: true }).then(function (res) {
+            if (res.isOk()) {
+                window.location.href = '/Auth/Login';
+            } else {
+                ToastService.error(res.message || 'Đăng xuất thất bại');
+            }
+        }).catch(function () {
+            ToastService.error('Lỗi hệ thống');
+        });
     });
 </script>
