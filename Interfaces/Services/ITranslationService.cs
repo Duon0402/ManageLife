@@ -12,6 +12,7 @@ namespace ManageLife.Interfaces
         Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request, CancellationToken ct = default);
         Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request, CancellationToken ct = default);
         Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request, CancellationToken ct = default);
-		Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request, CancellationToken ct = default);
-	}
+        Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request, CancellationToken ct = default);
+        Task<Result<byte[]>> DownloadTranslationTemplateExcelAsync(CancellationToken ct = default);
+    }
 }

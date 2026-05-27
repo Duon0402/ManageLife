@@ -53,6 +53,16 @@ namespace App {
             return response.blob();
         }
 
+        public static async getBlob(url: string, params: any = {}): Promise<Blob> {
+            const requestUrl = params && Object.keys(params).length ? `${url}?${$.param(params)}` : url;
+            const response = await fetch(requestUrl, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.blob();
+        }
+
         public static upload<T = any>(url: string, formData: FormData, options: ApiRequestOptions = {}): Promise<ApiResponse<T>> {
             if (!(formData instanceof FormData)) {
                 throw new Error("upload() expects FormData");

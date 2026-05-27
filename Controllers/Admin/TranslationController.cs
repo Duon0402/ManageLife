@@ -57,5 +57,16 @@ namespace ManageLife.Controllers.Admin
         {
             return await _service.DeleteTranslationAsync(request);
         }
+
+        [HttpGet]
+        [ViewPermission]
+        public async Task<IActionResult> DownloadTemplate(CancellationToken ct)
+        {
+            var rs = await _service.DownloadTranslationTemplateExcelAsync(ct);
+            if (!rs.IsOk())
+                return BadRequest(rs.Message);
+
+            return File(rs.Data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "translation_template.xlsx");
+        }
     }
 }

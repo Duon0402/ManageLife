@@ -19,6 +19,7 @@ namespace ManageLife.Services
         private readonly IUserRefreshTokenRepository _refreshRepo;
         private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _uow;
+        private readonly IAppLogger<UserService> _logger;
 
         public UserService(
             IUserRepository userRepo,
@@ -28,7 +29,8 @@ namespace ManageLife.Services
             ITokenService tokenService,
             IUnitOfWork uow,
             IMapper mapper,
-            IUserContext userContext) : base(mapper, userContext)
+            IUserContext userContext,
+            IAppLogger<UserService> logger) : base(mapper, userContext)
         {
             _userRepo = userRepo;
             _roleRepo = roleRepo;
@@ -36,6 +38,7 @@ namespace ManageLife.Services
             _refreshRepo = refreshRepo;
             _tokenService = tokenService;
             _uow = uow;
+            _logger = logger;
         }
 
         public async Task<Result> RegisterAsync(RegisterAccountRequest request, CancellationToken ct = default)
@@ -49,6 +52,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -56,6 +60,7 @@ namespace ManageLife.Services
                 if (existedUser != null)
                 {
                     msg = "Tên đăng nhập đã tồn tại";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
@@ -63,6 +68,7 @@ namespace ManageLife.Services
                 if (roleEntity == null)
                 {
                     msg = "Không thể đăng ký tài khoản";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -78,6 +84,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = "Không thể đăng ký tài khoản";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -90,6 +97,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = "Không thể đăng ký tài khoản";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -106,6 +114,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = "Không thể tạo phiên đăng nhập";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -121,6 +130,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = "Đã có lỗi xảy ra khi đăng ký tài khoản";
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -136,6 +146,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -143,12 +154,14 @@ namespace ManageLife.Services
                 if (userEntity == null)
                 {
                     msg = "Tên đăng nhập hoặc mật khẩu không đúng";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
                 if (!userEntity.IsActive)
                 {
                     msg = "Tài khoản của bạn đã bị khóa";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -159,6 +172,7 @@ namespace ManageLife.Services
                 if (!passwordValid)
                 {
                     msg = "Tên đăng nhập hoặc mật khẩu không đúng";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -183,6 +197,7 @@ namespace ManageLife.Services
                 if (!cleanupResult.IsOk())
                 {
                     msg = "Không thể dọn dẹp token cũ";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
 
@@ -199,6 +214,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = "Không thể tạo phiên đăng nhập";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -221,6 +237,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = "Đã có lỗi xảy ra khi đăng nhập tài khoản";
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -234,6 +251,7 @@ namespace ManageLife.Services
                 if (refreshToken == null)
                 {
                     msg = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -249,6 +267,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = "Không thể đăng xuất";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
 
@@ -259,6 +278,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = "Đã có lỗi xảy ra khi đăng xuất";
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -273,12 +293,14 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
                 if (refreshToken == null)
                 {
                     msg = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -287,6 +309,7 @@ namespace ManageLife.Services
                 if (user == null)
                 {
                     msg = TranslationKey.Common.Message.DataInvalid;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -295,6 +318,7 @@ namespace ManageLife.Services
                 if (tokenEntity == null)
                 {
                     msg = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -305,6 +329,7 @@ namespace ManageLife.Services
                 if (!oldPasswordValid)
                 {
                     msg = "Mật khẩu cũ không đúng";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -316,6 +341,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = TranslationKey.Common.Message.UpdateError;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
 
@@ -332,6 +358,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -347,7 +374,8 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                string msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                _logger.Error(ex, msg);
                 return Result.Exception<List<UserModel>>(msg, ex);
             }
         }
@@ -361,6 +389,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error<UserModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -368,6 +397,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = "User không tồn tại";
+                    _logger.Debug(msg);
                     return Result.Error<UserModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -377,6 +407,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                _logger.Error(ex, msg);
                 return Result.Exception<UserModel>(msg, ex);
             }
         }

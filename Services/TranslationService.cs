@@ -1,12 +1,15 @@
 ﻿using LinqKit;
-using ManageLife.Core;
 using ManageLife.Commons;
+using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.Drawing;
 
 namespace ManageLife.Services
 {
@@ -16,13 +19,15 @@ namespace ManageLife.Services
         private readonly ILanguageRepository _languageRepo;
         private readonly ICacheService _cache;
         private readonly IUnitOfWork _uow;
+        private readonly IAppLogger<TranslationService> _logger;
 
-        public TranslationService(ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, IUnitOfWork uow)
+        public TranslationService(ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, IUnitOfWork uow, IAppLogger<TranslationService> logger)
         {
             _repo = repo;
             _languageRepo = languageRepo;
             _cache = cache;
             _uow = uow;
+            _logger = logger;
         }
 
         public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request, CancellationToken ct = default)
@@ -35,6 +40,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -43,6 +49,7 @@ namespace ManageLife.Services
                 if (language == null)
                 {
                     msg = TranslationKey.Common.Message.DataInvalid;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -50,6 +57,7 @@ namespace ManageLife.Services
                 if (existing != null)
                 {
                     msg = TranslationKey.Common.Message.DataExisted;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
@@ -60,6 +68,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = TranslationKey.Common.Message.CreateError;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -71,6 +80,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -110,7 +120,66 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
+            }
+        }
+
+        public async Task<Result<byte[]>> DownloadTranslationTemplateExcelAsync(CancellationToken ct = default)
+        {
+            string msg;
+            try
+            {
+                var languages = await _languageRepo.Query(true)
+                    .Where(x => x.IsDeleted == false)
+                    .Select(x => x.Name)
+                    .ToListAsync(ct);
+
+                if (languages.IsEmpty())
+                {
+                    msg = "Không có ngôn ngữ nào để tải template";
+                    _logger.Debug(msg);
+                    return Result.Error<byte[]>(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                using var excel = new ExcelPackage();
+                var ws = excel.Workbook.Worksheets.Add("Translations");
+
+                ws.DefaultRowHeight = 15;
+
+                // Row 1: header (Key + tên ngôn ngữ)
+                ws.Cells[1, 1].Value = "Key";
+
+                int col = 2;
+                foreach (var langName in languages)
+                {
+                    ws.Cells[1, col].Value = langName;
+                    col++;
+                }
+
+                int totalCols = col - 1;
+
+                // Style header row
+                using (var headerRange = ws.Cells[1, 1, 1, totalCols])
+                {
+                    headerRange.Style.Font.Bold = true;
+                    headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    headerRange.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(173, 216, 230));
+                }
+
+                // Freeze header, dữ liệu bắt đầu từ row 2
+                ws.View.FreezePanes(2, 2);
+
+                ws.Cells.AutoFitColumns();
+
+                return Result.Ok(excel.GetAsByteArray());
+            }
+            catch (Exception ex)
+            {
+                msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
+                return Result.Exception<byte[]>(msg, ex);
             }
         }
 
@@ -124,6 +193,7 @@ namespace ManageLife.Services
                 if (request == null || request.LanguageCode.IsEmpty())
                 {
                     msg = TranslationKey.Common.Message.DataInvalid;
+                    _logger.Debug(msg);
                     return Result.Error<Dictionary<string, string>>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -157,6 +227,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception<Dictionary<string, string>>(msg, ex);
             }
         }
@@ -195,6 +266,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception<List<TranslationModel>>(msg, ex);
             }
         }
@@ -212,6 +284,7 @@ namespace ManageLife.Services
                 if (request == null || request.LanguageCode.IsEmpty() || request.Key.IsEmpty())
                 {
                     msg = TranslationKey.Common.Message.DataInvalid;
+                    _logger.Debug(msg);
                     return Result.Error<TranslationModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -219,6 +292,7 @@ namespace ManageLife.Services
                 if (language == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
+                    _logger.Debug(msg);
                     return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -228,6 +302,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
+                    _logger.Debug(msg);
                     return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -237,6 +312,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception<TranslationModel>(msg, ex);
             }
         }
@@ -252,6 +328,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -261,6 +338,7 @@ namespace ManageLife.Services
                 if (data.IsEmpty())
                 {
                     msg = "Không tìm thấy data import";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -282,6 +360,7 @@ namespace ManageLife.Services
                     if (!b)
                     {
                         msg = TranslationKey.Common.Message.CreateError;
+                        _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                     }
                 }
@@ -292,6 +371,7 @@ namespace ManageLife.Services
                     if (!b)
                     {
                         msg = TranslationKey.Common.Message.UpdateError;
+                        _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                     }
                 }
@@ -303,6 +383,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }

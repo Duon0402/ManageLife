@@ -26,6 +26,7 @@ namespace ManageLife.Services
         private readonly IUserRoleRepository _userRoleRepo;
         private readonly IUnitOfWork _uow;
         private readonly ICacheService _cache;
+        private readonly IAppLogger<TokenService> _logger;
 
         public TokenService(
             IUserRefreshTokenRepository refreshRepo,
@@ -35,7 +36,8 @@ namespace ManageLife.Services
             IOptions<JwtSettings> jwtOptions,
             IHttpContextAccessor httpContextAccessor,
             IUnitOfWork uow,
-            ICacheService cache)
+            ICacheService cache,
+            IAppLogger<TokenService> logger)
         {
             _jwt = jwtOptions.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -45,6 +47,7 @@ namespace ManageLife.Services
             _userRoleRepo = userRoleRepo;
             _uow = uow;
             _cache = cache;
+            _logger = logger;
         }
 
         #region Access Token
@@ -150,6 +153,7 @@ namespace ManageLife.Services
                 {
                     ClearTokensCookie();
                     msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
+                    _logger.Debug(msg);
                     return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -162,6 +166,7 @@ namespace ManageLife.Services
                 {
                     ClearTokensCookie();
                     msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
+                    _logger.Debug(msg);
                     return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -171,6 +176,7 @@ namespace ManageLife.Services
                 {
                     ClearTokensCookie();
                     msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
+                    _logger.Debug(msg);
                     return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -180,6 +186,7 @@ namespace ManageLife.Services
                 {
                     ClearTokensCookie();
                     msg = "Không thể tạo phiên đăng nhập mới";
+                    _logger.Debug(msg);
                     return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, msg);
                 }
 
@@ -187,6 +194,7 @@ namespace ManageLife.Services
                 if (!cleanupResult.IsOk())
                 {
                     msg = "Không thể dọn dẹp token cũ";
+                    _logger.Debug(msg);
                     return Result.Error<AuthTokenModel>(Result.DATA_NOT_DELETE.Code, msg);
                 }
 
@@ -204,6 +212,7 @@ namespace ManageLife.Services
                 {
                     ClearTokensCookie();
                     msg = "Không thể tạo phiên đăng nhập mới";
+                    _logger.Debug(msg);
                     return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -228,6 +237,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = "Đã có lỗi xảy ra khi làm mới phiên đăng nhập";
+                _logger.Error(ex, msg);
                 return Result.Exception<AuthTokenModel>(msg, ex);
             }
         }
@@ -282,6 +292,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }

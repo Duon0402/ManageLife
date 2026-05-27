@@ -11,10 +11,12 @@ namespace ManageLife.Services
     public class ExceptionItemService : IExceptionItemService
     {
         private readonly IExceptionItemRepository _repo;
+        private readonly IAppLogger<ExceptionItemService> _logger;
 
-        public ExceptionItemService(IExceptionItemRepository repo)
+        public ExceptionItemService(IExceptionItemRepository repo, IAppLogger<ExceptionItemService> logger)
         {
             _repo = repo;
+            _logger = logger;
         }
 
         public async Task<Result> CreateExceptionItemAsync(CreateExceptionItemRequest request, CancellationToken ct = default)
@@ -26,6 +28,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -35,6 +38,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = TranslationKey.Common.Message.CreateError;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -43,6 +47,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -56,6 +61,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -64,6 +70,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -72,6 +79,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = TranslationKey.Common.Message.DeleteError;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
 
@@ -80,6 +88,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -93,6 +102,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error<ExceptionItemModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -101,6 +111,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
+                    _logger.Debug(msg);
                     return Result.Error<ExceptionItemModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -111,6 +122,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception<ExceptionItemModel>(msg, ex);
             }
         }
@@ -124,6 +136,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error<List<ExceptionItemModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -143,6 +156,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception<List<ExceptionItemModel>>(msg, ex);
             }
         }
@@ -156,6 +170,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -164,6 +179,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -174,6 +190,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = TranslationKey.Common.Message.UpdateError;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
 
@@ -182,6 +199,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }

@@ -7,8 +7,11 @@ namespace ManageLife.Services
 {
     public class QrService : IQrService
     {
-        public QrService()
+        private readonly IAppLogger<QrService> _logger;
+
+        public QrService(IAppLogger<QrService> logger)
         {
+            _logger = logger;
         }
 
         public Result<byte[]> GeneratePng(string text, int pixels = 20)
@@ -19,6 +22,7 @@ namespace ManageLife.Services
                 if (text.IsEmpty())
                 {
                     msg = TranslationKey.Common.Message.DataInvalid;
+                    _logger.Debug(msg);
                     return Result.Error<byte[]>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -31,6 +35,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception<byte[]>(msg, ex);
             }
         }

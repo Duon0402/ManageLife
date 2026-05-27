@@ -11,10 +11,12 @@ namespace ManageLife.Services
     public class TodoTaskService : ITodoTaskService
     {
         private readonly ITodoTaskRepository _repo;
+        private readonly IAppLogger<TodoTaskService> _logger;
 
-        public TodoTaskService(ITodoTaskRepository repo)
+        public TodoTaskService(ITodoTaskRepository repo, IAppLogger<TodoTaskService> logger)
         {
             _repo = repo;
+            _logger = logger;
         }
 
         public async Task<Result> CreateTodoTask(CreateTodoTaskRequest request, CancellationToken ct = default)
@@ -26,6 +28,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -35,6 +38,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = TranslationKey.Common.Message.CreateError;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -43,6 +47,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -56,6 +61,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -63,6 +69,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -70,6 +77,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = TranslationKey.Common.Message.DeleteError;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
 
@@ -78,6 +86,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -91,6 +100,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error<List<TodoTaskModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -124,6 +134,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception<List<TodoTaskModel>>(msg, ex);
             }
         }
@@ -137,6 +148,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error<TodoTaskModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -144,6 +156,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
+                    _logger.Debug(msg);
                     return Result.Error<TodoTaskModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
                 var model = entity.MapTo<TodoTaskModel>();
@@ -153,6 +166,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception<TodoTaskModel>(msg, ex);
             }
         }
@@ -166,6 +180,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -173,6 +188,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = TranslationKey.Common.Message.DataNotExisted;
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -181,6 +197,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }

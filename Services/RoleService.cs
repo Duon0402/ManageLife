@@ -11,11 +11,13 @@ namespace ManageLife.Services
     {
         private readonly IRoleRepository _repoRole;
         private readonly IUserRoleRepository _userRoleRepo;
+        private readonly IAppLogger<RoleService> _logger;
 
-        public RoleService(IRoleRepository repoRole, IUserRoleRepository userRoleRepo)
+        public RoleService(IRoleRepository repoRole, IUserRoleRepository userRoleRepo, IAppLogger<RoleService> logger)
         {
             _repoRole = repoRole;
             _userRoleRepo = userRoleRepo;
+            _logger = logger;
         }
 
         public async Task<Result> CreateRoleAsync(CreateRoleRequest request, CancellationToken ct = default)
@@ -27,6 +29,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -34,6 +37,7 @@ namespace ManageLife.Services
                 if (roleExisted != null)
                 {
                     msg = $"Role [{request.Name}] đã tồn tại trong hệ thống";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
@@ -43,6 +47,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = $"Thêm mới Role [{request.Name}] không thành công";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
 
@@ -51,6 +56,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -64,6 +70,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -71,6 +78,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = "Không tìm thấy Role";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -78,6 +86,7 @@ namespace ManageLife.Services
                 if (nameConflict != null)
                 {
                     msg = $"Role [{request.Name}] đã tồn tại trong hệ thống";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
@@ -89,6 +98,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = $"Cập nhật Role [{request.Name}] không thành công";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
 
@@ -97,6 +107,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -110,6 +121,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -117,6 +129,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = "Không tìm thấy Role";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -124,6 +137,7 @@ namespace ManageLife.Services
                 if (!b)
                 {
                     msg = "Không thể xóa Role";
+                    _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
 
@@ -132,6 +146,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
         }
@@ -148,6 +163,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                _logger.Error(ex, msg);
                 return Result.Exception<List<RoleModel>>(msg, ex);
             }
         }
@@ -161,6 +177,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error<List<RoleModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -181,6 +198,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                _logger.Error(ex, msg);
                 return Result.Exception<List<RoleModel>>(msg, ex);
             }
         }
@@ -194,6 +212,7 @@ namespace ManageLife.Services
                 if (!validation.IsValid)
                 {
                     msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    _logger.Debug(msg);
                     return Result.Error<RoleModel>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -202,6 +221,7 @@ namespace ManageLife.Services
                 if (entity == null)
                 {
                     msg = "Không tìm thấy Role";
+                    _logger.Debug(msg);
                     return Result.Error<RoleModel>(Result.DATA_EXISTED.Code, msg);
                 }
 
@@ -212,6 +232,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                _logger.Error(ex, msg);
                 return Result.Exception<RoleModel>(msg, ex);
             }
         }

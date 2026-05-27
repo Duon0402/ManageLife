@@ -15,6 +15,8 @@ namespace App {
         private gridBuilder!: GridBuilder<TranslationModel>;
 
         protected initialize(): void {
+            this.addPageAction({ icon: 'fa-download', label: 'Tải template', onClick: () => this.downloadTemplate() });
+            this.addPageAction({ icon: 'fa-upload', label: 'Import Excel', onClick: () => this.triggerUpload() });
             this.initGrid();
         }
 
@@ -89,6 +91,50 @@ namespace App {
                 LoadingService.hide();
                 ToastService.error('Lỗi hệ thống');
             }
+        }
+
+        private async downloadTemplate(): Promise<void> {
+            LoadingService.show();
+            try {
+                const blob = await ApiService.getBlob('/Admin/Translation/DownloadTemplate');
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'translation_template.xlsx';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch {
+                ToastService.error('Lỗi khi tải template');
+            } finally {
+                LoadingService.hide();
+            }
+        }
+
+        private triggerUpload(): void {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx';
+            input.onchange = async () => {
+                const file = input.files?.[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('file', file);
+                LoadingService.show();
+                try {
+                    const response = await ApiService.upload('/Admin/Translation/ImportTemplate', formData);
+                    LoadingService.hide();
+                    if (response.isOk()) {
+                        ToastService.success('Import thành công');
+                        this.gridBuilder.reload();
+                    } else {
+                        ToastService.error(response.message || 'Import thất bại');
+                    }
+                } catch {
+                    LoadingService.hide();
+                    ToastService.error('Lỗi hệ thống');
+                }
+            };
+            input.click();
         }
 
         private async deleteTranslation(translation: TranslationModel): Promise<void> {
