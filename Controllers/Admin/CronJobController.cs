@@ -21,7 +21,7 @@ namespace ManageLife.Controllers.Admin
 
         [ViewPermission]
         [HttpGet]
-        public async Task<Result> GetListCronJobs(CancellationToken ct)
+        public async Task<Result> GetList(CancellationToken ct)
         {
             return await _service.GetListCronJobsAsync(ct);
         }

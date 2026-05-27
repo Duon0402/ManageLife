@@ -22,21 +22,28 @@ namespace ManageLife.Controllers.Admin
 
         [ViewPermission]
         [HttpGet]
-        public async Task<Result<List<RoleModel>>> GetListRoles(CancellationToken ct)
+        public async Task<Result<List<RoleModel>>> GetList(CancellationToken ct)
         {
             return await _service.GetListRolesAsync(ct);
         }
 
         [InsertPermission]
         [HttpPost]
-        public async Task<Result> CreateRole([FromBody] CreateRoleRequest request, CancellationToken ct)
+        public async Task<Result> Create([FromBody] CreateRoleRequest request, CancellationToken ct)
         {
             return await _service.CreateRoleAsync(request, ct);
         }
 
+        [UpdatePermission]
+        [HttpPost]
+        public async Task<Result> Update([FromBody] UpdateRoleRequest request, CancellationToken ct)
+        {
+            return await _service.UpdateRoleAsync(request, ct);
+        }
+
         [DeletePermission]
         [HttpPost]
-        public async Task<Result> DeleteRole([FromBody] DeleteRoleRequest request, CancellationToken ct)
+        public async Task<Result> Delete([FromBody] DeleteRoleRequest request, CancellationToken ct)
         {
             return await _service.DeleteRoleAsync(request, ct);
         }

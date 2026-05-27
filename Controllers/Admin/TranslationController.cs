@@ -1,4 +1,4 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.ViewModels;
@@ -9,7 +9,6 @@ namespace ManageLife.Controllers.Admin
     public class TranslationController : WebAdminControllerBase
     {
         private readonly ITranslationService _service;
-
         private readonly ILanguageService _languageService;
 
         public TranslationController(ITranslationService service, ILanguageService languageService)
@@ -33,34 +32,30 @@ namespace ManageLife.Controllers.Admin
 
         [HttpGet]
         [ViewPermission]
-        public async Task<Result<List<TranslationModel>>> GetListTranslations([FromQuery] GetListTranslationsRequest request, CancellationToken ct)
+        public async Task<Result<List<TranslationModel>>> GetList([FromQuery] GetListTranslationsRequest request, CancellationToken ct)
         {
-            var rs = await _service.GetListTranslationsAsync(request);
-            return rs;
+            return await _service.GetListTranslationsAsync(request);
         }
 
         [HttpPost]
         [InsertPermission]
-        public async Task<Result> CreateTranslation([FromBody] CreateTranslationRequest request)
+        public async Task<Result> Create([FromBody] CreateTranslationRequest request)
         {
-            var rs = await _service.CreateTranslationAsync(request);
-            return rs;
+            return await _service.CreateTranslationAsync(request);
         }
 
         [HttpPost]
         [UpdatePermission]
-        public async Task<Result> UpdateTranslation([FromBody] UpdateTranslationRequest request)
+        public async Task<Result> Update([FromBody] UpdateTranslationRequest request)
         {
-            var rs = await _service.UpdateTranslationAsync(request);
-            return rs;
+            return await _service.UpdateTranslationAsync(request);
         }
 
         [HttpPost]
         [DeletePermission]
-        public async Task<Result> DeleteTranslation([FromBody] DeleteTranslationRequest request)
+        public async Task<Result> Delete([FromBody] DeleteTranslationRequest request)
         {
-            var rs = await _service.DeleteTranslationAsync(request);
-            return rs;
+            return await _service.DeleteTranslationAsync(request);
         }
     }
 }

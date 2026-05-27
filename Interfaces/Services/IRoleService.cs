@@ -9,6 +9,7 @@ namespace ManageLife.Interfaces
         Task<Result<List<RoleModel>>> GetListRolesByUserIdAsync(GetListRolesByUserIdRequest request, CancellationToken ct = default);
         Task<Result<RoleModel>> GetRoleByIdAsync(GetRoleByIdRequest request, CancellationToken ct = default);
         Task<Result> CreateRoleAsync(CreateRoleRequest request, CancellationToken ct = default);
+        Task<Result> UpdateRoleAsync(UpdateRoleRequest request, CancellationToken ct = default);
         Task<Result> DeleteRoleAsync(DeleteRoleRequest request, CancellationToken ct = default);
     }
 }

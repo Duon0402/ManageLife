@@ -25,7 +25,7 @@ namespace App {
             }));
 
             this.gridBuilder = new GridBuilder<TranslationModel>('#tblTranslations')
-                .setDataSource({ url: '/Admin/Translation/GetListTranslations' })
+                .setDataSource({ url: '/Admin/Translation/GetList' })
                 .addColumn({ field: 'key', title: 'Key' })
                 .addColumn({ field: 'value', title: 'Value' })
                 .addColumn({ field: 'languageName', title: 'Language' })
@@ -53,7 +53,7 @@ namespace App {
                     editTitle: 'Cập nhật bản dịch',
                     saveButtonText: 'Lưu',
                     cancelButtonText: 'Hủy',
-                    showDeleteButton: true,
+                    showDeleteButton: false,
                     fields: [
                         { name: 'id', label: 'ID', type: 'hidden' },
                         { name: 'key', label: 'Key', type: 'text', required: true, placeholder: 'Nhập key (vd: common.save)' },
@@ -67,14 +67,13 @@ namespace App {
             const formBuilder = this.gridBuilder.getFormBuilder();
             if (formBuilder) {
                 formBuilder.onSave((submission) => this.saveTranslation(submission));
-                formBuilder.onDelete((data) => this.deleteTranslation(data));
             }
         }
 
         private async saveTranslation(submission: IFormSubmission<TranslationModel>): Promise<void> {
             const url = submission.mode === 'create'
-                ? '/Admin/Translation/CreateTranslation'
-                : '/Admin/Translation/UpdateTranslation';
+                ? '/Admin/Translation/Create'
+                : '/Admin/Translation/Update';
 
             LoadingService.show();
             try {
@@ -97,7 +96,7 @@ namespace App {
             if (!ok) return;
 
             LoadingService.show();
-            ApiService.post('/Admin/Translation/DeleteTranslation', { id: translation.id })
+            ApiService.post('/Admin/Translation/Delete', { id: translation.id })
                 .then(response => {
                     LoadingService.hide();
                     if (response.isOk()) {

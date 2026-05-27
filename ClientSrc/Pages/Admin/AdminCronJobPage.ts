@@ -16,7 +16,7 @@ namespace App {
         private initGrid(): void {
             this.gridBuilder = new GridBuilder<CronJobModel>('#cronJobsTable')
                 .setDataSource({
-                    url: '/Admin/CronJob/GetListCronJobs'
+                    url: '/Admin/CronJob/GetList'
                 })
                 .addColumn({ field: 'jobId', title: 'Job ID' })
                 .addColumn({ field: 'title', title: 'Tiêu đề' })

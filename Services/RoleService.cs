@@ -55,6 +55,52 @@ namespace ManageLife.Services
             }
         }
 
+        public async Task<Result> UpdateRoleAsync(UpdateRoleRequest request, CancellationToken ct = default)
+        {
+            string msg;
+            try
+            {
+                var validation = request.Validate();
+                if (!validation.IsValid)
+                {
+                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                }
+
+                var entity = await _repoRole.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                if (entity == null)
+                {
+                    msg = "Không tìm thấy Role";
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
+                }
+
+                var nameConflict = await _repoRole.FirstOrDefaultAsync(x => x.Name == request.Name.Trim() && x.Id != request.Id && x.IsDeleted == false);
+                if (nameConflict != null)
+                {
+                    msg = $"Role [{request.Name}] đã tồn tại trong hệ thống";
+                    return Result.Error(Result.DATA_EXISTED.Code, msg);
+                }
+
+                entity.Code = request.Code.Trim();
+                entity.Name = request.Name.Trim();
+                entity.Description = request.Description;
+
+                var b = await _repoRole.UpdateAsync(entity);
+                if (!b)
+                {
+                    msg = $"Cập nhật Role [{request.Name}] không thành công";
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                return Result.Exception(msg, ex);
+            }
+        }
+
         public async Task<Result> DeleteRoleAsync(DeleteRoleRequest request, CancellationToken ct = default)
         {
             string msg;

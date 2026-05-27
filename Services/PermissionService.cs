@@ -414,7 +414,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleIdAsync(GetUnAssignedPermissionsByRoleIdRequest request, CancellationToken ct = default)
+        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByRoleIdAsync(GetUnassignedPermissionsByRoleIdRequest request, CancellationToken ct = default)
         {
             string msg;
             try

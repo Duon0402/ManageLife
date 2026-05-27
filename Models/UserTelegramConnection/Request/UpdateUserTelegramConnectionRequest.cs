@@ -5,7 +5,9 @@ namespace ManageLife.Models
     public class UpdateUserTelegramConnectionRequest
     {
         [Required]
-        public long ChatId { get; set; } = default!;
+        public string Id { get; set; } = default!;
+        [Required]
+        public long ChatId { get; set; }
         [Required]
         public string UserId { get; set; } = default!;
     }

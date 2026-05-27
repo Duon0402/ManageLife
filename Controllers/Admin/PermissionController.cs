@@ -99,9 +99,9 @@ namespace ManageLife.Controllers.Admin
 
         [HttpGet]
         [ViewPermission]
-        public async Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleId([FromQuery] GetUnAssignedPermissionsByRoleIdRequest request, CancellationToken ct)
+        public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByRoleId([FromQuery] GetUnassignedPermissionsByRoleIdRequest request, CancellationToken ct)
         {
-            var rs = await _service.GetUnAssignedPermissionsByRoleIdAsync(request);
+            var rs = await _service.GetUnassignedPermissionsByRoleIdAsync(request);
             return rs;
         }
     }

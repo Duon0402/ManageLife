@@ -12,6 +12,6 @@ namespace ManageLife.Interfaces
         Task<Result> UnassignPermissionsAsync(UnassignPermissionsRequest request, CancellationToken ct = default);
         Task<Result> SyncPermissionsAsync(List<string> permissionCodes, CancellationToken ct = default);
         Task<Result<List<PermissionModel>>> GetAssignedPermissionsByRoleIdAsync(GetAssignedPermissionsByRoleIdRequest request, CancellationToken ct = default);
-        Task<Result<List<PermissionModel>>> GetUnAssignedPermissionsByRoleIdAsync(GetUnAssignedPermissionsByRoleIdRequest request, CancellationToken ct = default);
+        Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByRoleIdAsync(GetUnassignedPermissionsByRoleIdRequest request, CancellationToken ct = default);
     }
 }

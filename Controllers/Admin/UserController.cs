@@ -22,7 +22,7 @@ namespace ManageLife.Controllers.Admin
 
         [HttpGet]
         [ViewPermission]
-        public async Task<Result<List<UserModel>>> GetListUsers(CancellationToken ct)
+        public async Task<Result<List<UserModel>>> GetList(CancellationToken ct)
         {
             return await _userService.GetListUsersAsync(ct);
         }

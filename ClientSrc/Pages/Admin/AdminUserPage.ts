@@ -17,7 +17,7 @@ namespace App {
         private initGrid(): void {
             this.gridBuilder = new GridBuilder<UserModel>('#tblUser')
                 .setDataSource({
-                    url: '/Admin/User/GetListUsers'
+                    url: '/Admin/User/GetList'
                 })
                 .addColumn({ field: 'id', title: 'ID' })
                 .addColumn({ field: 'userName', title: 'User Name' })
