@@ -138,7 +138,15 @@
     .lookup-section {
         display: flex;
         gap: 8px;
-        align-items: flex-start;
+        align-items: center;
+    }
+
+    .lookup-section .form-control {
+        flex: 1;
+    }
+
+    .lookup-section .btn {
+        flex-shrink: 0;
     }
 
     .lookup-result {
@@ -209,7 +217,7 @@
 
 <!-- Modal: Thêm / Sửa từ -->
 <div class="modal fade" id="modal-word" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modal-word-title">Thêm từ mới</h5>
