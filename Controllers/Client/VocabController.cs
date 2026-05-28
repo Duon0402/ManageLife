@@ -8,14 +8,90 @@ namespace ManageLife.Controllers.Client
     public class VocabController : WebClientControllerBase
     {
         private readonly IVocabWordService _wordService;
+        private readonly IVocabTopicService _topicService;
+        private readonly IVocabDeckService _deckService;
 
-        public VocabController(IVocabWordService wordService)
+        public VocabController(
+            IVocabWordService wordService,
+            IVocabTopicService topicService,
+            IVocabDeckService deckService)
         {
             _wordService = wordService;
+            _topicService = topicService;
+            _deckService = deckService;
         }
 
         [AccessPagePermission]
         public IActionResult Index() => View();
+
+        [AccessPagePermission]
+        public async Task<IActionResult> Deck(string id, CancellationToken ct)
+        {
+            var result = await _deckService.GetByIdAsync(id, ct);
+            if (!result.IsOk()) return RedirectToAction("Index");
+            ViewBag.DeckId = result.Data!.Id;
+            ViewBag.DeckName = result.Data!.Name;
+            return View("Deck");
+        }
+
+        // ── Topic ─────────────────────────────────────────────────────────────
+
+        [ViewPermission]
+        [HttpGet]
+        public async Task<Result<List<VocabTopicModel>>> GetTopics(CancellationToken ct)
+            => await _topicService.GetListAsync(ct);
+
+        [InsertPermission]
+        [HttpPost]
+        public async Task<Result> CreateTopic([FromBody] CreateVocabTopicRequest request, CancellationToken ct)
+            => await _topicService.CreateAsync(request, ct);
+
+        [UpdatePermission]
+        [HttpPut]
+        public async Task<Result> UpdateTopic([FromBody] UpdateVocabTopicRequest request, CancellationToken ct)
+            => await _topicService.UpdateAsync(request, ct);
+
+        [DeletePermission]
+        [HttpDelete]
+        public async Task<Result> DeleteTopic(string id, CancellationToken ct)
+            => await _topicService.DeleteAsync(id, ct);
+
+        // ── Deck ──────────────────────────────────────────────────────────────
+
+        [ViewPermission]
+        [HttpGet]
+        public async Task<Result<List<VocabDeckModel>>> GetDecks(string? topicId, CancellationToken ct)
+            => await _deckService.GetListAsync(topicId, ct);
+
+        [InsertPermission]
+        [HttpPost]
+        public async Task<Result> CreateDeck([FromBody] CreateVocabDeckRequest request, CancellationToken ct)
+            => await _deckService.CreateAsync(request, ct);
+
+        [UpdatePermission]
+        [HttpPut]
+        public async Task<Result> UpdateDeck([FromBody] UpdateVocabDeckRequest request, CancellationToken ct)
+            => await _deckService.UpdateAsync(request, ct);
+
+        [DeletePermission]
+        [HttpDelete]
+        public async Task<Result> DeleteDeck(string id, CancellationToken ct)
+            => await _deckService.DeleteAsync(id, ct);
+
+        [InsertPermission]
+        [HttpPost]
+        public async Task<Result> AddWordToDeck([FromBody] AddWordToDeckRequest request, CancellationToken ct)
+            => await _deckService.AddWordAsync(request, ct);
+
+        [DeletePermission]
+        [HttpDelete]
+        public async Task<Result> RemoveWordFromDeck(string deckId, string wordId, CancellationToken ct)
+            => await _deckService.RemoveWordAsync(deckId, wordId, ct);
+
+        [ViewPermission]
+        [HttpGet]
+        public async Task<Result<List<VocabWordModel>>> GetDeckWords(string deckId, CancellationToken ct)
+            => await _deckService.GetWordsAsync(deckId, ct);
 
         // ── Word ──────────────────────────────────────────────────────────────
 

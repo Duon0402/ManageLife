@@ -36,6 +36,8 @@ namespace ManageLife.Extensions
             services.AddScoped<IVideoDownloaderService, VideoDownloaderService>();
             services.AddScoped<IDictionaryApiService, DictionaryApiService>();
             services.AddScoped<IVocabWordService, VocabWordService>();
+            services.AddScoped<IVocabTopicService, VocabTopicService>();
+            services.AddScoped<IVocabDeckService, VocabDeckService>();
             return services;
         }
     }

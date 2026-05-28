@@ -176,6 +176,82 @@
         color: rgba(255,255,255,0.75) !important;
     }
 
+    /* Layout 2 cột */
+    .vocab-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    @@media (max-width: 768px) {
+        .vocab-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Sidebar */
+    .vocab-sidebar {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #e8e8e8;
+        padding: 16px;
+    }
+
+    .sidebar-section-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #999;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sidebar-section-title button {
+        background: none;
+        border: none;
+        color: #667eea;
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.88rem;
+        color: #444;
+        transition: background 0.15s;
+        text-decoration: none;
+    }
+
+    .sidebar-item:hover { background: #f0eeff; color: #667eea; }
+    .sidebar-item.active { background: #f0eeff; color: #667eea; font-weight: 600; }
+
+    .sidebar-item .badge-count {
+        margin-left: auto;
+        background: #f0eeff;
+        color: #667eea;
+        font-size: 0.72rem;
+        padding: 1px 7px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .topic-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .sidebar-divider { border-top: 1px solid #f0f0f0; margin: 10px 0; }
+
     /* Custom scrollbar cho modal body */
     #modal-word .modal-body {
         scrollbar-width: thin;
@@ -204,9 +280,35 @@
         </button>
     </div>
 
-    <div class="vocab-toolbar">
-        <input type="text" class="vocab-search" id="vocab-search" placeholder="Tìm kiếm từ vựng...">
-    </div>
+    <div class="vocab-layout">
+        <!-- Sidebar -->
+        <aside class="vocab-sidebar">
+            <div class="sidebar-section-title">
+                Chủ đề
+                <button id="btn-add-topic" title="Thêm chủ đề"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <div id="topic-list">
+                <div class="sidebar-item active" data-topic="">
+                    <i class="fa-solid fa-layer-group"></i> Tất cả
+                </div>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section-title">
+                Bộ thẻ (Deck)
+                <button id="btn-add-deck" title="Thêm deck"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <div id="deck-list">
+                <div class="text-muted" style="font-size:0.82rem;padding:4px 10px">Chưa có deck nào</div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div>
+            <div class="vocab-toolbar">
+                <input type="text" class="vocab-search" id="vocab-search" placeholder="Tìm kiếm từ vựng...">
+            </div>
 
     <div class="vocab-table-wrap">
         <table class="vocab-table">
@@ -231,8 +333,10 @@
                 </tr>
             </tbody>
         </table>
-    </div>
-</div>
+        </div><!-- end vocab-table-wrap -->
+        </div><!-- end main content -->
+    </div><!-- end vocab-layout -->
+</div><!-- end vocab-page -->
 
 <!-- Modal: Thêm / Sửa từ -->
 <div class="modal fade" id="modal-word" tabindex="-1">
@@ -312,3 +416,71 @@
         new App.VocabPage('#vocab-page');
     });
 </script>
+
+<!-- Modal: Topic -->
+<div class="modal fade" id="modal-topic" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-topic-title">Thêm chủ đề</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="topic-id">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tên chủ đề <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="topic-name">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mô tả</label>
+                    <input type="text" class="form-control" id="topic-desc">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Màu sắc</label>
+                    <input type="color" class="form-control form-control-color" id="topic-color" value="#667eea">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button class="btn btn-primary btn-sm" id="btn-save-topic">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Deck -->
+<div class="modal fade" id="modal-deck" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-deck-title">Thêm bộ thẻ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="deck-id">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tên bộ thẻ <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="deck-name">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mô tả</label>
+                    <input type="text" class="form-control" id="deck-desc">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Chủ đề</label>
+                    <select class="form-select" id="deck-topic">
+                        <option value="">-- Không có chủ đề --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button class="btn btn-primary btn-sm" id="btn-save-deck">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

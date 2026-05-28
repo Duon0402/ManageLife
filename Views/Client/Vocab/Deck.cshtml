@@ -1,0 +1,178 @@
+@{
+    ViewData["Title"] = ViewBag.DeckName ?? "Deck";
+    var deckId = ViewBag.DeckId as string ?? "";
+    var deckName = ViewBag.DeckName as string ?? "";
+}
+
+<style>
+    .deck-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .deck-header h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #2c2c54;
+        margin: 0;
+    }
+
+    .deck-header .back-link {
+        font-size: 0.85rem;
+        color: #667eea;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+
+    .deck-header .back-link:hover { text-decoration: underline; }
+
+    .deck-toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .deck-toolbar select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        min-width: 220px;
+    }
+
+    .word-table-wrap {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #e8e8e8;
+        overflow: hidden;
+    }
+
+    .word-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .word-table thead th {
+        background: #f8f7ff;
+        padding: 12px 16px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #666;
+        border-bottom: 1px solid #e8e8e8;
+        white-space: nowrap;
+    }
+
+    .word-table tbody tr {
+        border-bottom: 1px solid #f2f2f2;
+        transition: background 0.15s;
+    }
+
+    .word-table tbody tr:last-child { border-bottom: none; }
+    .word-table tbody tr:hover { background: #faf9ff; }
+
+    .word-table td {
+        padding: 11px 16px;
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    .word-phonetic { font-size: 0.8rem; color: #888; font-style: italic; }
+    .word-pos {
+        display: inline-block;
+        background: #f0eeff;
+        color: #667eea;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .btn-remove {
+        border: none;
+        background: none;
+        color: #e74c3c;
+        padding: 4px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.15s;
+        font-size: 0.9rem;
+    }
+
+    .btn-remove:hover { background: #fde8e8; }
+
+    .deck-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #aaa;
+    }
+
+    .deck-empty i { font-size: 3.5rem; margin-bottom: 12px; color: #ddd; }
+</style>
+
+<div id="deck-page" data-deck-id="@deckId">
+    <div class="deck-header">
+        <div>
+            <a class="back-link" href="/Vocab"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+            <h2><i class="fa-solid fa-layer-group me-2"></i> @deckName</h2>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary btn-sm" id="btn-add-to-deck">
+                <i class="fa-solid fa-plus me-1"></i> Thêm từ vào deck
+            </button>
+        </div>
+    </div>
+
+    <div class="word-table-wrap">
+        <table class="word-table">
+            <thead>
+                <tr>
+                    <th>Từ / Phiên âm</th>
+                    <th>Loại từ</th>
+                    <th>Định nghĩa</th>
+                    <th>Dịch nghĩa</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="deck-tbody">
+                <tr>
+                    <td colspan="5">
+                        <div class="deck-empty">
+                            <i class="fa-solid fa-spinner fa-spin d-block"></i>
+                            <p>Đang tải...</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Chọn từ để thêm vào deck -->
+<div class="modal fade" id="modal-add-word" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chọn từ để thêm vào deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3" id="add-word-search" placeholder="Tìm từ vựng...">
+                <div id="word-pick-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        new App.VocabDeckPage('#deck-page');
+    });
+</script>
