@@ -35,6 +35,7 @@ namespace ManageLife.Extensions
             services.AddSingleton<YtDlpManager>();
             services.AddScoped<IVideoDownloaderService, VideoDownloaderService>();
             services.AddScoped<IDictionaryApiService, DictionaryApiService>();
+            services.AddScoped<IVocabWordService, VocabWordService>();
             return services;
         }
     }
