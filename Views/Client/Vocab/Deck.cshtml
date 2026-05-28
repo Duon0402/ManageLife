@@ -117,7 +117,7 @@
     .deck-empty i { font-size: 3.5rem; margin-bottom: 12px; color: #ddd; }
 </style>
 
-<div id="deck-page" data-deck-id="@deckId">
+<div id="deck-page">
     <div class="deck-header">
         <div>
             <a class="back-link" href="/Vocab"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
@@ -176,6 +176,6 @@
 
 <script>
     $(function () {
-        new App.VocabDeckPage('#deck-page');
+        new App.VocabDeckPage('#deck-page', { deckId: '@deckId' });
     });
 </script>

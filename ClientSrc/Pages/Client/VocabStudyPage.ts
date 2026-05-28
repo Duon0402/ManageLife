@@ -1,8 +1,11 @@
 namespace App {
 
-    export class VocabStudyPage extends BasePage {
+    interface VocabStudyPageModel {
+        deckId: string;
+    }
 
-        private deckId: string = '';
+    export class VocabStudyPage extends BasePage<VocabStudyPageModel> {
+
         private cards: StudyCardModel[] = [];
         private currentIndex: number = 0;
         private correctCount: number = 0;
@@ -10,8 +13,9 @@ namespace App {
         private isAnswerShown: boolean = false;
         private currentAudioUrl: string | null = null;
 
+        private get deckId(): string { return this.model.deckId; }
+
         protected initialize(): void {
-            this.deckId = this.root.data('deck-id') as string;
             this.loadCards();
         }
 

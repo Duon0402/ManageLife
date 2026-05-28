@@ -1,14 +1,18 @@
 namespace App {
 
-    export class VocabDeckPage extends BasePage {
+    interface VocabDeckPageModel {
+        deckId: string;
+    }
 
-        private deckId: string = '';
+    export class VocabDeckPage extends BasePage<VocabDeckPageModel> {
+
         private deckWords: VocabWordModel[] = [];
         private allWords: VocabWordModel[] = [];
         private modal!: bootstrap.Modal;
 
+        private get deckId(): string { return this.model.deckId; }
+
         protected initialize(): void {
-            this.deckId = this.root.data('deck-id') as string;
             this.modal = new bootstrap.Modal(document.getElementById('modal-add-word')!);
             this.loadDeckWords();
         }

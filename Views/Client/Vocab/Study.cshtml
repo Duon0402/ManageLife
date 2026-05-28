@@ -259,7 +259,7 @@
     .study-loading i, .study-empty i { font-size: 3rem; margin-bottom: 12px; display: block; color: #ddd; }
 </style>
 
-<div class="study-wrap" id="study-page" data-deck-id="@deckId">
+<div class="study-wrap" id="study-page">
 
     <div class="study-header">
         <a class="back-link" href="/Vocab/Deck/@deckId">
@@ -376,6 +376,6 @@
 
 <script>
     $(function () {
-        new App.VocabStudyPage('#study-page');
+        new App.VocabStudyPage('#study-page', { deckId: '@deckId' });
     });
 </script>
