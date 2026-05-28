@@ -7,7 +7,6 @@ namespace App {
         private words: VocabWordModel[] = [];
         private modal!: bootstrap.Modal;
         private isEdit = false;
-        private selectedMeaning: DictionaryMeaningResult | null = null;
 
         protected initialize(): void {
             this.modal = new bootstrap.Modal(document.getElementById('modal-word')!);
@@ -122,8 +121,7 @@ namespace App {
 
         private openCreateModal(): void {
             this.isEdit = false;
-            this.selectedMeaning = null;
-            this.resetForm();
+                        this.resetForm();
             $('#modal-word-title').text('Thêm từ mới');
             $('#lookup-section').show();
             this.modal.show();
@@ -158,8 +156,7 @@ namespace App {
             $('#word-dict-source').val('0');
             $('#lookup-input').val('');
             $('#lookup-result').hide().empty();
-            this.selectedMeaning = null;
-        }
+                    }
 
         // ── Dictionary Lookup ─────────────────────────────────────────────────
 
@@ -171,7 +168,7 @@ namespace App {
             $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i>');
 
             try {
-                const res = await ApiService.get(`/Vocab/Lookup?word=${encodeURIComponent(word)}`);
+                const res = await ApiService.get('/Vocab/Lookup', { word });
                 if (!res.isOk()) {
                     ToastService.warning(res.message || 'Không tìm thấy từ này');
                     return;
@@ -215,7 +212,6 @@ namespace App {
                 const idx = parseInt($(e.currentTarget).data('index'));
                 $container.find('.lookup-meaning-item').removeClass('selected');
                 $(e.currentTarget).addClass('selected');
-                this.selectedMeaning = meanings[idx];
                 $('#word-pos').val(meanings[idx].partOfSpeech);
                 $('#word-definition').val(meanings[idx].definition);
                 $('#word-example').val(meanings[idx].exampleSentence || '');
@@ -278,7 +274,7 @@ namespace App {
             const confirmed = await MessageService.confirm(`Xóa từ "<strong>${word}</strong>"?`);
             if (!confirmed) return;
 
-            const res = await ApiService.delete(`/Vocab/DeleteWord?id=${id}`);
+            const res = await ApiService.delete(`/Vocab/DeleteWord?id=${encodeURIComponent(id)}`);
             if (!res.isOk()) { ToastService.error(res.message || 'Xóa thất bại'); return; }
             ToastService.success('Đã xóa từ vựng');
             await this.loadWords();
