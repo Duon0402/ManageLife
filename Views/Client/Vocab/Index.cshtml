@@ -175,6 +175,25 @@
     .lookup-meaning-item.selected .text-muted {
         color: rgba(255,255,255,0.75) !important;
     }
+
+    /* Custom scrollbar cho modal body */
+    #modal-word .modal-body {
+        scrollbar-width: thin;
+        scrollbar-color: #d0d3e0 transparent;
+    }
+
+    #modal-word .modal-body::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #modal-word .modal-body::-webkit-scrollbar-thumb {
+        background: #d0d3e0;
+        border-radius: 4px;
+    }
+
+    #modal-word .modal-body::-webkit-scrollbar-track {
+        background: transparent;
+    }
 </style>
 
 <div id="vocab-page">
