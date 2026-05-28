@@ -28,6 +28,12 @@ namespace ManageLife.Extensions
             services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
             services.AddScoped<IChatRoomMemberRepository, ChatRoomMemberRepository>();
             services.AddScoped<IChatRoomUserStateRepository, ChatRoomUserStateRepository>();
+            services.AddScoped<IVocabTopicRepository, VocabTopicRepository>();
+            services.AddScoped<IVocabDeckRepository, VocabDeckRepository>();
+            services.AddScoped<IVocabWordRepository, VocabWordRepository>();
+            services.AddScoped<IVocabDeckWordRepository, VocabDeckWordRepository>();
+            services.AddScoped<IVocabStudyProgressRepository, VocabStudyProgressRepository>();
+            services.AddScoped<IVocabStudySessionRepository, VocabStudySessionRepository>();
 
             return services;
         }
