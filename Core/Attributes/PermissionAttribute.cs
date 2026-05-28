@@ -15,14 +15,25 @@ namespace ManageLife.Core
         {
             var httpContext = context.HttpContext;
             var userId = httpContext.User.GetUserId();
+            var isAjax = httpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
             if (userId.IsEmpty())
             {
-                context.Result = new UnauthorizedResult();
+                if (isAjax)
+                {
+                    context.Result = new JsonResult(new { code = "401", message = "Unauthorized" })
+                    {
+                        StatusCode = StatusCodes.Status401Unauthorized
+                    };
+                }
+                else
+                {
+                    var returnUrl = Uri.EscapeDataString(httpContext.Request.Path + httpContext.Request.QueryString);
+                    context.Result = new RedirectResult($"/Auth/Login?returnUrl={returnUrl}");
+                }
                 return;
             }
 
-            var isAjax = httpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var permissionCode = BuildPermissionCode(context.RouteData, Permission);
 
             var service = httpContext.RequestServices.GetRequiredService<IPermissionService>();

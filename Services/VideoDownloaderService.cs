@@ -1,5 +1,7 @@
+using AutoMapper;
 using ManageLife.Core;
 using ManageLife.Core.Models;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Settings;
 using Microsoft.Extensions.Options;
@@ -8,17 +10,15 @@ using System.Text.Json;
 
 namespace ManageLife.Services
 {
-    public class VideoDownloaderService : IVideoDownloaderService
+    public class VideoDownloaderService : ServiceBase<VideoDownloaderService>, IVideoDownloaderService
     {
         private readonly YtDlpManager _ytDlpManager;
-        private readonly IAppLogger<VideoDownloaderService> _logger;
         private readonly string? _cookiesFile;
         private readonly string? _cookiesBrowser;
 
-        public VideoDownloaderService(YtDlpManager ytDlpManager, IOptions<VideoDownloaderSettings> options, IAppLogger<VideoDownloaderService> logger)
+        public VideoDownloaderService(IMapper mapper, YtDlpManager ytDlpManager, IOptions<VideoDownloaderSettings> options, IAppLogger<VideoDownloaderService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
             _ytDlpManager = ytDlpManager;
-            _logger = logger;
             _cookiesFile = options.Value.CookiesFile;
             _cookiesBrowser = options.Value.CookiesBrowser;
         }

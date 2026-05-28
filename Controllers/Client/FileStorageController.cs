@@ -72,5 +72,12 @@ namespace ManageLife.Controllers.Client
         {
             return await _telegramFileService.GetFileUrlByFileIdAsync(fileId, ct);
         }
+
+        [ViewPermission]
+        [HttpGet]
+        public async Task<Result<List<FileModel>>> GetListFiles(CancellationToken ct)
+        {
+            return await _telegramFileService.GetListFilesAsync(ct);
+        }
     }
 }

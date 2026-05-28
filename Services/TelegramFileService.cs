@@ -1,28 +1,29 @@
-﻿using ManageLife.Core;
+﻿using AutoMapper;
+using ManageLife.Core;
 using ManageLife.Entities;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Settings;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 
 namespace ManageLife.Services
 {
-    public class TelegramFileService : ITelegramFileService
+    public class TelegramFileService : ServiceBase<TelegramFileService>, ITelegramFileService
     {
         private readonly string _botToken;
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
         private readonly IFileRepository _repo;
-        private readonly IAppLogger<TelegramFileService> _logger;
         private readonly ITelegramUploadQueue _queue;
         private readonly string _tempFolder = "temp";
 
-        public TelegramFileService(IFileRepository repo, IOptions<TelegramSettings> options, IAppLogger<TelegramFileService> logger, ITelegramUploadQueue queue, TelegramBotClient botClient)
+        public TelegramFileService(IMapper mapper, IFileRepository repo, IOptions<TelegramSettings> options, ITelegramUploadQueue queue, TelegramBotClient botClient, IAppLogger<TelegramFileService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
             var settings = options.Value;
             _repo = repo;
-            _logger = logger;
             _queue = queue;
             _botClient = botClient;
             _botToken = settings.BotToken ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured.");
@@ -240,6 +241,39 @@ namespace ManageLife.Services
             {
                 _logger.Error(ex, $"Error downloading file stream for {telegramFileId}");
                 return Result.Exception<Stream>("Error downloading file from Telegram", ex);
+            }
+        }
+
+        public async Task<Result<List<FileModel>>> GetListFilesAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                var currentUser = _userContext.GetUserName();
+                var entities = await _repo.Query(true)
+                    .Where(f => f.CreatedUser == currentUser)
+                    .OrderByDescending(f => f.CreatedTime)
+                    .ToListAsync(ct);
+
+                var models = entities.Select(f => new FileModel
+                {
+                    Id = f.Id,
+                    FileName = f.FileName,
+                    FileType = f.FileType,
+                    FileSize = f.FileSize,
+                    Extension = f.Extension,
+                    FileId = f.FileId,
+                    TempPath = f.TempPath,
+                    Status = f.Status,
+                    CreatedAt = f.CreatedTime,
+                    CreatedUser = f.CreatedUser
+                }).ToList();
+
+                return Result.Ok(models);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi lấy danh sách file");
+                return Result.Exception<List<FileModel>>("Lỗi khi lấy danh sách file", ex);
             }
         }
     }

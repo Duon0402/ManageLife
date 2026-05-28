@@ -1,5 +1,7 @@
-﻿using ManageLife.Core;
+﻿using AutoMapper;
+using ManageLife.Core;
 using ManageLife.Extensions;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Settings;
@@ -9,16 +11,14 @@ using Telegram.Bot.Types;
 
 namespace ManageLife.Services
 {
-    public class TelegramService : ITelegramService
+    public class TelegramService : ServiceBase<TelegramService>, ITelegramService
     {
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
-        private readonly IAppLogger<TelegramService> _logger;
         private readonly ISettingService _settingService;
 
-        public TelegramService(IOptions<TelegramSettings> options, IAppLogger<TelegramService> logger, ISettingService settingService, TelegramBotClient botClient)
+        public TelegramService(IMapper mapper, IOptions<TelegramSettings> options, ISettingService settingService, TelegramBotClient botClient, IAppLogger<TelegramService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
-            _logger = logger;
             _settingService = settingService;
             _botClient = botClient;
             _chatId = options.Value.ChatId;

@@ -1,9 +1,11 @@
-﻿using LinqKit;
+﻿using AutoMapper;
+using LinqKit;
 using ManageLife.Commons;
 using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Helpers;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
@@ -13,61 +15,57 @@ using System.Drawing;
 
 namespace ManageLife.Services
 {
-    public class TranslationService : ITranslationService
+    public class TranslationService : ServiceBase<TranslationService>, ITranslationService
     {
         private readonly ITranslationRepository _repo;
         private readonly ILanguageRepository _languageRepo;
         private readonly ICacheService _cache;
         private readonly IUnitOfWork _uow;
-        private readonly IAppLogger<TranslationService> _logger;
 
-        public TranslationService(ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, IUnitOfWork uow, IAppLogger<TranslationService> logger)
+        public TranslationService(IMapper mapper, ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, IUnitOfWork uow, IAppLogger<TranslationService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
             _repo = repo;
             _languageRepo = languageRepo;
             _cache = cache;
             _uow = uow;
-            _logger = logger;
         }
 
         public async Task<Result> CreateTranslationAsync(CreateTranslationRequest request, CancellationToken ct = default)
         {
-            string msg;
-            bool b;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == request.LanguageId && x.IsDeleted == false);
+                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == request.LanguageId && x.IsDeleted == false, ct);
 
                 if (language == null)
                 {
-                    msg = TranslationKey.Common.Message.DataInvalid;
+                    var msg = TranslationKey.Common.Message.DataInvalid;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var existing = await _repo.FirstOrDefaultAsync(x => x.LanguageId == language.Id && x.Key == request.Key);
+                var existing = await _repo.FirstOrDefaultAsync(x => x.LanguageId == language.Id && x.Key == request.Key, ct);
                 if (existing != null)
                 {
-                    msg = TranslationKey.Common.Message.DataExisted;
+                    var msg = TranslationKey.Common.Message.DataExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
                 var entity = request.MapTo<TranslationEntity>();
 
-                b = await _repo.InsertAsync(entity);
+                var inserted = await _repo.InsertAsync(entity, ct);
 
-                if (!b)
+                if (!inserted)
                 {
-                    msg = TranslationKey.Common.Message.CreateError;
+                    var msg = TranslationKey.Common.Message.CreateError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -79,7 +77,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -87,8 +85,6 @@ namespace ManageLife.Services
 
         public async Task<Result> DeleteTranslationAsync(DeleteTranslationRequest request, CancellationToken ct = default)
         {
-            string msg;
-            bool b;
             try
             {
                 if (request?.Id == null)
@@ -96,16 +92,16 @@ namespace ManageLife.Services
                     return Result.DATA_INVALID;
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
                 if (entity == null)
                 {
                     return Result.DATA_NOT_EXISTED;
                 }
 
-                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == entity.LanguageId);
+                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == entity.LanguageId, ct);
 
-                b = await _repo.DeleteAsync(entity);
-                if (!b)
+                var deleted = await _repo.DeleteAsync(entity, ct);
+                if (!deleted)
                 {
                     return Result.DATA_NOT_DELETE;
                 }
@@ -119,7 +115,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -127,7 +123,6 @@ namespace ManageLife.Services
 
         public async Task<Result<byte[]>> DownloadTranslationTemplateExcelAsync(CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var languages = await _languageRepo.Query(true)
@@ -137,7 +132,7 @@ namespace ManageLife.Services
 
                 if (languages.IsEmpty())
                 {
-                    msg = "Không có ngôn ngữ nào để tải template";
+                    var msg = "Không có ngôn ngữ nào để tải template";
                     _logger.Debug(msg);
                     return Result.Error<byte[]>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -177,7 +172,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<byte[]>(msg, ex);
             }
@@ -185,14 +180,13 @@ namespace ManageLife.Services
 
         public async Task<Result<Dictionary<string, string>>> GetDictionaryTranslationByLanguageCode(GetDictionaryTranslationByLanguageCodeRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var dictionary = new Dictionary<string, string>();
 
                 if (request == null || request.LanguageCode.IsEmpty())
                 {
-                    msg = TranslationKey.Common.Message.DataInvalid;
+                    var msg = TranslationKey.Common.Message.DataInvalid;
                     _logger.Debug(msg);
                     return Result.Error<Dictionary<string, string>>(Result.DATA_INVALID.Code, msg);
                 }
@@ -203,12 +197,12 @@ namespace ManageLife.Services
 
                 if (dictionary.IsEmpty())
                 {
-                    var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                    var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode, ct);
                     if (language != null)
                     {
                         var list = await _repo.Query(true)
                             .Where(t => t.LanguageId == language.Id)
-                            .ToListAsync();
+                            .ToListAsync(ct);
                         dictionary = list.ToDictionary(t => t.Key, t => t.Value);
                     }
                     else
@@ -226,7 +220,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<Dictionary<string, string>>(msg, ex);
             }
@@ -234,7 +228,6 @@ namespace ManageLife.Services
 
         public async Task<Result<List<TranslationModel>>> GetListTranslationsAsync(GetListTranslationsRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var models = new List<TranslationModel>();
@@ -243,7 +236,7 @@ namespace ManageLife.Services
 
                 if (request?.LanguageCode.IsNotEmpty() == true)
                 {
-                    var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                    var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode, ct);
                     if (language != null)
                     {
                         predicate = predicate.And(x => x.LanguageId == language.Id);
@@ -254,7 +247,7 @@ namespace ManageLife.Services
                     }
                 }
 
-                var entities = await _repo.Query(true).Where(predicate).ToListAsync();
+                var entities = await _repo.Query(true).Where(predicate).ToListAsync(ct);
 
                 if (entities.IsNotEmpty())
                 {
@@ -265,7 +258,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<List<TranslationModel>>(msg, ex);
             }
@@ -278,30 +271,29 @@ namespace ManageLife.Services
 
         public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 if (request == null || request.LanguageCode.IsEmpty() || request.Key.IsEmpty())
                 {
-                    msg = TranslationKey.Common.Message.DataInvalid;
+                    var msg = TranslationKey.Common.Message.DataInvalid;
                     _logger.Debug(msg);
                     return Result.Error<TranslationModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode);
+                var language = await _languageRepo.FirstOrDefaultAsync(l => l.Code == request.LanguageCode, ct);
                 if (language == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
                 var entity = await _repo.FirstOrDefaultAsync(
-                    x => x.LanguageId == language.Id && x.Key == request.Key);
+                    x => x.LanguageId == language.Id && x.Key == request.Key, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -311,7 +303,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<TranslationModel>(msg, ex);
             }
@@ -319,15 +311,13 @@ namespace ManageLife.Services
 
         public async Task<Result> ImportTranslationExcelAsync(ImportTranslationExcelRequest request, CancellationToken ct = default)
         {
-            string msg;
-            bool b;
-            await _uow.BeginTransactionAsync();
+            await _uow.BeginTransactionAsync(ct);
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
@@ -337,7 +327,7 @@ namespace ManageLife.Services
 
                 if (data.IsEmpty())
                 {
-                    msg = "Không tìm thấy data import";
+                    var msg = "Không tìm thấy data import";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
@@ -349,17 +339,17 @@ namespace ManageLife.Services
                         t => t.LanguageId,
                         l => l.Id,
                         (t, l) => t)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var insertEntities = new List<TranslationEntity>();
                 var updateEntities = new List<TranslationEntity>();
 
                 if (insertEntities.IsNotEmpty())
                 {
-                    b = await _repo.BulkInsertAsync(insertEntities);
-                    if (!b)
+                    var inserted = await _repo.BulkInsertAsync(insertEntities, ct);
+                    if (!inserted)
                     {
-                        msg = TranslationKey.Common.Message.CreateError;
+                        var msg = TranslationKey.Common.Message.CreateError;
                         _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                     }
@@ -367,22 +357,23 @@ namespace ManageLife.Services
 
                 if (updateEntities.IsNotEmpty())
                 {
-                    b = await _repo.BulkUpdateAsync(updateEntities);
-                    if (!b)
+                    var updated = await _repo.BulkUpdateAsync(updateEntities, ct);
+                    if (!updated)
                     {
-                        msg = TranslationKey.Common.Message.UpdateError;
+                        var msg = TranslationKey.Common.Message.UpdateError;
                         _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                     }
                 }
 
-                await _uow.CommitAsync();
+                await _uow.CommitAsync(ct);
 
                 return Result.Ok();
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                await _uow.RollbackAsync(ct);
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }

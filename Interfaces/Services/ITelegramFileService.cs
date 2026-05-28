@@ -11,5 +11,6 @@ namespace ManageLife.Interfaces
         Task<Result<string>> GetFileUrlByFileIdAsync(string fileId, CancellationToken ct = default);
         Task<Result<FileEntity>> GetFileEntityAsync(string fileId, CancellationToken ct = default);
         Task<Result<Stream>> DownloadFileStreamAsync(string telegramFileId, CancellationToken ct = default);
+        Task<Result<List<FileModel>>> GetListFilesAsync(CancellationToken ct = default);
     }
 }

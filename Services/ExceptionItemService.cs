@@ -1,43 +1,42 @@
-﻿using LinqKit;
+﻿using AutoMapper;
+using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Extensions;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 
 namespace ManageLife.Services
 {
-    public class ExceptionItemService : IExceptionItemService
+    public class ExceptionItemService : ServiceBase<ExceptionItemService>, IExceptionItemService
     {
         private readonly IExceptionItemRepository _repo;
-        private readonly IAppLogger<ExceptionItemService> _logger;
 
-        public ExceptionItemService(IExceptionItemRepository repo, IAppLogger<ExceptionItemService> logger)
+        public ExceptionItemService(IMapper mapper, IExceptionItemRepository repo, IAppLogger<ExceptionItemService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
             _repo = repo;
-            _logger = logger;
         }
 
         public async Task<Result> CreateExceptionItemAsync(CreateExceptionItemRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
                 var entity = request.MapTo<ExceptionItemEntity>();
-                var b = await _repo.InsertAsync(entity);
+                var inserted = await _repo.InsertAsync(entity, ct);
 
-                if (!b)
+                if (!inserted)
                 {
-                    msg = TranslationKey.Common.Message.CreateError;
+                    var msg = TranslationKey.Common.Message.CreateError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -46,7 +45,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -54,31 +53,30 @@ namespace ManageLife.Services
 
         public async Task<Result> DeleteExceptionItemAsync(DeleteExceptionItemRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(request.Id);
+                var entity = await _repo.GetAsync(request.Id, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var b = await _repo.DeleteAsync(entity);
+                var deleted = await _repo.DeleteAsync(entity, ct);
 
-                if (!b)
+                if (!deleted)
                 {
-                    msg = TranslationKey.Common.Message.DeleteError;
+                    var msg = TranslationKey.Common.Message.DeleteError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
@@ -87,7 +85,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -95,22 +93,21 @@ namespace ManageLife.Services
 
         public async Task<Result<ExceptionItemModel>> GetExceptionItemByIdAsync(GetExceptionItemByIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<ExceptionItemModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error<ExceptionItemModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -121,7 +118,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<ExceptionItemModel>(msg, ex);
             }
@@ -129,13 +126,12 @@ namespace ManageLife.Services
 
         public async Task<Result<List<ExceptionItemModel>>> GetListExceptionItemsAsync(GetListExceptionItemsRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<List<ExceptionItemModel>>(Result.DATA_INVALID.Code, msg);
                 }
@@ -147,7 +143,7 @@ namespace ManageLife.Services
                     predicate = predicate.And(x => x.Type == request.Type);
                 }
 
-                var entities = await _repo.FindAsync(predicate);
+                var entities = await _repo.FindAsync(predicate, ct);
 
                 var models = entities.MapToList<ExceptionItemModel>();
 
@@ -155,7 +151,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<List<ExceptionItemModel>>(msg, ex);
             }
@@ -163,33 +159,32 @@ namespace ManageLife.Services
 
         public async Task<Result> UpdateExceptionItemAsync(UpdateExceptionItemRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
                 request.MapTo(entity);
 
-                var b = await _repo.UpdateAsync(entity);
+                var updated = await _repo.UpdateAsync(entity, ct);
 
-                if (!b)
+                if (!updated)
                 {
-                    msg = TranslationKey.Common.Message.UpdateError;
+                    var msg = TranslationKey.Common.Message.UpdateError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
@@ -198,7 +193,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }

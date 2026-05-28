@@ -1,28 +1,27 @@
-﻿using ManageLife.Core;
+﻿using AutoMapper;
+using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Extensions;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 
 namespace ManageLife.Services
 {
-    public class LanguageService : ILanguageService
+    public class LanguageService : ServiceBase<LanguageService>, ILanguageService
     {
         private readonly ILanguageRepository _repo;
         private readonly ICacheService _cache;
-        private readonly IAppLogger<LanguageService> _logger;
 
-        public LanguageService(ILanguageRepository repo, ICacheService cache, IAppLogger<LanguageService> logger)
+        public LanguageService(IMapper mapper, ILanguageRepository repo, ICacheService cache, IAppLogger<LanguageService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
             _repo = repo;
             _cache = cache;
-            _logger = logger;
         }
 
         public async Task<Result<ChangeLanguageResult>> ChangeLanguageAsync(ChangeLanguageRequest request, string currentLanguage, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var result = request.MapTo<ChangeLanguageResult>();
@@ -33,11 +32,11 @@ namespace ManageLife.Services
                     return Result.Ok(result);
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error<ChangeLanguageResult>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -46,7 +45,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<ChangeLanguageResult>(msg, ex);
             }
@@ -54,32 +53,30 @@ namespace ManageLife.Services
 
         public async Task<Result> CreateLanguageAsync(CreateLanguageRequest request, CancellationToken ct = default)
         {
-            string msg;
-            bool b;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var existing = await _repo.FirstOrDefaultAsync(x => x.Code == request.Code && x.IsDeleted == false);
+                var existing = await _repo.FirstOrDefaultAsync(x => x.Code == request.Code && x.IsDeleted == false, ct);
                 if (existing != null)
                 {
-                    msg = TranslationKey.Common.Message.DataExisted;
+                    var msg = TranslationKey.Common.Message.DataExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
                 var entity = request.MapTo<LanguageEntity>();
 
-                b = await _repo.InsertAsync(entity);
-                if (!b)
+                var inserted = await _repo.InsertAsync(entity, ct);
+                if (!inserted)
                 {
-                    msg = TranslationKey.Common.Message.CreateError;
+                    var msg = TranslationKey.Common.Message.CreateError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -90,7 +87,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -98,31 +95,29 @@ namespace ManageLife.Services
 
         public async Task<Result> DeleteLanguageAsync(DeleteLanguageRequest request, CancellationToken ct = default)
         {
-            string msg;
-            bool b;
             try
             {
                 if (request == null)
                 {
-                    msg = TranslationKey.Common.Message.DataInvalid;
+                    var msg = TranslationKey.Common.Message.DataInvalid;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                b = await _repo.DeleteAsync(entity);
+                var deleted = await _repo.DeleteAsync(entity, ct);
 
-                if (!b)
+                if (!deleted)
                 {
-                    msg = TranslationKey.Common.Message.DeleteError;
+                    var msg = TranslationKey.Common.Message.DeleteError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
@@ -133,7 +128,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -141,21 +136,20 @@ namespace ManageLife.Services
 
         public async Task<Result<LanguageModel>> GetLanguageByCodeAsync(GetLanguageByCodeRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 if (request == null)
                 {
-                    msg = TranslationKey.Common.Message.DataInvalid;
+                    var msg = TranslationKey.Common.Message.DataInvalid;
                     _logger.Debug(msg);
                     return Result.Error<LanguageModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Code == request.LanguageCode && x.IsDeleted == false, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error<LanguageModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -166,7 +160,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<LanguageModel>(msg, ex);
             }
@@ -174,21 +168,20 @@ namespace ManageLife.Services
 
         public async Task<Result<LanguageModel>> GetLanguageByIdAsync(GetLanguageByIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 if (request == null)
                 {
-                    msg = TranslationKey.Common.Message.DataInvalid;
+                    var msg = TranslationKey.Common.Message.DataInvalid;
                     _logger.Debug(msg);
                     return Result.Error<LanguageModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error<LanguageModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -199,7 +192,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<LanguageModel>(msg, ex);
             }
@@ -207,7 +200,6 @@ namespace ManageLife.Services
 
         public async Task<Result<List<LanguageModel>>> GetListLanguagesAsync(CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var cacheItem = CacheSettings.Languages();
@@ -215,7 +207,7 @@ namespace ManageLife.Services
                 if (cached != null)
                     return Result.Ok(cached);
 
-                var entities = await _repo.FindAsync(x => x.IsDeleted == false);
+                var entities = await _repo.FindAsync(x => x.IsDeleted == false, ct);
                 var models = entities.IsNotEmpty()
                     ? entities.MapToList<LanguageModel>()
                     : new List<LanguageModel>();
@@ -226,7 +218,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<List<LanguageModel>>(msg, ex);
             }
@@ -234,42 +226,40 @@ namespace ManageLife.Services
 
         public async Task<Result> UpdateLanguageAsync(UpdateLanguageRequest request, CancellationToken ct = default)
         {
-            string msg;
-            bool b;
             try
             {
                 if (request == null)
                 {
-                    msg = TranslationKey.Common.Message.DataInvalid;
+                    var msg = TranslationKey.Common.Message.DataInvalid;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var duplicate = await _repo.FirstOrDefaultAsync(x => x.Code == request.Code && x.Id != request.Id && x.IsDeleted == false);
+                var duplicate = await _repo.FirstOrDefaultAsync(x => x.Code == request.Code && x.Id != request.Id && x.IsDeleted == false, ct);
 
                 if (duplicate != null)
                 {
-                    msg = TranslationKey.Common.Message.DataExisted;
+                    var msg = TranslationKey.Common.Message.DataExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
                 request.MapTo(entity);
 
-                b = await _repo.UpdateAsync(entity);
+                var updated = await _repo.UpdateAsync(entity, ct);
 
-                if (!b)
+                if (!updated)
                 {
-                    msg = TranslationKey.Common.Message.UpdateError;
+                    var msg = TranslationKey.Common.Message.UpdateError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
@@ -280,7 +270,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<LanguageModel>(msg, ex);
             }

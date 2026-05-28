@@ -1,33 +1,32 @@
-﻿using LinqKit;
+﻿using AutoMapper;
+using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Extensions;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 
 namespace ManageLife.Services
 {
-    public class TodoListService : ITodoListService
+    public class TodoListService : ServiceBase<TodoListService>, ITodoListService
     {
         private readonly ITodoListRepository _repo;
-        private readonly IAppLogger<TodoListService> _logger;
 
-        public TodoListService(ITodoListRepository repo, IAppLogger<TodoListService> logger)
+        public TodoListService(IMapper mapper, ITodoListRepository repo, IAppLogger<TodoListService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
             _repo = repo;
-            _logger = logger;
         }
 
         public async Task<Result> CreateToDoList(CreateToDoListRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
@@ -35,17 +34,17 @@ namespace ManageLife.Services
                 bool isDuplicate = await IsDuplicateNameAsync(request.Name);
                 if (isDuplicate)
                 {
-                    msg = TranslationKey.Common.Message.DataExisted;
+                    var msg = TranslationKey.Common.Message.DataExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
                 var entity = request.MapTo<TodoListEntity>();
-                var b = await _repo.InsertAsync(entity);
+                var inserted = await _repo.InsertAsync(entity, ct);
 
-                if (!b)
+                if (!inserted)
                 {
-                    msg = TranslationKey.Common.Message.CreateError;
+                    var msg = TranslationKey.Common.Message.CreateError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -54,7 +53,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -62,31 +61,30 @@ namespace ManageLife.Services
 
         public async Task<Result> DeleteToDoList(DeleteToDoListRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(request.Id);
+                var entity = await _repo.GetAsync(request.Id, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var b = await _repo.DeleteAsync(entity);
+                var deleted = await _repo.DeleteAsync(entity, ct);
 
-                if (!b)
+                if (!deleted)
                 {
-                    msg = TranslationKey.Common.Message.DeleteError;
+                    var msg = TranslationKey.Common.Message.DeleteError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
@@ -95,7 +93,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -103,16 +101,15 @@ namespace ManageLife.Services
 
         public async Task<Result<List<TodoListModel>>> GetListTodoLists(CancellationToken ct = default)
         {
-            string msg;
             try
             {
-                var entities = await _repo.FindAsync(x => x.IsDeleted == false);
+                var entities = await _repo.FindAsync(x => x.IsDeleted == false, ct);
                 var models = entities.MapTo<List<TodoListModel>>();
                 return Result.Ok(models);
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<List<TodoListModel>>(msg, ex);
             }
@@ -120,22 +117,21 @@ namespace ManageLife.Services
 
         public async Task<Result<TodoListModel>> GetTodoListById(GetTodoListByIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<TodoListModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(request.Id);
+                var entity = await _repo.GetAsync(request.Id, ct);
 
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error<TodoListModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -146,7 +142,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<TodoListModel>(msg, ex);
             }
@@ -154,21 +150,20 @@ namespace ManageLife.Services
 
         public async Task<Result> UpdateToDoList(UpdateToDoListRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(request.Id);
+                var entity = await _repo.GetAsync(request.Id, ct);
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -176,17 +171,17 @@ namespace ManageLife.Services
                 bool isDuplicate = await IsDuplicateNameAsync(request.Name, entity.Id);
                 if (isDuplicate)
                 {
-                    msg = TranslationKey.Common.Message.DataExisted;
+                    var msg = TranslationKey.Common.Message.DataExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
                 request.MapTo(entity);
 
-                var b = await _repo.UpdateAsync(entity);
-                if (!b)
+                var updated = await _repo.UpdateAsync(entity, ct);
+                if (!updated)
                 {
-                    msg = TranslationKey.Common.Message.UpdateError;
+                    var msg = TranslationKey.Common.Message.UpdateError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
@@ -195,7 +190,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }

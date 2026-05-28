@@ -1,17 +1,16 @@
-﻿using ManageLife.Core;
+﻿using AutoMapper;
+using ManageLife.Core;
 using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using QRCoder;
 
 namespace ManageLife.Services
 {
-    public class QrService : IQrService
+    public class QrService : ServiceBase<QrService>, IQrService
     {
-        private readonly IAppLogger<QrService> _logger;
-
-        public QrService(IAppLogger<QrService> logger)
+        public QrService(IMapper mapper, IAppLogger<QrService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
-            _logger = logger;
         }
 
         public Result<byte[]> GeneratePng(string text, int pixels = 20)

@@ -1,52 +1,51 @@
-﻿using ManageLife.Core;
+﻿using AutoMapper;
+using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Extensions;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
 {
-    public class RoleService : IRoleService
+    public class RoleService : ServiceBase<RoleService>, IRoleService
     {
         private readonly IRoleRepository _repoRole;
         private readonly IUserRoleRepository _userRoleRepo;
-        private readonly IAppLogger<RoleService> _logger;
 
-        public RoleService(IRoleRepository repoRole, IUserRoleRepository userRoleRepo, IAppLogger<RoleService> logger)
+        public RoleService(IMapper mapper, IRoleRepository repoRole, IUserRoleRepository userRoleRepo, IAppLogger<RoleService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
             _repoRole = repoRole;
             _userRoleRepo = userRoleRepo;
-            _logger = logger;
         }
 
         public async Task<Result> CreateRoleAsync(CreateRoleRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var roleExisted = await _repoRole.FirstOrDefaultAsync(x => x.Name == request.Name.Trim() && x.IsDeleted == false);
+                var roleExisted = await _repoRole.FirstOrDefaultAsync(x => x.Name == request.Name.Trim() && x.IsDeleted == false, ct);
                 if (roleExisted != null)
                 {
-                    msg = $"Role [{request.Name}] đã tồn tại trong hệ thống";
+                    var msg = $"Role [{request.Name}] đã tồn tại trong hệ thống";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
 
                 var entity = request.MapTo<RoleEntity>();
 
-                var b = await _repoRole.InsertAsync(entity);
-                if (!b)
+                var inserted = await _repoRole.InsertAsync(entity, ct);
+                if (!inserted)
                 {
-                    msg = $"Thêm mới Role [{request.Name}] không thành công";
+                    var msg = $"Thêm mới Role [{request.Name}] không thành công";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -55,7 +54,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -63,29 +62,28 @@ namespace ManageLife.Services
 
         public async Task<Result> UpdateRoleAsync(UpdateRoleRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repoRole.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false);
+                var entity = await _repoRole.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
                 if (entity == null)
                 {
-                    msg = "Không tìm thấy Role";
+                    var msg = "Không tìm thấy Role";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var nameConflict = await _repoRole.FirstOrDefaultAsync(x => x.Name == request.Name.Trim() && x.Id != request.Id && x.IsDeleted == false);
+                var nameConflict = await _repoRole.FirstOrDefaultAsync(x => x.Name == request.Name.Trim() && x.Id != request.Id && x.IsDeleted == false, ct);
                 if (nameConflict != null)
                 {
-                    msg = $"Role [{request.Name}] đã tồn tại trong hệ thống";
+                    var msg = $"Role [{request.Name}] đã tồn tại trong hệ thống";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_EXISTED.Code, msg);
                 }
@@ -94,10 +92,10 @@ namespace ManageLife.Services
                 entity.Name = request.Name.Trim();
                 entity.Description = request.Description;
 
-                var b = await _repoRole.UpdateAsync(entity);
-                if (!b)
+                var updated = await _repoRole.UpdateAsync(entity, ct);
+                if (!updated)
                 {
-                    msg = $"Cập nhật Role [{request.Name}] không thành công";
+                    var msg = $"Cập nhật Role [{request.Name}] không thành công";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                 }
@@ -106,7 +104,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -114,29 +112,28 @@ namespace ManageLife.Services
 
         public async Task<Result> DeleteRoleAsync(DeleteRoleRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repoRole.FirstOrDefaultAsync(x => x.Id == request.RoleId && x.IsDeleted == false);
+                var entity = await _repoRole.FirstOrDefaultAsync(x => x.Id == request.RoleId && x.IsDeleted == false, ct);
                 if (entity == null)
                 {
-                    msg = "Không tìm thấy Role";
+                    var msg = "Không tìm thấy Role";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var b = await _repoRole.DeleteAsync(entity);
-                if (!b)
+                var deleted = await _repoRole.DeleteAsync(entity, ct);
+                if (!deleted)
                 {
-                    msg = "Không thể xóa Role";
+                    var msg = "Không thể xóa Role";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
@@ -145,7 +142,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -153,16 +150,15 @@ namespace ManageLife.Services
 
         public async Task<Result<List<RoleModel>>> GetListRolesAsync(CancellationToken ct = default)
         {
-            string msg;
             try
             {
-                var entities = await _repoRole.FindAsync(x => x.IsDeleted == false);
+                var entities = await _repoRole.FindAsync(x => x.IsDeleted == false, ct);
                 var models = entities.MapToList<RoleModel>();
                 return Result.Ok(models);
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 _logger.Error(ex, msg);
                 return Result.Exception<List<RoleModel>>(msg, ex);
             }
@@ -170,13 +166,12 @@ namespace ManageLife.Services
 
         public async Task<Result<List<RoleModel>>> GetListRolesByUserIdAsync(GetListRolesByUserIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<List<RoleModel>>(Result.DATA_INVALID.Code, msg);
                 }
@@ -190,14 +185,14 @@ namespace ManageLife.Services
                         (ur, r) => r
                     )
                     .Where(r => !r.IsDeleted)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var models = roles.MapToList<RoleModel>();
                 return Result.Ok(models);
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 _logger.Error(ex, msg);
                 return Result.Exception<List<RoleModel>>(msg, ex);
             }
@@ -205,22 +200,21 @@ namespace ManageLife.Services
 
         public async Task<Result<RoleModel>> GetRoleByIdAsync(GetRoleByIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<RoleModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repoRole.FirstOrDefaultAsync(x => x.IsDeleted == false && x.Id == request.RoleId);
+                var entity = await _repoRole.FirstOrDefaultAsync(x => x.IsDeleted == false && x.Id == request.RoleId, ct);
 
                 if (entity == null)
                 {
-                    msg = "Không tìm thấy Role";
+                    var msg = "Không tìm thấy Role";
                     _logger.Debug(msg);
                     return Result.Error<RoleModel>(Result.DATA_EXISTED.Code, msg);
                 }
@@ -231,7 +225,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 _logger.Error(ex, msg);
                 return Result.Exception<RoleModel>(msg, ex);
             }
