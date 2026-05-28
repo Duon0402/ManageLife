@@ -47,6 +47,11 @@ namespace ManageLife.Helpers
 
             // Chat
             CreateMap<ChatMessageEntity, ChatMessageModel>().ReverseMap();
+
+            // Vocab
+            CreateMap<VocabWordEntity, VocabWordModel>();
+            CreateMap<CreateVocabWordRequest, VocabWordEntity>();
+            CreateMap<UpdateVocabWordRequest, VocabWordEntity>();
         }
     }
 }
