@@ -70,7 +70,7 @@ namespace ManageLife.Services
                 issuer: _jwt.Issuer,
                 audience: _jwt.Audience,
                 claims: claims,
-                expires: DateTimeHelper.UtcNow().AddMinutes(30),
+                expires: DateTimeHelper.UtcNow().AddMinutes(60),
                 signingCredentials: creds
             );
 
@@ -238,7 +238,7 @@ namespace ManageLife.Services
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTimeHelper.UtcNow().AddMinutes(30)
+                Expires = DateTimeHelper.UtcNow().AddMinutes(60)
             });
 
             context.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
