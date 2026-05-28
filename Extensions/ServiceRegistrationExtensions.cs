@@ -38,6 +38,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IVocabWordService, VocabWordService>();
             services.AddScoped<IVocabTopicService, VocabTopicService>();
             services.AddScoped<IVocabDeckService, VocabDeckService>();
+            services.AddScoped<IVocabStudyService, VocabStudyService>();
             return services;
         }
     }

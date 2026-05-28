@@ -10,15 +10,18 @@ namespace ManageLife.Controllers.Client
         private readonly IVocabWordService _wordService;
         private readonly IVocabTopicService _topicService;
         private readonly IVocabDeckService _deckService;
+        private readonly IVocabStudyService _studyService;
 
         public VocabController(
             IVocabWordService wordService,
             IVocabTopicService topicService,
-            IVocabDeckService deckService)
+            IVocabDeckService deckService,
+            IVocabStudyService studyService)
         {
             _wordService = wordService;
             _topicService = topicService;
             _deckService = deckService;
+            _studyService = studyService;
         }
 
         [AccessPagePermission]
@@ -32,6 +35,16 @@ namespace ManageLife.Controllers.Client
             ViewBag.DeckId = result.Data!.Id;
             ViewBag.DeckName = result.Data!.Name;
             return View("Deck");
+        }
+
+        [AccessPagePermission]
+        public async Task<IActionResult> Study(string id, CancellationToken ct)
+        {
+            var result = await _deckService.GetByIdAsync(id, ct);
+            if (!result.IsOk()) return RedirectToAction("Index");
+            ViewBag.DeckId = result.Data!.Id;
+            ViewBag.DeckName = result.Data!.Name;
+            return View("Study");
         }
 
         // ── Topic ─────────────────────────────────────────────────────────────
@@ -92,6 +105,18 @@ namespace ManageLife.Controllers.Client
         [HttpGet]
         public async Task<Result<List<VocabWordModel>>> GetDeckWords(string deckId, CancellationToken ct)
             => await _deckService.GetWordsAsync(deckId, ct);
+
+        // ── Study ─────────────────────────────────────────────────────────────
+
+        [ViewPermission]
+        [HttpGet]
+        public async Task<Result<List<StudyCardModel>>> GetDueCards(string deckId, CancellationToken ct)
+            => await _studyService.GetDueCardsAsync(deckId, ct);
+
+        [InsertPermission]
+        [HttpPost]
+        public async Task<Result> SubmitReview([FromBody] SubmitReviewRequest request, CancellationToken ct)
+            => await _studyService.SubmitReviewAsync(request, ct);
 
         // ── Word ──────────────────────────────────────────────────────────────
 

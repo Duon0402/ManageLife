@@ -1,0 +1,381 @@
+@{
+    ViewData["Title"] = "Học flashcard - " + (ViewBag.DeckName ?? "Deck");
+    var deckId = ViewBag.DeckId as string ?? "";
+    var deckName = ViewBag.DeckName as string ?? "";
+}
+
+<style>
+    .study-wrap {
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .study-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+    }
+
+    .study-header .back-link {
+        font-size: 0.85rem;
+        color: #667eea;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .study-header .back-link:hover { text-decoration: underline; }
+
+    .study-header h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2c2c54;
+        margin: 0;
+    }
+
+    /* Progress */
+    .study-progress {
+        margin-bottom: 1.5rem;
+    }
+
+    .study-progress-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.82rem;
+        color: #888;
+        margin-bottom: 6px;
+    }
+
+    .progress {
+        height: 6px;
+        border-radius: 4px;
+        background: #eee;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 4px;
+        transition: width 0.4s ease;
+    }
+
+    /* Card */
+    .flashcard-scene {
+        perspective: 1000px;
+        margin-bottom: 1.5rem;
+    }
+
+    .flashcard {
+        position: relative;
+        min-height: 260px;
+        transform-style: preserve-3d;
+        transition: transform 0.5s ease;
+        cursor: default;
+    }
+
+    .flashcard.flipped {
+        transform: rotateY(180deg);
+    }
+
+    .card-face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #e0dbff;
+        box-shadow: 0 4px 24px rgba(102,126,234,0.10);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+        min-height: 260px;
+    }
+
+    .card-face.card-back {
+        transform: rotateY(180deg);
+        text-align: left;
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 1.75rem 2rem;
+    }
+
+    .card-word {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #2c2c54;
+        margin-bottom: 4px;
+    }
+
+    .card-phonetic {
+        font-size: 1rem;
+        color: #888;
+        font-style: italic;
+        margin-bottom: 12px;
+    }
+
+    .card-audio-btn {
+        border: none;
+        background: #f0eeff;
+        color: #667eea;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .card-audio-btn:hover { background: #e0d9ff; }
+
+    .card-badge-new {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        background: #cfe2ff;
+        color: #0a58ca;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+
+    .card-back-pos {
+        display: inline-block;
+        background: #f0eeff;
+        color: #667eea;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .card-back-definition {
+        font-size: 1rem;
+        color: #2c2c54;
+        font-weight: 600;
+        margin-bottom: 8px;
+        line-height: 1.5;
+    }
+
+    .card-back-translation {
+        font-size: 0.92rem;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .card-back-example {
+        font-size: 0.85rem;
+        color: #888;
+        font-style: italic;
+        border-left: 3px solid #e0dbff;
+        padding-left: 10px;
+        margin-top: 4px;
+    }
+
+    /* Buttons */
+    .btn-show-answer {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: #667eea;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        margin-bottom: 1rem;
+    }
+
+    .btn-show-answer:hover { background: #5a6fd6; }
+
+    .rating-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .btn-rating {
+        padding: 12px 8px;
+        border: 2px solid transparent;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-align: center;
+    }
+
+    .btn-rating .rating-label { display: block; font-size: 0.72rem; font-weight: 400; margin-top: 2px; opacity: 0.75; }
+
+    .btn-again  { background: #fff0f0; color: #e74c3c; border-color: #f5c6cb; }
+    .btn-again:hover  { background: #e74c3c; color: #fff; border-color: #e74c3c; }
+    .btn-hard   { background: #fff8e1; color: #e67e22; border-color: #ffe08a; }
+    .btn-hard:hover   { background: #e67e22; color: #fff; border-color: #e67e22; }
+    .btn-good   { background: #edf7ee; color: #27ae60; border-color: #b7e1c5; }
+    .btn-good:hover   { background: #27ae60; color: #fff; border-color: #27ae60; }
+    .btn-easy   { background: #eef2ff; color: #667eea; border-color: #c7d2fe; }
+    .btn-easy:hover   { background: #667eea; color: #fff; border-color: #667eea; }
+
+    /* Summary */
+    .study-summary {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #e0dbff;
+        padding: 2.5rem 2rem;
+        text-align: center;
+    }
+
+    .study-summary h3 { font-size: 1.5rem; font-weight: 800; color: #2c2c54; margin-bottom: 0.5rem; }
+    .study-summary p { color: #888; margin-bottom: 1.5rem; }
+
+    .summary-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-item { text-align: center; }
+    .stat-item .stat-num { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .stat-item .stat-label { font-size: 0.78rem; color: #888; margin-top: 4px; }
+    .stat-correct .stat-num { color: #27ae60; }
+    .stat-again  .stat-num  { color: #e74c3c; }
+    .stat-total  .stat-num  { color: #667eea; }
+
+    /* Loading / Empty */
+    .study-loading, .study-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #aaa;
+    }
+    .study-loading i, .study-empty i { font-size: 3rem; margin-bottom: 12px; display: block; color: #ddd; }
+</style>
+
+<div class="study-wrap" id="study-page" data-deck-id="@deckId">
+
+    <div class="study-header">
+        <a class="back-link" href="/Vocab/Deck/@deckId">
+            <i class="fa-solid fa-arrow-left"></i> @deckName
+        </a>
+        <h2><i class="fa-solid fa-layer-group me-1"></i> Flashcard</h2>
+        <span id="study-mode-badge" class="badge bg-light text-secondary" style="font-size:0.78rem"></span>
+    </div>
+
+    <!-- Loading state -->
+    <div id="study-loading" class="study-loading">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Đang tải thẻ học...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div id="study-empty" class="study-empty" style="display:none">
+        <i class="fa-solid fa-circle-check" style="color:#27ae60"></i>
+        <p style="color:#555;font-size:1rem;font-weight:600">Tuyệt vời! Không còn thẻ nào cần ôn hôm nay.</p>
+        <a href="/Vocab/Deck/@deckId" class="btn btn-outline-primary btn-sm mt-2">Quay lại deck</a>
+    </div>
+
+    <!-- Study area -->
+    <div id="study-area" style="display:none">
+        <!-- Progress -->
+        <div class="study-progress">
+            <div class="study-progress-info">
+                <span id="progress-text">0 / 0</span>
+                <span id="progress-remain"></span>
+            </div>
+            <div class="progress"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+        </div>
+
+        <!-- Card -->
+        <div class="flashcard-scene">
+            <div class="flashcard" id="flashcard">
+                <!-- Front -->
+                <div class="card-face card-front">
+                    <span class="card-badge-new" id="card-badge-new" style="display:none">Từ mới</span>
+                    <div class="card-word" id="card-word"></div>
+                    <div class="card-phonetic" id="card-phonetic"></div>
+                    <button class="card-audio-btn" id="card-audio-btn" style="display:none" title="Phát âm">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+                <!-- Back -->
+                <div class="card-face card-back">
+                    <div>
+                        <div id="card-back-pos"></div>
+                        <div class="card-back-definition" id="card-back-definition"></div>
+                        <div class="card-back-translation" id="card-back-translation"></div>
+                        <div class="card-back-example" id="card-back-example" style="display:none"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Show answer -->
+        <button class="btn-show-answer" id="btn-show-answer">
+            <i class="fa-solid fa-eye me-2"></i> Xem đáp án
+        </button>
+
+        <!-- Rating buttons (hidden until shown answer) -->
+        <div class="rating-buttons" id="rating-buttons" style="display:none">
+            <button class="btn-rating btn-again" data-quality="0">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span class="rating-label">Học lại</span>
+            </button>
+            <button class="btn-rating btn-hard" data-quality="2">
+                <i class="fa-solid fa-face-meh"></i>
+                <span class="rating-label">Khó</span>
+            </button>
+            <button class="btn-rating btn-good" data-quality="3">
+                <i class="fa-solid fa-face-smile"></i>
+                <span class="rating-label">Ổn</span>
+            </button>
+            <button class="btn-rating btn-easy" data-quality="5">
+                <i class="fa-solid fa-face-grin-stars"></i>
+                <span class="rating-label">Dễ</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div id="study-summary" class="study-summary" style="display:none">
+        <i class="fa-solid fa-trophy" style="font-size:3rem;color:#f39c12;margin-bottom:1rem;display:block"></i>
+        <h3>Hoàn thành!</h3>
+        <p>Bạn đã ôn xong tất cả các thẻ hôm nay.</p>
+        <div class="summary-stats">
+            <div class="stat-item stat-total">
+                <div class="stat-num" id="stat-total">0</div>
+                <div class="stat-label">Tổng thẻ</div>
+            </div>
+            <div class="stat-item stat-correct">
+                <div class="stat-num" id="stat-correct">0</div>
+                <div class="stat-label">Nhớ được</div>
+            </div>
+            <div class="stat-item stat-again">
+                <div class="stat-num" id="stat-again">0</div>
+                <div class="stat-label">Học lại</div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 justify-content-center">
+            <a href="/Vocab/Study/@deckId" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-rotate-right me-1"></i> Ôn tiếp
+            </a>
+            <a href="/Vocab/Deck/@deckId" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Về deck
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(function () {
+        new App.VocabStudyPage('#study-page');
+    });
+</script>
