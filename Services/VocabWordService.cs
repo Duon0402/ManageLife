@@ -31,6 +31,9 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error<List<VocabWordModel>>(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var query = _wordRepo.Query(true)
                     .Where(w => w.OwnerId == userId && !w.IsDeleted);
 
@@ -53,6 +56,9 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error<VocabWordModel>(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = await _wordRepo.FirstOrDefaultAsync(
                     w => w.Id == request.Id && w.OwnerId == userId && !w.IsDeleted, ct);
 
@@ -77,8 +83,11 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, string.Join("\n", validation.Errors.Select(e => $"- {e}")));
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = request.MapTo<VocabWordEntity>();
-                entity.OwnerId = userId;
+                entity.OwnerId = userId!;
                 entity.DictionarySource = (VocabDictionarySource)request.DictionarySource;
 
                 var inserted = await _wordRepo.InsertAsync(entity, ct);
@@ -103,6 +112,9 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, string.Join("\n", validation.Errors.Select(e => $"- {e}")));
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = await _wordRepo.FirstOrDefaultAsync(
                     w => w.Id == request.Id && w.OwnerId == userId && !w.IsDeleted, ct);
 
@@ -129,6 +141,9 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = await _wordRepo.FirstOrDefaultAsync(
                     w => w.Id == request.Id && w.OwnerId == userId && !w.IsDeleted, ct);
 

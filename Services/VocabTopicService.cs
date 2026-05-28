@@ -30,6 +30,9 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error<List<VocabTopicModel>>(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var topics = await _topicRepo.Query(true)
                     .Where(t => (t.OwnerId == userId || t.IsPublic) && !t.IsDeleted)
                     .OrderBy(t => t.Name)
@@ -70,8 +73,11 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, string.Join("\n", validation.Errors.Select(e => $"- {e}")));
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = request.MapTo<VocabTopicEntity>();
-                entity.OwnerId = userId;
+                entity.OwnerId = userId!;
 
                 var inserted = await _topicRepo.InsertAsync(entity, ct);
                 if (!inserted)
@@ -95,6 +101,9 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, string.Join("\n", validation.Errors.Select(e => $"- {e}")));
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = await _topicRepo.FirstOrDefaultAsync(
                     t => t.Id == request.Id && t.OwnerId == userId && !t.IsDeleted, ct);
 
@@ -121,6 +130,9 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = await _topicRepo.FirstOrDefaultAsync(
                     t => t.Id == id && t.OwnerId == userId && !t.IsDeleted, ct);
 

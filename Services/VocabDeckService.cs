@@ -36,6 +36,9 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error<List<VocabDeckModel>>(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var query = _deckRepo.Query(true)
                     .Where(d => d.OwnerId == userId && !d.IsDeleted);
 
@@ -75,6 +78,9 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error<VocabDeckModel>(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var deck = await _deckRepo.FirstOrDefaultAsync(
                     d => d.Id == id && d.OwnerId == userId && !d.IsDeleted, ct);
 
@@ -113,8 +119,11 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, string.Join("\n", validation.Errors.Select(e => $"- {e}")));
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = request.MapTo<VocabDeckEntity>();
-                entity.OwnerId = userId;
+                entity.OwnerId = userId!;
                 entity.TotalCards = 0;
 
                 var inserted = await _deckRepo.InsertAsync(entity, ct);
@@ -139,6 +148,9 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, string.Join("\n", validation.Errors.Select(e => $"- {e}")));
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = await _deckRepo.FirstOrDefaultAsync(
                     d => d.Id == request.Id && d.OwnerId == userId && !d.IsDeleted, ct);
 
@@ -167,6 +179,9 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
+
                 var entity = await _deckRepo.FirstOrDefaultAsync(
                     d => d.Id == id && d.OwnerId == userId && !d.IsDeleted, ct);
 
@@ -191,6 +206,8 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
 
                 var deck = await _deckRepo.FirstOrDefaultAsync(
                     d => d.Id == request.DeckId && d.OwnerId == userId && !d.IsDeleted, ct);
@@ -237,6 +254,8 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
 
                 var deck = await _deckRepo.FirstOrDefaultAsync(
                     d => d.Id == deckId && d.OwnerId == userId && !d.IsDeleted, ct);
@@ -267,6 +286,8 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty())
+                    return Result.Error<List<VocabWordModel>>(Result.DATA_INVALID.Code, "Không xác định được người dùng.");
 
                 var deck = await _deckRepo.FirstOrDefaultAsync(
                     d => d.Id == deckId && d.OwnerId == userId && !d.IsDeleted, ct);
