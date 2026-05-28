@@ -1,5 +1,4 @@
-﻿using ManageLife.Core;
-using ManageLife.Data;
+﻿using ManageLife.Data;
 using ManageLife.Extensions;
 using ManageLife.Hubs;
 using ManageLife.Middleware;
