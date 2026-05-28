@@ -118,19 +118,14 @@ namespace App {
         }
 
         private async loadWords(): Promise<void> {
-            LoadingService.show();
-            try {
-                const res = await ApiService.get('/Vocab/GetWords');
-                if (!res.isOk()) {
-                    ToastService.error(res.message || 'Không thể tải danh sách từ vựng');
-                    this.renderEmpty();
-                    return;
-                }
-                this.words = res.data || [];
-                this.renderTable(this.words);
-            } finally {
-                LoadingService.hide();
+            const res = await ApiService.get('/Vocab/GetWords');
+            if (!res.isOk()) {
+                ToastService.error(res.message || 'Không thể tải danh sách từ vựng');
+                this.renderEmpty();
+                return;
             }
+            this.words = res.data || [];
+            this.renderTable(this.words);
         }
 
         private filterWords(): void {
