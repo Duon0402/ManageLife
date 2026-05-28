@@ -34,6 +34,13 @@ namespace ManageLife.Data
         public DbSet<ChatRoomMemberEntity> ChatRoomMembers { get; set; } = default!;
         public DbSet<ChatRoomEntity> ChatRooms { get; set; } = default!;
         public DbSet<ChatRoomUserStateEntity> ChatRoomUserStates { get; set; } = default!;
+        public DbSet<VocabTopicEntity> VocabTopics { get; set; } = default!;
+        public DbSet<VocabDeckEntity> VocabDecks { get; set; } = default!;
+        public DbSet<VocabWordEntity> VocabWords { get; set; } = default!;
+        public DbSet<VocabDeckWordEntity> VocabDeckWords { get; set; } = default!;
+        public DbSet<VocabStudyProgressEntity> VocabStudyProgress { get; set; } = default!;
+        public DbSet<VocabStudySessionEntity> VocabStudySessions { get; set; } = default!;
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -77,6 +84,18 @@ namespace ManageLife.Data
 
             builder.Entity<TranslationEntity>()
                 .HasIndex(x => x.LanguageId);
+
+            builder.Entity<VocabDeckWordEntity>()
+                .HasKey(x => new { x.DeckId, x.WordId });
+
+            builder.Entity<VocabStudyProgressEntity>()
+                .HasIndex(x => new { x.UserId, x.NextReviewDate });
+
+            builder.Entity<VocabWordEntity>()
+                .HasIndex(x => new { x.OwnerId, x.Word, x.IsDeleted });
+
+            builder.Entity<VocabStudySessionEntity>()
+                .HasIndex(x => new { x.UserId, x.StartedAt });
         }
     }
 }
