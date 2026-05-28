@@ -9,4 +9,8 @@ namespace App {
         totalCards: number;
         createdTime: string;
     }
+
+    export interface VocabDeckPageModel {
+        deckId: string;
+    }
 }

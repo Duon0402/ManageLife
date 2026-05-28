@@ -1,4 +1,8 @@
 namespace App {
+    export interface VocabStudyPageModel {
+        deckId: string;
+    }
+
     export interface StudyCardModel {
         wordId: string;
         word: string;

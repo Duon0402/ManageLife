@@ -1,9 +1,5 @@
 namespace App {
 
-    interface VocabStudyPageModel {
-        deckId: string;
-    }
-
     export class VocabStudyPage extends BasePage<VocabStudyPageModel> {
 
         private cards: StudyCardModel[] = [];
