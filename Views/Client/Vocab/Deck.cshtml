@@ -1,6 +1,6 @@
 @{
     ViewData["Title"] = ViewBag.DeckName ?? "Deck";
-    var deckId = ViewBag.DeckId as string ?? "";
+    var deckId = ViewContext.RouteData.Values["id"]?.ToString() ?? "";
     var deckName = ViewBag.DeckName as string ?? "";
 }
 
