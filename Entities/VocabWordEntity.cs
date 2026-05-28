@@ -10,7 +10,7 @@ namespace ManageLife.Entities
         public string? PartOfSpeech { get; set; }
         public string? Definition { get; set; }
         public string? ExampleSentence { get; set; }
-        public string? Transaltion { get; set; }
+        public string? Translation { get; set; }
         public string? AudioUrl { get; set; }
         public string? ImageUrl { get; set; }
         public VocabDictionarySource DictionarySource { get; set; } = VocabDictionarySource.Manual;

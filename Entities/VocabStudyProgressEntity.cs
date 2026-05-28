@@ -9,7 +9,7 @@ namespace ManageLife.Entities
         public string WordId { get; set; } = default!;
         public string? DeckId { get; set; }
         public int Repetitions { get; set; }
-        public double EasinessFactor { get; set; }
+        public double EasinessFactor { get; set; } = 2.5;
         public int IntervalDays { get; set; }
         public DateTime NextReviewDate { get; set; }
         public DateTime? LastReviewDate { get; set; }

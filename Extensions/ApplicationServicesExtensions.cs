@@ -55,6 +55,13 @@ namespace ManageLife.Extensions
                     settings.ApiKey ?? throw new InvalidOperationException("CronJob:ApiKey is not configured."));
             });
 
+            services.AddHttpClient<FreeDictionaryApiClient>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.dictionaryapi.dev");
+                client.Timeout = TimeSpan.FromSeconds(10);
+                client.DefaultRequestHeaders.Add("User-Agent", "ManageLife/1.0");
+            });
+
             #region JWT Authentication
             var jwt = config.GetSection(JwtSettings.Section).Get<JwtSettings>()!;
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

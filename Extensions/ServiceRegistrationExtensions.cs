@@ -34,6 +34,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IChatService, ChatService>();
             services.AddSingleton<YtDlpManager>();
             services.AddScoped<IVideoDownloaderService, VideoDownloaderService>();
+            services.AddScoped<IDictionaryApiService, DictionaryApiService>();
             return services;
         }
     }

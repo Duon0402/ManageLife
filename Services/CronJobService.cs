@@ -1,15 +1,17 @@
+using AutoMapper;
 using ManageLife.ApiClients;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 
 namespace ManageLife.Services
 {
-    public class CronJobService : ICronJobService
+    public class CronJobService : ServiceBase<FolderService>, ICronJobService
     {
         private readonly CronJobApiClient _apiClient;
 
-        public CronJobService(CronJobApiClient apiClient)
+        public CronJobService(IAppLogger<FolderService> logger, IUserContext userContext, IMapper mapper, CronJobApiClient apiClient) : base(logger, userContext, mapper)
         {
             _apiClient = apiClient;
         }
