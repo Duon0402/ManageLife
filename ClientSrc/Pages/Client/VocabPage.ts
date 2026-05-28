@@ -27,6 +27,13 @@ namespace App {
             // Lưu từ
             $('#btn-save-word').on('click', () => this.saveWord());
 
+            // Nghe thử audio
+            $('#btn-play-audio').on('click', () => {
+                const url = ($('#word-audio').val() as string).trim();
+                if (!url) { ToastService.warning('Chưa có link audio'); return; }
+                new Audio(url).play();
+            });
+
             // Event delegation cho các nút trong bảng
             this.root.on('click', '.btn-action.edit', (e) => {
                 const id = $(e.currentTarget).data('id') as string;
