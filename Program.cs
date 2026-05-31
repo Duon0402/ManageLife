@@ -49,19 +49,17 @@ app.UseSerilogRequestLogging();
 
 app.UseMapperBase();
 
-// ======= SEED DATA =========
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    await Seed.SeedData(context, config);
+    if (app.Environment.IsDevelopment())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        await Seed.SeedData(context, config);
+    }
 
-    // ======= REGISTER PERMISSIONS =========
-    var services = scope.ServiceProvider;
-    await services.RegisterPermissionsAsync(typeof(Program).Assembly);
-    // ======================================
+    await scope.ServiceProvider.RegisterPermissionsAsync(typeof(Program).Assembly);
 }
-// ===========================
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
