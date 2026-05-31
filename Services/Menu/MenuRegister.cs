@@ -41,6 +41,8 @@ namespace ManageLife.Services
 
                 new MenuItem<CronJobController>("Cron Job", x => x.Index(), "fa-solid fa-calendar-days"),
 
+                new MenuItem<DatabaseController>("Database", x => x.Index(), "fa-solid fa-database"),
+
                 new MenuItem("Language", "fa-solid fa-language", new List<MenuItem>
                 {
                     new MenuItem<LanguageController>("Language", x => x.Index(), "fa-regular fa-circle fa-2xs"),

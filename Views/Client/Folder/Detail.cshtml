@@ -1,5 +1,6 @@
+@model ManageLife.ViewModels.FolderDetailViewModel
 @{
-	ViewData["Title"] = "Album - " + ViewBag.FolderName;
+	ViewData["Title"] = "Album - " + Model.FolderName;
 }
 
 <style>
@@ -213,7 +214,7 @@
 				<i class="fa-solid fa-arrow-left"></i>
 			</a>
 			<h2 class="detail-header__title">
-				<i class="fa-solid fa-folder-open me-2" style="color:#667eea"></i>@ViewBag.FolderName
+				<i class="fa-solid fa-folder-open me-2" style="color:#667eea"></i>@Model.FolderName
 			</h2>
 		</div>
 	</div>
@@ -232,7 +233,7 @@
 <script>
 	$(function () {
 		new App.FolderDetailPage("#folder-detail-page", {
-			folderId: "@ViewBag.FolderId"
+			folderId: "@Model.FolderId"
 		});
 	});
 </script>

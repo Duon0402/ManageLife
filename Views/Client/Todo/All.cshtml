@@ -1,0 +1,147 @@
+@{
+    ViewData["Title"] = "Tất cả công việc";
+    this.UseCss(new ResourceLink("~/css/todo-all.css"));
+}
+
+<div class="todo-all-page" id="todo-all-page">
+
+    <!-- ─── SIDEBAR ─────────────────────────────── -->
+    <aside class="todo-sidebar">
+        <div class="todo-sidebar__title">Danh sách</div>
+        <div class="todo-sidebar__list" id="sidebar-lists">
+            <div class="todo-sidebar__item active" data-list-id="">
+                <i class="fa-solid fa-inbox"></i>
+                <span>Tất cả</span>
+            </div>
+        </div>
+        <div class="todo-sidebar__divider"></div>
+        <div class="todo-sidebar__add" id="btn-create-list">
+            <i class="fa-solid fa-plus"></i> Tạo danh sách mới
+        </div>
+    </aside>
+
+    <!-- ─── MAIN ─────────────────────────────────── -->
+    <div class="todo-main">
+        <div class="todo-main__toolbar">
+            <select id="filter-status">
+                <option value="">Mọi trạng thái</option>
+                <option value="0">⏳ Chờ làm</option>
+                <option value="1">🔄 Đang làm</option>
+                <option value="2">✅ Hoàn thành</option>
+                <option value="3">❌ Huỷ bỏ</option>
+            </select>
+            <select id="filter-priority">
+                <option value="">Mọi ưu tiên</option>
+                <option value="2">🔴 Cao</option>
+                <option value="1">🟡 Trung bình</option>
+                <option value="0">🟢 Thấp</option>
+            </select>
+            <input type="date" id="filter-date" title="Lọc theo ngày hết hạn" />
+            <button class="btn-add-task" id="btn-add-task">
+                <i class="fa-solid fa-plus"></i> Thêm công việc
+            </button>
+        </div>
+
+        <div class="todo-main__list" id="task-list-all">
+            <!-- rendered by JS -->
+        </div>
+
+        <div class="all-empty" id="all-empty" style="display:none">
+            <i class="fa-regular fa-folder-open"></i>
+            <p>Không có công việc nào.<br/>Hãy thêm công việc đầu tiên!</p>
+        </div>
+    </div>
+</div>
+
+<!-- ─── DETAIL PANEL (Bootstrap Offcanvas) ─── -->
+<div class="offcanvas offcanvas-end detail-panel" tabindex="-1" id="task-detail-panel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Chi tiết công việc</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="detail-form">
+            <input type="hidden" id="detail-id" />
+
+            <div class="mb-3">
+                <label>Tiêu đề <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="detail-title" maxlength="200" />
+            </div>
+
+            <div class="mb-3">
+                <label>Mô tả</label>
+                <textarea class="form-control" id="detail-desc" rows="3"></textarea>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label>Trạng thái</label>
+                    <select class="form-select" id="detail-status">
+                        <option value="0">⏳ Chờ làm</option>
+                        <option value="1">🔄 Đang làm</option>
+                        <option value="2">✅ Hoàn thành</option>
+                        <option value="3">❌ Huỷ bỏ</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label>Ưu tiên</label>
+                    <select class="form-select" id="detail-priority">
+                        <option value="2">🔴 Cao</option>
+                        <option value="1">🟡 Trung bình</option>
+                        <option value="0">🟢 Thấp</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label>Ngày bắt đầu</label>
+                    <input type="date" class="form-control" id="detail-start" />
+                </div>
+                <div class="col-6">
+                    <label>Hạn hoàn thành</label>
+                    <input type="date" class="form-control" id="detail-due" />
+                </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label>Thời gian ước tính (phút)</label>
+                    <input type="number" class="form-control" id="detail-estimate" min="0" max="9999" />
+                </div>
+                <div class="col-6">
+                    <label>Nhắc nhở</label>
+                    <input type="datetime-local" class="form-control" id="detail-reminder" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label>Lặp lại</label>
+                <select class="form-select" id="detail-recurrence">
+                    <option value="0">Không lặp</option>
+                    <option value="1">Hằng ngày</option>
+                    <option value="2">Hằng tuần</option>
+                    <option value="3">Hằng tháng</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label>Danh sách</label>
+                <select class="form-select" id="detail-list-id"></select>
+            </div>
+
+            <div class="detail-actions">
+                <button class="btn-save" id="btn-save-task">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+                </button>
+                <button class="btn-del-task" id="btn-delete-task">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () { new App.TodoAllPage('#todo-all-page'); });
+</script>

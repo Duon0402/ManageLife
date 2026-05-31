@@ -1,0 +1,18 @@
+@model ManageLife.ViewModels.DatabaseViewModel
+@{
+    Options.Title = "DATABASE";
+    Options.Breadcrumb.Add("/Admin/Database", "Database");
+    this.UseCss(new ResourceLink("~/css/admin-database.css"));
+}
+
+<div id="admin-database-page"
+     data-pending-count="@Model.PendingCount"
+     data-pending="@System.Text.Json.JsonSerializer.Serialize(Model.Pending)"
+     data-applied="@System.Text.Json.JsonSerializer.Serialize(Model.Applied)">
+</div>
+
+<script>
+    $(function () {
+        new App.AdminDatabasePage('#admin-database-page');
+    });
+</script>

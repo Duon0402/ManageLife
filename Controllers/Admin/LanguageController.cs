@@ -33,5 +33,19 @@ namespace ManageLife.Controllers.Admin
         {
             return await _service.CreateLanguageAsync(request, ct);
         }
+
+        [UpdatePermission]
+        [HttpPost]
+        public async Task<Result> Update([FromBody] UpdateLanguageRequest request, CancellationToken ct)
+        {
+            return await _service.UpdateLanguageAsync(request, ct);
+        }
+
+        [DeletePermission]
+        [HttpPost]
+        public async Task<Result> Delete([FromBody] DeleteLanguageRequest request, CancellationToken ct)
+        {
+            return await _service.DeleteLanguageAsync(request, ct);
+        }
     }
 }

@@ -33,9 +33,6 @@ namespace ManageLife.Controllers.Client
 
             _logger.Info($"Chat Index - UserID: {currentUserId}, Claims: {string.Join("|", User.Claims.Select(c => $"{c.Type}={c.Value}"))}");
 
-            var users = res.IsOk() ? res.Data.Where(x => x.Id != currentUserId).ToList() : new List<UserModel>();
-            ViewBag.Users = users;
-            ViewBag.CurrentUserId = currentUserId;
             return View();
         }
 

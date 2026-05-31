@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Kế hoạch hôm nay";
+    this.UseCss(new ResourceLink("~/css/todo-today.css"));
+}
+
+<div class="today-page" id="todo-today-page">
+
+    <div class="today-hero">
+        <div>
+            <h2 class="today-hero__title"><i class="fa-solid fa-sun me-2" style="color:#f39c12"></i>Kế hoạch hôm nay</h2>
+            <div class="today-hero__date" id="today-date-label"></div>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+            <div class="progress-label" id="progress-label">Đang tải...</div>
+        </div>
+    </div>
+
+    <div class="stats-row" id="stats-row">
+        <div class="stat-pill all"><span class="dot"></span><span class="num" id="stat-total">-</span><span class="txt">tổng</span></div>
+        <div class="stat-pill prog"><span class="dot"></span><span class="num" id="stat-inprogress">-</span><span class="txt">đang làm</span></div>
+        <div class="stat-pill done"><span class="dot"></span><span class="num" id="stat-done">-</span><span class="txt">hoàn thành</span></div>
+    </div>
+
+    <div class="quick-add" id="quick-add-form">
+        <i class="fa-solid fa-plus" style="color:#c5bbff;flex-shrink:0"></i>
+        <input type="text" id="qa-title" placeholder="Thêm công việc hôm nay… (Enter)" maxlength="200" />
+        <select id="qa-priority">
+            <option value="2">🔴 Cao</option>
+            <option value="1" selected>🟡 TB</option>
+            <option value="0">🟢 Thấp</option>
+        </select>
+        <select id="qa-list"><option value="">Danh sách…</option></select>
+        <button class="quick-add__btn" id="btn-qa"><i class="fa-solid fa-paper-plane me-1"></i>Thêm</button>
+    </div>
+
+    <div id="task-groups">
+        <div class="task-group" id="grp-inprogress" style="display:none">
+            <div class="task-group__hd"><i class="fa-solid fa-chevron-down"></i>🔄 Đang làm <span id="cnt-inprogress" style="color:#f39c12"></span></div>
+            <div class="task-group__body" id="list-inprogress"></div>
+        </div>
+        <div class="task-group" id="grp-pending" style="display:none">
+            <div class="task-group__hd"><i class="fa-solid fa-chevron-down"></i>⏳ Chờ làm <span id="cnt-pending" style="color:#667eea"></span></div>
+            <div class="task-group__body" id="list-pending"></div>
+        </div>
+        <div class="task-group" id="grp-done" style="display:none">
+            <div class="task-group__hd"><i class="fa-solid fa-chevron-down"></i>✅ Hoàn thành <span id="cnt-done" style="color:#27ae60"></span></div>
+            <div class="task-group__body" id="list-done"></div>
+        </div>
+    </div>
+
+    <div class="today-empty" id="today-empty" style="display:none">
+        <i class="fa-regular fa-circle-check"></i>
+        <p>Không có công việc nào hôm nay.<br/>Hãy thêm công việc đầu tiên!</p>
+    </div>
+
+    <div class="today-footer">
+        <a href="/Todo/All"><i class="fa-solid fa-list-check me-1"></i>Quản lý tất cả công việc →</a>
+    </div>
+</div>
+
+<script>
+    $(function () { new App.TodoTodayPage('#todo-today-page'); });
+</script>

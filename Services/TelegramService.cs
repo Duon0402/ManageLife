@@ -52,6 +52,21 @@ namespace ManageLife.Services
             }
         }
 
+        public async Task<Result> SendMessageToChatAsync(long chatId, string message, CancellationToken ct = default)
+        {
+            try
+            {
+                await _botClient.SendMessage(chatId, message, cancellationToken: ct);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                var msg = "Đã có lỗi xảy ra khi gửi tin nhắn Telegram";
+                _logger.Error(ex, msg);
+                return Result.Exception(msg, ex);
+            }
+        }
+
         public async Task HandleUpdateAsync(Update update, CancellationToken ct = default)
         {
             string msg;

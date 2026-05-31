@@ -96,7 +96,8 @@ namespace ManageLife.Extensions
             services.AddDbContext<AppDbContext>(options =>
             {
                 string connectionString = config.GetConnectionString("DefaultConnection") ?? "";
-                var serverVersion = ServerVersion.AutoDetect(connectionString);
+                var versionStr = config["MySqlVersion"] ?? "8.0.0";
+                var serverVersion = new MySqlServerVersion(Version.Parse(versionStr));
                 options.UseMySql(connectionString, serverVersion, mysqlOptions =>
                 {
                     //NOTE: Tắt retry tự động tránh xung đột với UnitOfWork custom

@@ -1,6 +1,7 @@
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.Client
@@ -31,9 +32,8 @@ namespace ManageLife.Controllers.Client
             if (folder == null)
                 return RedirectToAction("Index");
 
-            ViewBag.FolderId = folder.Id;
-            ViewBag.FolderName = folder.Name;
-            return View("Detail");
+            var vm = new FolderDetailViewModel { FolderId = folder.Id, FolderName = folder.Name };
+            return View("Detail", vm);
         }
 
         [ViewPermission]
