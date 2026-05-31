@@ -29,20 +29,20 @@ namespace ManageLife.Controllers.Admin
 
         [HttpPost]
         [UpdatePermission]
-        public async Task<IActionResult> Migrate(CancellationToken ct)
+        public async Task<Result> Migrate(CancellationToken ct)
         {
             try
             {
                 var pending = (await _db.Database.GetPendingMigrationsAsync()).ToList();
                 if (pending.Count == 0)
-                    return Ok(new { success = true, message = "Database đã up-to-date.", applied = Array.Empty<string>() });
+                    return Result.Ok("Database đã up-to-date.");
 
                 await _db.Database.MigrateAsync(ct);
-                return Ok(new { success = true, message = $"Đã apply {pending.Count} migration(s).", applied = pending });
+                return Result.Ok($"Đã apply {pending.Count} migration(s) thành công.");
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return Result.Exception("Migration thất bại", ex);
             }
         }
 

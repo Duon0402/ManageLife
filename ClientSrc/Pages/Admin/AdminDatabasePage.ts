@@ -148,14 +148,12 @@ namespace App {
 
             LoadingService.show();
             try {
-                const res = await ApiService.post<{ success: boolean; message: string; applied: string[] }>(
-                    '/Admin/Database/Migrate', {}
-                );
-                if (res.isOk() && res.data?.success) {
-                    ToastService.success(res.data.message);
+                const res = await ApiService.post('/Admin/Database/Migrate', {});
+                if (res.isOk()) {
+                    ToastService.success(res.message || 'Migration thành công');
                     setTimeout(() => location.reload(), 1200);
                 } else {
-                    ToastService.error(res.data?.message || res.message || 'Migration thất bại');
+                    ToastService.error(res.message || 'Migration thất bại');
                 }
             } catch {
                 ToastService.error('Không thể kết nối server');
