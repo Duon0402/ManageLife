@@ -42,24 +42,50 @@ namespace App {
             return this.request<T>(url, Constants.HttpMethod.DELETE, null, options);
         }
 
-        public static async postBlob(url: string, data: any): Promise<Blob> {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(data)
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.blob();
+        public static async postBlob(url: string, data: any, options: ApiRequestOptions = {}): Promise<Blob> {
+            if (options.showLoading) LoadingService.show();
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data)
+                });
+                return this.handleBlobResponse(response, options);
+            } finally {
+                if (options.showLoading) LoadingService.hide();
+            }
         }
 
-        public static async getBlob(url: string, params: any = {}): Promise<Blob> {
+        public static async getBlob(url: string, params: any = {}, options: ApiRequestOptions = {}): Promise<Blob> {
             const requestUrl = params && Object.keys(params).length ? `${url}?${$.param(params)}` : url;
-            const response = await fetch(requestUrl, {
-                method: 'GET',
-                credentials: 'include'
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (options.showLoading) LoadingService.show();
+            try {
+                const response = await fetch(requestUrl, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                return this.handleBlobResponse(response, options);
+            } finally {
+                if (options.showLoading) LoadingService.hide();
+            }
+        }
+
+        private static async handleBlobResponse(response: Response, options: ApiRequestOptions): Promise<Blob> {
+            if (response.status === Constants.HttpStatus.UNAUTHORIZED) {
+                window.location.href = Constants.Urls.LOGIN + "?returnUrl=" +
+                    encodeURIComponent(window.location.pathname + window.location.search);
+                return null as any;
+            }
+            if (!response.ok) {
+                if (options.showToast) {
+                    const msg = response.status === Constants.HttpStatus.FORBIDDEN
+                        ? Constants.Messages.FORBIDDEN
+                        : Constants.Messages.DEFAULT_ERROR;
+                    ToastService.error(msg, Constants.Messages.NOTIFICATION_TITLE);
+                }
+                throw new Error(`HTTP ${response.status}`);
+            }
             return response.blob();
         }
 
