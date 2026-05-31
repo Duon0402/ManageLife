@@ -1,41 +1,42 @@
+using AutoMapper;
 using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
 {
-    public class ChatService : IChatService
+    public class ChatService : ServiceBase<ChatService>, IChatService
     {
         private readonly IChatMessageRepository _repoChatMessage;
         private readonly IChatRoomMemberRepository _repoChatRoomMember;
         private readonly IChatRoomRepository _repoChatRoom;
         private readonly IChatRoomUserStateRepository _repoChatRoomUserState;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IAppLogger<ChatService> _logger;
 
         public ChatService(
+            IMapper mapper,
             IChatMessageRepository repoChatMessage,
             IChatRoomMemberRepository repoChatRoomMember,
             IChatRoomRepository repoChatRoom,
             IChatRoomUserStateRepository repoChatRoomUserState,
             IUnitOfWork unitOfWork,
-            IAppLogger<ChatService> logger)
+            IAppLogger<ChatService> logger,
+            IUserContext userContext) : base(logger, userContext, mapper)
         {
             _repoChatMessage = repoChatMessage;
             _repoChatRoomMember = repoChatRoomMember;
             _repoChatRoom = repoChatRoom;
             _repoChatRoomUserState = repoChatRoomUserState;
             _unitOfWork = unitOfWork;
-            _logger = logger;
         }
 
         public async Task<Result<string>> CreateOrGetPrivateRoomAsync(string user1, string user2, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 if (user1 == user2)
@@ -48,7 +49,7 @@ namespace ManageLife.Services
                 var existingRoomId = await _repoChatRoom.Query(true)
                     .Where(x => x.PrivateKey == privateKey)
                     .Select(x => x.Id)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(ct);
 
                 if (existingRoomId != null)
                 {
@@ -64,7 +65,7 @@ namespace ManageLife.Services
                         PrivateKey = privateKey
                     };
 
-                    await _repoChatRoom.InsertAsync(room);
+                    await _repoChatRoom.InsertAsync(room, ct);
 
                     var members = new[]
                     {
@@ -82,7 +83,7 @@ namespace ManageLife.Services
                         }
                     };
 
-                    await _repoChatRoomMember.BulkInsertAsync(members);
+                    await _repoChatRoomMember.BulkInsertAsync(members, ct);
 
                     await _unitOfWork.CommitAsync();
 
@@ -95,7 +96,7 @@ namespace ManageLife.Services
                     var existingRoom = await _repoChatRoom.Query(true)
                         .Where(x => x.PrivateKey == privateKey)
                         .Select(x => x.Id)
-                        .FirstAsync();
+                        .FirstAsync(ct);
 
                     return Result.Ok(existingRoom);
                 }
@@ -103,7 +104,7 @@ namespace ManageLife.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<string>(msg, ex);
             }
@@ -111,7 +112,6 @@ namespace ManageLife.Services
 
         public async Task<Result<List<ChatMessageModel>>> GetMessagesAsync(string roomId, DateTime? before, int pageSize, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var predicate = PredicateBuilder.New<ChatMessageEntity>(x => x.RoomId == roomId);
@@ -126,7 +126,7 @@ namespace ManageLife.Services
                     .Where(predicate)
                     .OrderByDescending(x => x.CreatedTime)
                     .Take(pageSize)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var models = entities.MapToList<ChatMessageModel>();
 
@@ -134,7 +134,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<List<ChatMessageModel>>(msg, ex);
             }
@@ -142,13 +142,12 @@ namespace ManageLife.Services
 
         public async Task<Result<int>> GetUnreadCountAsync(string roomId, string userId, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var state = await _repoChatRoomUserState
                     .FirstOrDefaultAsync(x =>
                         x.RoomId == roomId &&
-                        x.UserId == userId);
+                        x.UserId == userId, ct);
 
                 var count = 0;
                 if (state?.LastReadAt == null)
@@ -170,7 +169,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<int>(msg, ex);
             }
@@ -178,13 +177,12 @@ namespace ManageLife.Services
 
         public async Task<Result> MarkAsReadAsync(string userId, string roomId, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var state = await _repoChatRoomUserState
                     .FirstOrDefaultAsync(x =>
                         x.RoomId == roomId &&
-                        x.UserId == userId);
+                        x.UserId == userId, ct);
 
                 if (state == null)
                 {
@@ -195,11 +193,11 @@ namespace ManageLife.Services
                         LastReadAt = DateTimeHelper.UtcNow(),
                     };
 
-                    var b = await _repoChatRoomUserState.InsertAsync(state);
+                    var inserted = await _repoChatRoomUserState.InsertAsync(state, ct);
 
-                    if (!b)
+                    if (!inserted)
                     {
-                        msg = TranslationKey.Common.Message.CreateError;
+                        var msg = TranslationKey.Common.Message.CreateError;
                         _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                     }
@@ -207,10 +205,10 @@ namespace ManageLife.Services
                 else
                 {
                     state.LastReadAt = DateTimeHelper.UtcNow();
-                    var b = await _repoChatRoomUserState.UpdateAsync(state);
-                    if (!b)
+                    var updated = await _repoChatRoomUserState.UpdateAsync(state, ct);
+                    if (!updated)
                     {
-                        msg = TranslationKey.Common.Message.UpdateError;
+                        var msg = TranslationKey.Common.Message.UpdateError;
                         _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                     }
@@ -220,7 +218,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -228,17 +226,16 @@ namespace ManageLife.Services
 
         public async Task<Result<ChatMessageModel>> SendMessageAsync(string roomId, string senderId, string content, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var roomMember = await _repoChatRoomMember.FirstOrDefaultAsync(
                     x => x.IsActive &&
                     x.UserId == senderId &&
-                    x.RoomId == roomId);
+                    x.RoomId == roomId, ct);
 
                 if (roomMember == null)
                 {
-                    msg = "Không thể gửi tin nhắn";
+                    var msg = "Không thể gửi tin nhắn";
                     _logger.Debug(msg);
                     return Result.Error<ChatMessageModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -250,11 +247,11 @@ namespace ManageLife.Services
                     Content = content
                 };
 
-                var b = await _repoChatMessage.InsertAsync(entity);
+                var inserted = await _repoChatMessage.InsertAsync(entity, ct);
 
-                if (!b)
+                if (!inserted)
                 {
-                    msg = "Không thể gửi tin nhắn";
+                    var msg = "Không thể gửi tin nhắn";
                     _logger.Debug(msg);
                     return Result.Error<ChatMessageModel>(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -263,7 +260,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<ChatMessageModel>(msg, ex);
             }
@@ -295,7 +292,7 @@ namespace ManageLife.Services
                 .AnyAsync(x =>
                     x.RoomId == roomId &&
                     x.UserId == userId &&
-                    x.IsActive);
+                    x.IsActive, ct);
         }
     }
 }

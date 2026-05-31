@@ -1,4 +1,6 @@
-﻿using ManageLife.Core;
+using AutoMapper;
+using ManageLife.Contexts;
+using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -6,37 +8,43 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
 {
-    public class FolderService : IFolderService
+    public class FolderService : ServiceBase<FolderService>, IFolderService
     {
         private readonly IFolderRepository _folderRepo;
         private readonly IFolderFileRepository _folderFileRepo;
         private readonly IFileRepository _fileRepo;
-        private readonly IAppLogger<FolderService> _logger;
+        private readonly IUnitOfWork _uow;
 
         public FolderService(
+            IMapper mapper,
             IFolderRepository folderRepo,
             IFolderFileRepository folderFileRepo,
             IFileRepository fileRepo,
-            IAppLogger<FolderService> logger)
+            IUnitOfWork uow,
+            IAppLogger<FolderService> logger,
+            IUserContext userContext) : base(logger, userContext, mapper)
         {
             _folderRepo = folderRepo;
             _folderFileRepo = folderFileRepo;
             _fileRepo = fileRepo;
-            _logger = logger;
+            _uow = uow;
         }
 
         public async Task<Result<List<FolderModel>>> GetFoldersAsync(CancellationToken ct = default)
         {
             try
             {
-                var folders = await _folderRepo.Query(true).ToListAsync();
+                var currentUser = _userContext.GetUserName();
+                var folders = await _folderRepo.Query(true)
+                    .Where(f => f.CreatedUser == currentUser)
+                    .ToListAsync(ct);
 
                 var folderIds = folders.Select(f => f.Id).ToList();
                 var folderFileCounts = await _folderFileRepo.Query(true)
                     .Where(ff => folderIds.Contains(ff.FolderId))
                     .GroupBy(ff => ff.FolderId)
                     .Select(g => new { FolderId = g.Key, Count = g.Count() })
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var countDict = folderFileCounts.ToDictionary(x => x.FolderId, x => x.Count);
 
@@ -57,21 +65,19 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, ex.Message);
+                _logger.Error(ex, "Lỗi khi lấy danh sách folder");
                 return Result.Exception<List<FolderModel>>("Lỗi khi lấy danh sách folder", ex);
             }
         }
 
         public async Task<Result<FolderModel>> CreateFolderAsync(CreateFolderCommand cmd, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 if (string.IsNullOrWhiteSpace(cmd.Name))
                 {
-                    msg = "Tên folder không được để trống";
-                    _logger.Debug(msg);
-                    return Result.Error<FolderModel>(Result.DATA_INVALID.Code, msg);
+                    _logger.Debug("Tên folder trống");
+                    return Result.Error<FolderModel>(Result.DATA_INVALID.Code, "Tên folder không được để trống");
                 }
 
                 var entity = new FolderEntity
@@ -80,12 +86,11 @@ namespace ManageLife.Services
                     Description = cmd.Description?.Trim()
                 };
 
-                var b = await _folderRepo.InsertAsync(entity);
-                if (!b)
+                var created = await _folderRepo.InsertAsync(entity, ct);
+                if (!created)
                 {
-                    msg = "Không thể tạo folder";
-                    _logger.Debug(msg);
-                    return Result.Error<FolderModel>(Result.DATA_NOT_CREATE.Code, msg);
+                    _logger.Debug("InsertAsync folder thất bại");
+                    return Result.Error<FolderModel>(Result.DATA_NOT_CREATE.Code, "Không thể tạo folder");
                 }
 
                 var model = new FolderModel
@@ -102,60 +107,59 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, ex.Message);
+                _logger.Error(ex, "Lỗi khi tạo folder");
                 return Result.Exception<FolderModel>("Lỗi khi tạo folder", ex);
             }
         }
 
         public async Task<Result> DeleteFolderAsync(string folderId, CancellationToken ct = default)
         {
-            string msg;
             try
             {
-                var entity = await _folderRepo.GetAsync(folderId);
+                var entity = await _folderRepo.GetAsync(folderId, ct);
                 if (entity == null)
-                {
-                    msg = "Folder không tồn tại";
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
-                }
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                // Xoá tất cả link folder-file trước
-                var folderFiles = await _folderFileRepo.FindAsync(ff => ff.FolderId == folderId);
+                var currentUser = _userContext.GetUserName();
+                if (entity.CreatedUser != currentUser)
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
+
+                await _uow.BeginTransactionAsync(ct);
+
+                var folderFiles = await _folderFileRepo.FindAsync(ff => ff.FolderId == folderId, ct);
                 if (folderFiles.Any())
-                    await _folderFileRepo.BulkDeleteAsync(folderFiles);
+                    await _folderFileRepo.BulkDeleteAsync(folderFiles, ct);
 
-                var b = await _folderRepo.DeleteAsync(entity);
-                if (!b)
+                var deleted = await _folderRepo.DeleteAsync(entity, ct);
+                if (!deleted)
                 {
-                    msg = "Không thể xoá folder";
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                    _logger.Debug("DeleteAsync folder thất bại: {0}", folderId);
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá folder");
                 }
 
+                await _uow.CommitAsync(ct);
                 return Result.Ok();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, ex.Message);
+                await _uow.RollbackAsync(ct);
+                _logger.Error(ex, "Lỗi khi xoá folder");
                 return Result.Exception("Lỗi khi xoá folder", ex);
             }
         }
 
         public async Task<Result<List<FolderFileItemModel>>> GetFolderFilesAsync(string folderId, CancellationToken ct = default)
         {
-            string msg;
             try
             {
-                var folder = await _folderRepo.GetAsync(folderId);
+                var folder = await _folderRepo.GetAsync(folderId, ct);
                 if (folder == null)
-                {
-                    msg = "Folder không tồn tại";
-                    _logger.Debug(msg);
-                    return Result.Error<List<FolderFileItemModel>>(Result.DATA_NOT_EXISTED.Code, msg);
-                }
+                    return Result.Error<List<FolderFileItemModel>>(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                // Single join query – avoids two separate round-trips
+                var currentUser = _userContext.GetUserName();
+                if (folder.CreatedUser != currentUser)
+                    return Result.Error<List<FolderFileItemModel>>(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
+
                 var models = await (
                     from ff in _folderFileRepo.Query(true)
                     join f in _fileRepo.Query(true) on ff.FileId equals f.Id
@@ -166,87 +170,80 @@ namespace ManageLife.Services
                         FileName = f.FileName,
                         FileUrl = $"/FileStorage/GetFile?fileId={f.Id}"
                     }
-                ).ToListAsync();
+                ).ToListAsync(ct);
 
                 return Result.Ok(models);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, ex.Message);
+                _logger.Error(ex, "Lỗi khi lấy danh sách file trong folder");
                 return Result.Exception<List<FolderFileItemModel>>("Lỗi khi lấy danh sách file trong folder", ex);
             }
         }
 
         public async Task<Result> AddFileToFolderAsync(string folderId, string fileId, CancellationToken ct = default)
         {
-            string msg;
             try
             {
-                // Kiểm tra folder tồn tại
-                var folder = await _folderRepo.GetAsync(folderId);
+                var folder = await _folderRepo.GetAsync(folderId, ct);
                 if (folder == null)
-                {
-                    msg = "Folder không tồn tại";
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
-                }
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                // Kiểm tra đã link chưa
+                var currentUser = _userContext.GetUserName();
+                if (folder.CreatedUser != currentUser)
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
+
                 var existing = await _folderFileRepo.FirstOrDefaultAsync(
-                    ff => ff.FolderId == folderId && ff.FileId == fileId);
+                    ff => ff.FolderId == folderId && ff.FileId == fileId, ct);
                 if (existing != null)
-                    return Result.Ok(); // đã tồn tại thì bỏ qua
+                    return Result.Ok();
 
-                var entity = new FolderFileEntity
+                var entity = new FolderFileEntity { FolderId = folderId, FileId = fileId };
+                var inserted = await _folderFileRepo.InsertAsync(entity, ct);
+                if (!inserted)
                 {
-                    FolderId = folderId,
-                    FileId = fileId
-                };
-
-                var b = await _folderFileRepo.InsertAsync(entity);
-                if (!b)
-                {
-                    msg = "Không thể thêm file vào folder";
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
+                    _logger.Debug("InsertAsync FolderFile thất bại");
+                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể thêm file vào folder");
                 }
 
                 return Result.Ok();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, ex.Message);
+                _logger.Error(ex, "Lỗi khi thêm file vào folder");
                 return Result.Exception("Lỗi khi thêm file vào folder", ex);
             }
         }
 
         public async Task<Result> RemoveFileFromFolderAsync(string folderId, string fileId, CancellationToken ct = default)
         {
-            string msg;
             try
             {
-                var entity = await _folderFileRepo.FirstOrDefaultAsync(
-                    ff => ff.FolderId == folderId && ff.FileId == fileId);
-                if (entity == null)
-                {
-                    msg = "File không tồn tại trong folder";
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
-                }
+                var folder = await _folderRepo.GetAsync(folderId, ct);
+                if (folder == null)
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                var b = await _folderFileRepo.DeleteAsync(entity);
-                if (!b)
+                var currentUser = _userContext.GetUserName();
+                if (folder.CreatedUser != currentUser)
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
+
+                var entity = await _folderFileRepo.FirstOrDefaultAsync(
+                    ff => ff.FolderId == folderId && ff.FileId == fileId, ct);
+                if (entity == null)
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "File không tồn tại trong folder");
+
+                var deleted = await _folderFileRepo.DeleteAsync(entity, ct);
+                if (!deleted)
                 {
-                    msg = "Không thể xoá file khỏi folder";
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
+                    _logger.Debug("DeleteAsync FolderFile thất bại");
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá file khỏi folder");
                 }
 
                 return Result.Ok();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, ex.Message);
+                _logger.Error(ex, "Lỗi khi xoá file khỏi folder");
                 return Result.Exception("Lỗi khi xoá file khỏi folder", ex);
             }
         }

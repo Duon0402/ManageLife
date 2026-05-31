@@ -1,8 +1,10 @@
+using AutoMapper;
 using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Settings;
@@ -16,7 +18,7 @@ using System.Text;
 
 namespace ManageLife.Services
 {
-    public class TokenService : ITokenService
+    public class TokenService : ServiceBase<TokenService>, ITokenService
     {
         private readonly JwtSettings _jwt;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -26,9 +28,9 @@ namespace ManageLife.Services
         private readonly IUserRoleRepository _userRoleRepo;
         private readonly IUnitOfWork _uow;
         private readonly ICacheService _cache;
-        private readonly IAppLogger<TokenService> _logger;
 
         public TokenService(
+            IMapper mapper,
             IUserRefreshTokenRepository refreshRepo,
             IUserRepository userRepo,
             IRoleRepository roleRepo,
@@ -37,7 +39,8 @@ namespace ManageLife.Services
             IHttpContextAccessor httpContextAccessor,
             IUnitOfWork uow,
             ICacheService cache,
-            IAppLogger<TokenService> logger)
+            IAppLogger<TokenService> logger,
+            IUserContext userContext) : base(logger, userContext, mapper)
         {
             _jwt = jwtOptions.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -47,7 +50,6 @@ namespace ManageLife.Services
             _userRoleRepo = userRoleRepo;
             _uow = uow;
             _cache = cache;
-            _logger = logger;
         }
 
         #region Access Token
@@ -143,60 +145,46 @@ namespace ManageLife.Services
 
         public async Task<Result<AuthTokenModel>> RefreshTokenAsync(string? refreshToken, CancellationToken ct = default)
         {
-            string msg;
-            bool b;
             try
             {
-                await _uow.BeginTransactionAsync();
-
                 if (refreshToken.IsEmpty())
                 {
                     ClearTokensCookie();
-                    msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
-                    _logger.Debug(msg);
-                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
                 }
 
                 var tokenEntity = await _refreshRepo.Query()
                     .FirstOrDefaultAsync(r => r.RefreshToken == refreshToken &&
                                               r.ExpiryTime > DateTimeHelper.UtcNow() &&
-                                              r.IsRevoked == false);
+                                              r.IsRevoked == false, ct);
 
                 if (tokenEntity == null)
                 {
                     ClearTokensCookie();
-                    msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
-                    _logger.Debug(msg);
-                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
                 }
 
-                var user = await _userRepo.GetAsync(tokenEntity.UserId);
+                var user = await _userRepo.GetAsync(tokenEntity.UserId, ct);
 
                 if (user == null || user.IsDeleted || !user.IsActive)
                 {
                     ClearTokensCookie();
-                    msg = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn";
-                    _logger.Debug(msg);
-                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, msg);
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn");
                 }
+
+                await _uow.BeginTransactionAsync(ct);
 
                 tokenEntity.IsRevoked = true;
-                b = await _refreshRepo.UpdateAsync(tokenEntity);
-                if (!b)
+                var updated = await _refreshRepo.UpdateAsync(tokenEntity, ct);
+                if (!updated)
                 {
                     ClearTokensCookie();
-                    msg = "Không thể tạo phiên đăng nhập mới";
-                    _logger.Debug(msg);
-                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, msg);
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, "Không thể tạo phiên đăng nhập mới");
                 }
 
-                var cleanupResult = await CleanupRefreshTokensAsync(tokenEntity.UserId);
+                var cleanupResult = await CleanupRefreshTokensAsync(tokenEntity.UserId, ct: ct);
                 if (!cleanupResult.IsOk())
-                {
-                    msg = "Không thể dọn dẹp token cũ";
-                    _logger.Debug(msg);
-                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_DELETE.Code, msg);
-                }
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_DELETE.Code, "Không thể dọn dẹp token cũ");
 
                 var newRefreshToken = GenerateRefreshToken();
                 var newRefreshEntity = new UserRefreshTokenEntity
@@ -207,36 +195,33 @@ namespace ManageLife.Services
                     ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
                 };
 
-                b = await _refreshRepo.InsertAsync(newRefreshEntity);
-                if (!b)
+                var inserted = await _refreshRepo.InsertAsync(newRefreshEntity, ct);
+                if (!inserted)
                 {
                     ClearTokensCookie();
-                    msg = "Không thể tạo phiên đăng nhập mới";
-                    _logger.Debug(msg);
-                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, msg);
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, "Không thể tạo phiên đăng nhập mới");
                 }
 
-                await _uow.CommitAsync();
+                await _uow.CommitAsync(ct);
 
                 var roles = await _userRoleRepo.Query(true)
                     .Where(ur => ur.UserId == tokenEntity.UserId)
                     .Join(_roleRepo.Query(true), ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, user.SecurityStamp!, roles);
-
                 SetTokensCookie(newAccessToken, newRefreshToken);
 
-                var authToken = new AuthTokenModel
+                return Result.Ok(new AuthTokenModel
                 {
                     AccessToken = newAccessToken,
                     RefreshToken = newRefreshToken
-                };
-                return Result.Ok(authToken);
+                });
             }
             catch (Exception ex)
             {
-                msg = "Đã có lỗi xảy ra khi làm mới phiên đăng nhập";
+                await _uow.RollbackAsync(ct);
+                var msg = "Đã có lỗi xảy ra khi làm mới phiên đăng nhập";
                 _logger.Error(ex, msg);
                 return Result.Exception<AuthTokenModel>(msg, ex);
             }
@@ -275,15 +260,12 @@ namespace ManageLife.Services
 
         public async Task<Result> CleanupRefreshTokensAsync(string? userId = null, IUnitOfWork? uow = null, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var predicate = PredicateBuilder.New<UserRefreshTokenEntity>(x => x.ExpiryTime <= DateTimeHelper.UtcNow() || x.IsRevoked);
 
                 if (userId.IsNotEmpty())
-                {
                     predicate = predicate.And(x => x.UserId == userId);
-                }
 
                 await _refreshRepo.Query().Where(predicate).ExecuteDeleteAsync(ct);
 
@@ -291,9 +273,8 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
-                _logger.Error(ex, msg);
-                return Result.Exception(msg, ex);
+                _logger.Error(ex, TranslationKey.Common.Message.SystemError);
+                return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
             }
         }
     }

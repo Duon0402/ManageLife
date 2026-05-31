@@ -1,43 +1,42 @@
-﻿using LinqKit;
+﻿using AutoMapper;
+using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Extensions;
+using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 
 namespace ManageLife.Services
 {
-    public class TodoTaskService : ITodoTaskService
+    public class TodoTaskService : ServiceBase<TodoTaskService>, ITodoTaskService
     {
         private readonly ITodoTaskRepository _repo;
-        private readonly IAppLogger<TodoTaskService> _logger;
 
-        public TodoTaskService(ITodoTaskRepository repo, IAppLogger<TodoTaskService> logger)
+        public TodoTaskService(IMapper mapper, ITodoTaskRepository repo, IAppLogger<TodoTaskService> logger, IUserContext userContext) : base(logger, userContext, mapper)
         {
             _repo = repo;
-            _logger = logger;
         }
 
         public async Task<Result> CreateTodoTask(CreateTodoTaskRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
                 var entity = request.MapTo<TodoTaskEntity>();
 
-                var b = await _repo.InsertAsync(entity);
-                if (!b)
+                var inserted = await _repo.InsertAsync(entity, ct);
+                if (!inserted)
                 {
-                    msg = TranslationKey.Common.Message.CreateError;
+                    var msg = TranslationKey.Common.Message.CreateError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                 }
@@ -46,7 +45,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -54,29 +53,28 @@ namespace ManageLife.Services
 
         public async Task<Result> DeleteTodoTask(DeleteTodoTaskRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(request.Id);
+                var entity = await _repo.GetAsync(request.Id, ct);
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
-                var b = await _repo.DeleteAsync(entity);
-                if (!b)
+                var deleted = await _repo.DeleteAsync(entity, ct);
+                if (!deleted)
                 {
-                    msg = TranslationKey.Common.Message.DeleteError;
+                    var msg = TranslationKey.Common.Message.DeleteError;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
@@ -85,7 +83,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -93,13 +91,12 @@ namespace ManageLife.Services
 
         public async Task<Result<List<TodoTaskModel>>> GetListTodoTasks(GetListTodoTasksRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<List<TodoTaskModel>>(Result.DATA_INVALID.Code, msg);
                 }
@@ -127,13 +124,13 @@ namespace ManageLife.Services
                 {
                     predicate = predicate.And(x => x.Priority == request.Priority);
                 }
-                var entities = await _repo.FindAsync(predicate);
+                var entities = await _repo.FindAsync(predicate, ct);
                 var models = entities.MapToList<TodoTaskModel>();
                 return Result.Ok(models);
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<List<TodoTaskModel>>(msg, ex);
             }
@@ -141,21 +138,20 @@ namespace ManageLife.Services
 
         public async Task<Result<TodoTaskModel>> GetTodoTaskById(GetTodoTaskByIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<TodoTaskModel>(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.GetAsync(request.Id);
+                var entity = await _repo.GetAsync(request.Id, ct);
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error<TodoTaskModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -165,7 +161,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<TodoTaskModel>(msg, ex);
             }
@@ -173,21 +169,20 @@ namespace ManageLife.Services
 
         public async Task<Result> UpdateTodoTask(UpdateTodoTaskRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
                 }
 
-                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id);
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id, ct);
                 if (entity == null)
                 {
-                    msg = TranslationKey.Common.Message.DataNotExisted;
+                    var msg = TranslationKey.Common.Message.DataNotExisted;
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -196,7 +191,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }

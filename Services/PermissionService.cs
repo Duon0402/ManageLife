@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services
 {
-    public class PermissionService : ServiceBase, IPermissionService
+    public class PermissionService : ServiceBase<PermissionService>, IPermissionService
     {
         private readonly ICacheService _cache;
         private readonly IPermissionRepository _repoPermission;
@@ -18,7 +18,6 @@ namespace ManageLife.Services
         private readonly IUserRoleRepository _repoUserRole;
         private readonly IRoleRepository _repoRole;
         private readonly IUserRepository _repoUser;
-        private readonly IAppLogger<PermissionService> _logger;
         private readonly IPermissionGuard _permissionGuard;
         private readonly IUnitOfWork _uow;
         private readonly IRolePermissionRepository _repoRolePermission;
@@ -35,7 +34,7 @@ namespace ManageLife.Services
             IPermissionGuard permissionGuard,
             IUnitOfWork uow,
             IMapper mapper,
-            IUserContext userContext) : base(mapper, userContext)
+            IUserContext userContext) : base(logger, userContext, mapper)
         {
             _cache = cache;
             _repoPermission = repoPermission;
@@ -44,19 +43,17 @@ namespace ManageLife.Services
             _repoUserRole = repoUserRole;
             _repoRole = repoRole;
             _repoUser = repoUser;
-            _logger = logger;
             _permissionGuard = permissionGuard;
             _uow = uow;
         }
 
         public async Task<Result<List<PermissionModel>>> GetListPermissionsAsync(CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var models = new List<PermissionModel>();
 
-                var entities = await _repoPermission.GetAllAsync();
+                var entities = await _repoPermission.GetAllAsync(ct);
 
                 if (entities.IsNotEmpty())
                 {
@@ -67,7 +64,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 return Result.Exception<List<PermissionModel>>(msg, ex);
             }
         }
@@ -119,7 +116,7 @@ namespace ManageLife.Services
                                 .Any(pid => pid == p.Id)
                         )
                     )
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var models = permissions.IsNotEmpty()
                     ? permissions.MapToList<PermissionModel>()
@@ -137,10 +134,10 @@ namespace ManageLife.Services
         public async Task<Result> SyncPermissionsAsync(List<string> permissionCodes, CancellationToken ct = default)
         {
             bool clearPermissionCache = false;
-            await _uow.BeginTransactionAsync();
+            await _uow.BeginTransactionAsync(ct);
             try
             {
-                var dbPermissions = await _repoPermission.GetAllAsync();
+                var dbPermissions = await _repoPermission.GetAllAsync(ct);
                 var dbPermissionCodes = dbPermissions.Select(p => p.Code).ToList();
 
                 var toInsertCodes = permissionCodes.Except(dbPermissionCodes).ToList();
@@ -156,7 +153,7 @@ namespace ManageLife.Services
 
                 if (insertPermissions.IsNotEmpty())
                 {
-                    if (!await _repoPermission.BulkInsertAsync(insertPermissions))
+                    if (!await _repoPermission.BulkInsertAsync(insertPermissions, ct))
                         return Result.DATA_NOT_CREATE;
 
                     clearPermissionCache = true;
@@ -164,14 +161,14 @@ namespace ManageLife.Services
 
                 if (toDelete.IsNotEmpty())
                 {
-                    if (!await _repoPermission.BulkDeleteAsync(toDelete))
+                    if (!await _repoPermission.BulkDeleteAsync(toDelete, ct))
                         return Result.DATA_NOT_DELETE;
 
                     clearPermissionCache = true;
                 }
 
                 var adminRole = await _repoRole.Query()
-                    .FirstOrDefaultAsync(x => x.Name == RoleConst.Admin);
+                    .FirstOrDefaultAsync(x => x.Name == RoleConst.Admin, ct);
 
                 var userAdminIds = new List<string>();
                 if (adminRole != null)
@@ -181,11 +178,11 @@ namespace ManageLife.Services
                         var toDeleteIds = toDelete.Select(p => p.Id).ToList();
                         var adminMappingsToDelete = await _repoRolePermission.Query()
                             .Where(rp => rp.RoleId == adminRole.Id && toDeleteIds.Contains(rp.PermissionId))
-                            .ToListAsync();
+                            .ToListAsync(ct);
 
                         if (adminMappingsToDelete.IsNotEmpty())
                         {
-                            if (!await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete))
+                            if (!await _repoRolePermission.BulkDeleteAsync(adminMappingsToDelete, ct))
                                 return Result.DATA_NOT_DELETE;
 
                             clearPermissionCache = true;
@@ -200,7 +197,7 @@ namespace ManageLife.Services
                             PermissionId = p.Id
                         }).ToList();
 
-                        if (!await _repoRolePermission.BulkInsertAsync(rolePermissions))
+                        if (!await _repoRolePermission.BulkInsertAsync(rolePermissions, ct))
                             return Result.DATA_NOT_CREATE;
 
                         clearPermissionCache = true;
@@ -208,11 +205,11 @@ namespace ManageLife.Services
 
                     if (clearPermissionCache)
                     {
-                        userAdminIds = await _repoUserRole.Query(true).Where(x => x.RoleId == adminRole.Id).Select(x => x.UserId).ToListAsync();
+                        userAdminIds = await _repoUserRole.Query(true).Where(x => x.RoleId == adminRole.Id).Select(x => x.UserId).ToListAsync(ct);
                     }
                 }
 
-                await _uow.CommitAsync();
+                await _uow.CommitAsync(ct);
 
                 if (clearPermissionCache && userAdminIds.IsNotEmpty())
                 {
@@ -225,19 +222,19 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
             }
         }
 
         public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByUserIdAsync(GetUnassignedPermissionsByUserIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
 
@@ -272,7 +269,7 @@ namespace ManageLife.Services
                             )
                         )
                     )
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var models = permissions.IsNotEmpty()
                     ? permissions.MapToList<PermissionModel>()
@@ -282,23 +279,22 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = TranslationKey.Common.Message.SystemError;
+                var msg = TranslationKey.Common.Message.SystemError;
                 return Result.Exception<List<PermissionModel>>(msg, ex);
             }
         }
 
         public async Task<Result> AssignPermissionsAsync(AssignPermissionsRequest request, CancellationToken ct = default)
         {
-            string msg;
             var validation = request.Validate();
             if (!validation.IsValid)
             {
-                msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
             if (request.PermissionIds.IsEmpty())
             {
-                msg = "Danh sách quyền không được để trống";
+                var msg = "Danh sách quyền không được để trống";
                 _logger.Debug(msg);
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
@@ -321,7 +317,7 @@ namespace ManageLife.Services
                     rs = await AssignPermissionsToRoleAsync(request);
                     break;
                 default:
-                    msg = "Loại đối tượng không hợp lệ";
+                    var msg = "Loại đối tượng không hợp lệ";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
             }
@@ -331,16 +327,15 @@ namespace ManageLife.Services
 
         public async Task<Result> UnassignPermissionsAsync(UnassignPermissionsRequest request, CancellationToken ct = default)
         {
-            string msg;
             var validation = request.Validate();
             if (!validation.IsValid)
             {
-                msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
             if (request.PermissionIds.IsEmpty())
             {
-                msg = "Danh sách quyền không được để trống";
+                var msg = "Danh sách quyền không được để trống";
                 _logger.Debug(msg);
                 return Result.Error(Result.DATA_INVALID.Code, msg);
             }
@@ -363,7 +358,7 @@ namespace ManageLife.Services
                     rs = await UnassignPermissionsFromRoleAsync(request);
                     break;
                 default:
-                    msg = "Loại đối tượng không hợp lệ";
+                    var msg = "Loại đối tượng không hợp lệ";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_INVALID.Code, msg);
             }
@@ -373,13 +368,12 @@ namespace ManageLife.Services
 
         public async Task<Result<List<PermissionModel>>> GetAssignedPermissionsByRoleIdAsync(GetAssignedPermissionsByRoleIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
@@ -397,7 +391,7 @@ namespace ManageLife.Services
                         p => p.Id,
                         (rp, p) => p
                     )
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var models = entities.IsNotEmpty()
                     ? entities.MapToList<PermissionModel>()
@@ -408,7 +402,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 _logger.Error(ex, msg);
                 return Result.Exception<List<PermissionModel>>(msg, ex);
             }
@@ -416,13 +410,12 @@ namespace ManageLife.Services
 
         public async Task<Result<List<PermissionModel>>> GetUnassignedPermissionsByRoleIdAsync(GetUnassignedPermissionsByRoleIdRequest request, CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var validation = request.Validate();
                 if (!validation.IsValid)
                 {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
+                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
                     _logger.Debug(msg);
                     return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
                 }
@@ -437,7 +430,7 @@ namespace ManageLife.Services
                         !_repoRolePermission.Query(true)
                             .Any(rp => rp.RoleId == request.RoleId && rp.PermissionId == p.Id)
                     )
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var models = entities.IsNotEmpty()
                     ? entities.MapToList<PermissionModel>()
@@ -448,7 +441,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 _logger.Error(ex, msg);
                 return Result.Exception<List<PermissionModel>>(msg, ex);
             }
@@ -456,13 +449,12 @@ namespace ManageLife.Services
 
         private async Task<Result> AssignPermissionsToRoleAsync(AssignPermissionsRequest request)
         {
-            string msg;
             try
             {
                 var role = await _repoRole.FirstOrDefaultAsync(r => r.Id == request.ObjectId && !r.IsDeleted);
                 if (role == null)
                 {
-                    msg = "Không tìm thấy role";
+                    var msg = "Không tìm thấy role";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -486,10 +478,10 @@ namespace ManageLife.Services
 
                 if (toInsert.IsNotEmpty())
                 {
-                    var b = await _repoRolePermission.BulkInsertAsync(toInsert);
-                    if (!b)
+                    var inserted = await _repoRolePermission.BulkInsertAsync(toInsert);
+                    if (!inserted)
                     {
-                        msg = "Gán quyền cho role không thành công";
+                        var msg = "Gán quyền cho role không thành công";
                         _logger.Debug(msg);
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                     }
@@ -519,7 +511,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = "Lỗi khi gán quyền vào role";
+                var msg = "Lỗi khi gán quyền vào role";
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -527,13 +519,12 @@ namespace ManageLife.Services
 
         private async Task<Result> AssignPermissionsToUserAsync(AssignPermissionsRequest request)
         {
-            string msg;
             try
             {
                 var userExists = await _repoUser.FirstOrDefaultAsync(x => x.Id == request.ObjectId && x.IsDeleted == false);
                 if (userExists == null)
                 {
-                    msg = "Không tìm thấy người dùng cần gán quyền";
+                    var msg = "Không tìm thấy người dùng cần gán quyền";
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -589,7 +580,7 @@ namespace ManageLife.Services
                 {
                     if (!await _repoUserPermission.BulkInsertAsync(toInsert))
                     {
-                        msg = "Thêm quyền cho người dùng thất bại";
+                        var msg = "Thêm quyền cho người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                     }
                 }
@@ -598,7 +589,7 @@ namespace ManageLife.Services
                 {
                     if (!await _repoUserPermission.BulkUpdateAsync(toUpdate))
                     {
-                        msg = "Cập nhật quyền cho người dùng thất bại";
+                        var msg = "Cập nhật quyền cho người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                     }
                 }
@@ -610,20 +601,19 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 return Result.Exception(msg, ex);
             }
         }
 
         private async Task<Result> UnassignPermissionsFromRoleAsync(UnassignPermissionsRequest request)
         {
-            string msg;
             try
             {
                 var role = await _repoRole.FirstOrDefaultAsync(r => r.Id == request.ObjectId && !r.IsDeleted);
                 if (role == null)
                 {
-                    msg = "Không tìm thấy role";
+                    var msg = "Không tìm thấy role";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
@@ -640,10 +630,10 @@ namespace ManageLife.Services
                     return Result.Ok();
                 }
 
-                var b = await _repoRolePermission.BulkDeleteAsync(rolePermissions);
-                if (!b)
+                var deleted = await _repoRolePermission.BulkDeleteAsync(rolePermissions);
+                if (!deleted)
                 {
-                    msg = "Gỡ quyền khỏi role thất bại";
+                    var msg = "Gỡ quyền khỏi role thất bại";
                     _logger.Debug(msg);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                 }
@@ -670,7 +660,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = "Lỗi khi gỡ quyền khỏi role";
+                var msg = "Lỗi khi gỡ quyền khỏi role";
                 _logger.Error(ex, msg);
                 return Result.Exception(msg, ex);
             }
@@ -678,13 +668,12 @@ namespace ManageLife.Services
 
         private async Task<Result> UnassignPermissionsFromUserAsync(UnassignPermissionsRequest request)
         {
-            string msg;
             try
             {
                 var userExists = await _repoUser.FirstOrDefaultAsync(x => x.Id == request.ObjectId && x.IsDeleted == false);
                 if (userExists == null)
                 {
-                    msg = "Không tìm thấy người dùng cần gỡ quyền";
+                    var msg = "Không tìm thấy người dùng cần gỡ quyền";
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
@@ -750,7 +739,7 @@ namespace ManageLife.Services
                 {
                     if (!await _repoUserPermission.BulkDeleteAsync(toDelete))
                     {
-                        msg = "Gỡ quyền khỏi người dùng thất bại";
+                        var msg = "Gỡ quyền khỏi người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
                     }
                 }
@@ -759,7 +748,7 @@ namespace ManageLife.Services
                 {
                     if (!await _repoUserPermission.BulkInsertAsync(toInsert))
                     {
-                        msg = "Ghi đè quyền của người dùng thất bại";
+                        var msg = "Ghi đè quyền của người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
                     }
                 }
@@ -768,7 +757,7 @@ namespace ManageLife.Services
                 {
                     if (!await _repoUserPermission.BulkUpdateAsync(toUpdate))
                     {
-                        msg = "Cập nhật quyền của người dùng thất bại";
+                        var msg = "Cập nhật quyền của người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
                     }
                 }
@@ -780,7 +769,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
                 return Result.Exception(msg, ex);
             }
         }
