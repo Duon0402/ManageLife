@@ -99,15 +99,17 @@ namespace ManageLife.Services
 
                 var chatId = message.Chat.Id;
                 var messageId = message.MessageId;
+                var isPrivate = message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
 
                 _logger.Info("Received '{messageText}' in chat {chatId}", messageText, chatId);
 
                 if (messageText.StartsWith("/"))
                 {
-                    await HandleCommandAsync(chatId, messageText, ct);
+                    await HandleCommandAsync(chatId, messageText, isPrivate, ct);
                 }
-                else
+                else if (isPrivate)
                 {
+                    // Conversation flow chỉ hoạt động trong private chat
                     await HandleConversationAsync(chatId, messageId, messageText, ct);
                 }
             }
@@ -119,7 +121,7 @@ namespace ManageLife.Services
 
         // ──────────────────── Commands ────────────────────
 
-        private async Task HandleCommandAsync(long chatId, string messageText, CancellationToken ct)
+        private async Task HandleCommandAsync(long chatId, string messageText, bool isPrivate, CancellationToken ct)
         {
             var rawCommand = messageText.Split(' ')[0].ToLower();
             // Trong group chat, command có dạng /link@botname — cần strip phần @botname
@@ -151,7 +153,23 @@ namespace ManageLife.Services
                     break;
 
                 case "/link":
-                    await StartLinkFlowAsync(chatId, ct);
+                    if (isPrivate)
+                    {
+                        await StartLinkFlowAsync(chatId, ct);
+                    }
+                    else
+                    {
+                        // Group chat: bot không nhận tin nhắn thường (privacy mode)
+                        // → dùng format 1 lần hoặc nhắn riêng với bot
+                        var parts = messageText.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length >= 3)
+                            await HandleLinkWithCredentialsAsync(chatId, parts[1], parts[2], ct);
+                        else
+                            await _botClient.SendMessage(chatId,
+                                "Trong nhóm, hãy dùng lệnh: `/link username password`\n" +
+                                "Hoặc nhắn riêng với bot để bảo mật hơn.",
+                                parseMode: ParseMode.Markdown, cancellationToken: ct);
+                    }
                     break;
 
                 default:
