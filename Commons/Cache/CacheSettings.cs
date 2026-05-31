@@ -27,5 +27,8 @@ namespace ManageLife.Commons
 
         public static CacheItem RoleUnassignedPermissions(string roleId)
             => new($"{_prefix}role_permissions:unassigned:{roleId}");
+
+        public static CacheItem TelegramLinkState(long chatId)
+            => new($"{_prefix}tele_link_state:{chatId}", expiry: TimeSpan.FromMinutes(5));
     }
 }

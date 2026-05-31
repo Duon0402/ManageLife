@@ -13,6 +13,11 @@ namespace ManageLife.Helpers
             CreateMap<UserTelegramConnectionEntity, CreateUserTelegramConnectionRequest>().ReverseMap();
             CreateMap<UserTelegramConnectionEntity, UpdateUserTelegramConnectionRequest>().ReverseMap();
 
+            // TelegramBotCommand
+            CreateMap<TelegramBotCommandEntity, TelegramBotCommandModel>().ReverseMap();
+            CreateMap<TelegramBotCommandEntity, CreateTelegramBotCommandRequest>().ReverseMap();
+            CreateMap<TelegramBotCommandEntity, UpdateTelegramBotCommandRequest>().ReverseMap();
+
             // Role
             CreateMap<RoleEntity, RoleModel>().ReverseMap();
             CreateMap<RoleEntity, CreateRoleRequest>().ReverseMap();

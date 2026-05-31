@@ -80,6 +80,8 @@ namespace ManageLife.Data
                     await context.SaveChangesAsync();
                 }
 
+                await SeedTelegramBotCommands(context);
+
                 await transaction.CommitAsync();
             }
             catch
@@ -87,6 +89,23 @@ namespace ManageLife.Data
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        private static async Task SeedTelegramBotCommands(AppDbContext context)
+        {
+            var hasAny = await context.TelegramBotCommands.AnyAsync(x => !x.IsDeleted);
+            if (hasAny) return;
+
+            var defaultCommands = new List<TelegramBotCommandEntity>
+            {
+                new() { Id = IdHelper.NewId(), Command = "start",  Description = "Bắt đầu sử dụng bot",                           SortOrder = 1, CreatedUser = SystemUsers.System, CreatedTime = DateTimeHelper.Now() },
+                new() { Id = IdHelper.NewId(), Command = "info",   Description = "Lấy Chat ID của bạn",                            SortOrder = 2, CreatedUser = SystemUsers.System, CreatedTime = DateTimeHelper.Now() },
+                new() { Id = IdHelper.NewId(), Command = "link",   Description = "Liên kết tài khoản ManageLife với Telegram",      SortOrder = 3, CreatedUser = SystemUsers.System, CreatedTime = DateTimeHelper.Now() },
+                new() { Id = IdHelper.NewId(), Command = "help",   Description = "Xem hướng dẫn sử dụng",                          SortOrder = 4, CreatedUser = SystemUsers.System, CreatedTime = DateTimeHelper.Now() },
+            };
+
+            context.TelegramBotCommands.AddRange(defaultCommands);
+            await context.SaveChangesAsync();
         }
     }
 }

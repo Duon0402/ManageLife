@@ -53,6 +53,11 @@ namespace ManageLife.Services
                     new MenuItem<UserController>("User", x => x.Index(), "fa-solid fa-user"),
                     new MenuItem<RoleController>("Role", x => x.Index(), "fa-solid fa-shield"),
                     new MenuItem<UserTelegramConnectionController>("Telegram Connection", x => x.Index(), "fa-solid fa-arrow-right-arrow-left"),
+                }),
+
+                new MenuItem("Telegram Bot", "fa-brands fa-telegram", new List<MenuItem>
+                {
+                    new MenuItem<TelegramBotCommandController>("Bot Commands", x => x.Index(), "fa-solid fa-terminal"),
                 })
             };
         }
