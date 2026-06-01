@@ -94,30 +94,46 @@ namespace App {
             }
         }
 
-        private async resetSequence(data: CodeSequenceModel): Promise<void> {
-            const input = window.prompt(`Reset sequence cho "${data.category}".\nNhập giá trị mới (hiện tại: ${data.currentSeq}):`, '0');
-            if (input === null) return;
-
-            const value = parseInt(input, 10);
-            if (isNaN(value) || value < 0) {
-                ToastService.error('Giá trị không hợp lệ');
-                return;
-            }
-
-            LoadingService.show();
-            try {
-                const response = await ApiService.post('/Admin/CodeSequence/Reset', { id: data.id, value });
-                if (response.isOk()) {
-                    ToastService.success(`Đã reset sequence về ${value}`);
-                    this.gridBuilder.reload();
-                } else {
-                    ToastService.error(response.message || 'Reset thất bại');
+        private resetSequence(data: CodeSequenceModel): void {
+            const inputId = 'reset-seq-value';
+            const popup = new PopupBuilder({
+                title: `Reset sequence — ${data.category}`,
+                size: 'sm',
+                bodyHtml: `
+                    <p class="text-muted mb-2">Sequence hiện tại: <strong>${data.currentSeq}</strong></p>
+                    <label class="form-label">Giá trị mới</label>
+                    <input id="${inputId}" type="number" class="form-control" value="0" min="0" autofocus />
+                `,
+                footerHtml: `
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-warning btn-sm" id="btn-confirm-reset">Reset</button>
+                `,
+                onShow: (body) => {
+                    body.closest('.modal').find('#btn-confirm-reset').on('click', async () => {
+                        const value = parseInt($(`#${inputId}`).val() as string, 10);
+                        if (isNaN(value) || value < 0) {
+                            ToastService.error('Giá trị không hợp lệ');
+                            return;
+                        }
+                        popup.hide();
+                        LoadingService.show();
+                        try {
+                            const response = await ApiService.post('/Admin/CodeSequence/Reset', { id: data.id, value });
+                            if (response.isOk()) {
+                                ToastService.success(`Đã reset sequence về ${value}`);
+                                this.gridBuilder.reload();
+                            } else {
+                                ToastService.error(response.message || 'Reset thất bại');
+                            }
+                        } catch {
+                            ToastService.error('Lỗi hệ thống');
+                        } finally {
+                            LoadingService.hide();
+                        }
+                    });
                 }
-            } catch {
-                ToastService.error('Lỗi hệ thống');
-            } finally {
-                LoadingService.hide();
-            }
+            });
+            popup.show();
         }
 
         private async deleteSequence(data: CodeSequenceModel): Promise<void> {
