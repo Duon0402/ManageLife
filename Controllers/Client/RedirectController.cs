@@ -1,3 +1,4 @@
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +26,7 @@ namespace ManageLife.Controllers.Client
 
             var shortUrl = result.Data;
 
-            if (shortUrl.ExpireAt.HasValue && shortUrl.ExpireAt.Value < DateTime.UtcNow)
+            if (shortUrl.ExpireAt.HasValue && shortUrl.ExpireAt.Value < DateTimeHelper.UtcNow())
                 return NotFound();
 
             await _service.RecordClickAsync(new RecordShortUrlClickRequest
