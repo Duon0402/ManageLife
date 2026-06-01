@@ -4,7 +4,6 @@ using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 using ManageLife.Models;
-using ManageLife.Models.ShortUrl;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Services

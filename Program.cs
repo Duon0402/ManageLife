@@ -83,6 +83,12 @@ app.MapControllerRoute(
 );
 
 app.MapControllerRoute(
+    name: "short_url_redirect",
+    pattern: "r/{code}",
+    defaults: new { controller = "Redirect", action = "Index" }
+);
+
+app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );

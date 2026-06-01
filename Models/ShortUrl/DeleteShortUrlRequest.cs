@@ -1,7 +1,7 @@
 ﻿using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
-namespace ManageLife.Models.ShortUrl
+namespace ManageLife.Models
 {
     public class DeleteShortUrlRequest : IValidatableRequest
     {

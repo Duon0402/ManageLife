@@ -1,6 +1,5 @@
 ﻿using ManageLife.Core;
 using ManageLife.Models;
-using ManageLife.Models.ShortUrl;
 
 namespace ManageLife.Interfaces
 {

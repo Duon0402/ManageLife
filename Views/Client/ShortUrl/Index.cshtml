@@ -1,0 +1,14 @@
+@{
+    Options.Title = "URL Shortener";
+    Options.Breadcrumb.Add("/ShortUrl", "URL Shortener");
+}
+
+<div id="short-url-page">
+    <table id="tblShortUrl" class="table w-100"></table>
+</div>
+
+<script>
+    $(function () {
+        new App.ShortUrlPage('#short-url-page');
+    });
+</script>
