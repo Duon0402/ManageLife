@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ManageLife.Core;
+﻿using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Entities;
@@ -33,8 +32,7 @@ namespace ManageLife.Services
             IAppLogger<PermissionService> logger,
             IPermissionGuard permissionGuard,
             IUnitOfWork uow,
-            IMapper mapper,
-            IUserContext userContext) : base(logger, userContext, mapper)
+            IUserContext userContext) : base(logger, userContext)
         {
             _cache = cache;
             _repoPermission = repoPermission;

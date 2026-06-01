@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ManageLife.Core;
+﻿using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Contexts;
 using ManageLife.Interfaces;
@@ -20,7 +19,7 @@ namespace ManageLife.Services
         private readonly ITelegramUploadQueue _queue;
         private readonly string _tempFolder = "temp";
 
-        public TelegramFileService(IMapper mapper, IFileRepository repo, IOptions<TelegramSettings> options, ITelegramUploadQueue queue, TelegramBotClient botClient, IAppLogger<TelegramFileService> logger, IUserContext userContext) : base(logger, userContext, mapper)
+        public TelegramFileService(IFileRepository repo, IOptions<TelegramSettings> options, ITelegramUploadQueue queue, TelegramBotClient botClient, IAppLogger<TelegramFileService> logger, IUserContext userContext) : base(logger, userContext)
         {
             var settings = options.Value;
             _repo = repo;

@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Entities;
@@ -14,9 +13,8 @@ namespace ManageLife.Services
 
         public CodeSequenceService(
             ICodeSequenceRepository repo,
-            IMapper mapper,
             IAppLogger<CodeSequenceService> logger,
-            IUserContext userContext) : base(logger, userContext, mapper)
+            IUserContext userContext) : base(logger, userContext)
         {
             _repo = repo;
         }

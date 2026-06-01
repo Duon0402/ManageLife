@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Core;
@@ -20,11 +19,10 @@ namespace ManageLife.Services
         public VocabStudyService(
             IAppLogger<VocabStudyService> logger,
             IUserContext userContext,
-            IMapper mapper,
             IVocabDeckRepository deckRepo,
             IVocabDeckWordRepository deckWordRepo,
             IVocabWordRepository wordRepo,
-            IVocabStudyProgressRepository progressRepo) : base(logger, userContext, mapper)
+            IVocabStudyProgressRepository progressRepo) : base(logger, userContext)
         {
             _deckRepo = deckRepo;
             _deckWordRepo = deckWordRepo;

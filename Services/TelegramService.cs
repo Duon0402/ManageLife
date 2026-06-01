@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Commons;
 using ManageLife.Core;
 using ManageLife.Extensions;
@@ -27,7 +26,6 @@ namespace ManageLife.Services
         private readonly ICacheService _cache;
 
         public TelegramService(
-            IMapper mapper,
             IOptions<TelegramSettings> options,
             ISettingService settingService,
             TelegramBotClient botClient,
@@ -36,7 +34,7 @@ namespace ManageLife.Services
             IUserTelegramConnectionRepository connectionRepo,
             ICacheService cache,
             IAppLogger<TelegramService> logger,
-            IUserContext userContext) : base(logger, userContext, mapper)
+            IUserContext userContext) : base(logger, userContext)
         {
             _settingService = settingService;
             _botClient = botClient;

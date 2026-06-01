@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ManageLife.Core;
+﻿using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Extensions;
 using ManageLife.Contexts;
@@ -14,7 +13,7 @@ namespace ManageLife.Services
         private readonly IRoleRepository _repoRole;
         private readonly IUserRoleRepository _userRoleRepo;
 
-        public RoleService(IMapper mapper, IRoleRepository repoRole, IUserRoleRepository userRoleRepo, IAppLogger<RoleService> logger, IUserContext userContext) : base(logger, userContext, mapper)
+        public RoleService(IRoleRepository repoRole, IUserRoleRepository userRoleRepo, IAppLogger<RoleService> logger, IUserContext userContext) : base(logger, userContext)
         {
             _repoRole = repoRole;
             _userRoleRepo = userRoleRepo;

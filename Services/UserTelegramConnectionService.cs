@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Core;
 using ManageLife.Entities;
 using ManageLife.Extensions;
@@ -15,11 +14,10 @@ namespace ManageLife.Services
         private readonly IUserRepository _repoUser;
 
         public UserTelegramConnectionService(
-            IMapper mapper,
             IUserTelegramConnectionRepository repo,
             IUserRepository repoUser,
             IAppLogger<UserTelegramConnectionService> logger,
-            IUserContext userContext) : base(logger, userContext, mapper)
+            IUserContext userContext) : base(logger, userContext)
         {
             _repo = repo;
             _repoUser = repoUser;

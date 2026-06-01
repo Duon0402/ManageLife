@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using LinqKit;
+﻿using LinqKit;
 using ManageLife.Commons;
 using ManageLife.Core;
 using ManageLife.Entities;
@@ -22,7 +21,7 @@ namespace ManageLife.Services
         private readonly ICacheService _cache;
         private readonly IUnitOfWork _uow;
 
-        public TranslationService(IMapper mapper, ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, IUnitOfWork uow, IAppLogger<TranslationService> logger, IUserContext userContext) : base(logger, userContext, mapper)
+        public TranslationService(ITranslationRepository repo, ILanguageRepository languageRepo, ICacheService cache, IUnitOfWork uow, IAppLogger<TranslationService> logger, IUserContext userContext) : base(logger, userContext)
         {
             _repo = repo;
             _languageRepo = languageRepo;

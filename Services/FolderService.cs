@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Entities;
@@ -16,13 +15,12 @@ namespace ManageLife.Services
         private readonly IUnitOfWork _uow;
 
         public FolderService(
-            IMapper mapper,
             IFolderRepository folderRepo,
             IFolderFileRepository folderFileRepo,
             IFileRepository fileRepo,
             IUnitOfWork uow,
             IAppLogger<FolderService> logger,
-            IUserContext userContext) : base(logger, userContext, mapper)
+            IUserContext userContext) : base(logger, userContext)
         {
             _folderRepo = folderRepo;
             _folderFileRepo = folderFileRepo;

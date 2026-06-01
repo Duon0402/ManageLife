@@ -1,4 +1,3 @@
-using AutoMapper;
 using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
@@ -30,7 +29,6 @@ namespace ManageLife.Services
         private readonly ICacheService _cache;
 
         public TokenService(
-            IMapper mapper,
             IUserRefreshTokenRepository refreshRepo,
             IUserRepository userRepo,
             IRoleRepository roleRepo,
@@ -40,7 +38,7 @@ namespace ManageLife.Services
             IUnitOfWork uow,
             ICacheService cache,
             IAppLogger<TokenService> logger,
-            IUserContext userContext) : base(logger, userContext, mapper)
+            IUserContext userContext) : base(logger, userContext)
         {
             _jwt = jwtOptions.Value;
             _httpContextAccessor = httpContextAccessor;

@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Core;
 using ManageLife.Core.Models;
 using ManageLife.Contexts;
@@ -16,7 +15,7 @@ namespace ManageLife.Services
         private readonly string? _cookiesFile;
         private readonly string? _cookiesBrowser;
 
-        public VideoDownloaderService(IMapper mapper, YtDlpManager ytDlpManager, IOptions<VideoDownloaderSettings> options, IAppLogger<VideoDownloaderService> logger, IUserContext userContext) : base(logger, userContext, mapper)
+        public VideoDownloaderService(YtDlpManager ytDlpManager, IOptions<VideoDownloaderSettings> options, IAppLogger<VideoDownloaderService> logger, IUserContext userContext) : base(logger, userContext)
         {
             _ytDlpManager = ytDlpManager;
             _cookiesFile = options.Value.CookiesFile;

@@ -1,4 +1,3 @@
-using AutoMapper;
 using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
@@ -19,14 +18,13 @@ namespace ManageLife.Services
         private readonly IUnitOfWork _unitOfWork;
 
         public ChatService(
-            IMapper mapper,
             IChatMessageRepository repoChatMessage,
             IChatRoomMemberRepository repoChatRoomMember,
             IChatRoomRepository repoChatRoom,
             IChatRoomUserStateRepository repoChatRoomUserState,
             IUnitOfWork unitOfWork,
             IAppLogger<ChatService> logger,
-            IUserContext userContext) : base(logger, userContext, mapper)
+            IUserContext userContext) : base(logger, userContext)
         {
             _repoChatMessage = repoChatMessage;
             _repoChatRoomMember = repoChatRoomMember;

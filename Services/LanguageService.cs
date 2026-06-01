@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ManageLife.Core;
+﻿using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Extensions;
@@ -14,7 +13,7 @@ namespace ManageLife.Services
         private readonly ILanguageRepository _repo;
         private readonly ICacheService _cache;
 
-        public LanguageService(IMapper mapper, ILanguageRepository repo, ICacheService cache, IAppLogger<LanguageService> logger, IUserContext userContext) : base(logger, userContext, mapper)
+        public LanguageService(ILanguageRepository repo, ICacheService cache, IAppLogger<LanguageService> logger, IUserContext userContext) : base(logger, userContext)
         {
             _repo = repo;
             _cache = cache;

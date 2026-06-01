@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using LinqKit;
+﻿using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
@@ -15,7 +14,7 @@ namespace ManageLife.Services
         private readonly ITodoTaskRepository _repo;
         private readonly ITodoListRepository _listRepo;
 
-        public TodoTaskService(IMapper mapper, ITodoTaskRepository repo, ITodoListRepository listRepo, IAppLogger<TodoTaskService> logger, IUserContext userContext) : base(logger, userContext, mapper)
+        public TodoTaskService(ITodoTaskRepository repo, ITodoListRepository listRepo, IAppLogger<TodoTaskService> logger, IUserContext userContext) : base(logger, userContext)
         {
             _repo = repo;
             _listRepo = listRepo;

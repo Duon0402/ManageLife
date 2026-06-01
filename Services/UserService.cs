@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ManageLife.Core;
+﻿using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Entities;
@@ -27,9 +26,8 @@ namespace ManageLife.Services
             IUserRefreshTokenRepository refreshRepo,
             ITokenService tokenService,
             IUnitOfWork uow,
-            IMapper mapper,
             IUserContext userContext,
-            IAppLogger<UserService> logger) : base(logger, userContext, mapper)
+            IAppLogger<UserService> logger) : base(logger, userContext)
         {
             _userRepo = userRepo;
             _roleRepo = roleRepo;

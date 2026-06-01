@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ManageLife.ApiClients;
+﻿using ManageLife.ApiClients;
 using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
@@ -12,7 +11,7 @@ namespace ManageLife.Services
     {
         private readonly FreeDictionaryApiClient _apiClient;
 
-        public DictionaryApiService(IAppLogger<DictionaryApiService> logger, IUserContext userContext, IMapper mapper, FreeDictionaryApiClient apiClient) : base(logger, userContext, mapper)
+        public DictionaryApiService(IAppLogger<DictionaryApiService> logger, IUserContext userContext, FreeDictionaryApiClient apiClient) : base(logger, userContext)
         {
             _apiClient = apiClient;
         }

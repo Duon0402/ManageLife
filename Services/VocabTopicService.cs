@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Entities;
@@ -17,9 +16,8 @@ namespace ManageLife.Services
         public VocabTopicService(
             IAppLogger<VocabTopicService> logger,
             IUserContext userContext,
-            IMapper mapper,
             IVocabTopicRepository topicRepo,
-            IVocabDeckRepository deckRepo) : base(logger, userContext, mapper)
+            IVocabDeckRepository deckRepo) : base(logger, userContext)
         {
             _topicRepo = topicRepo;
             _deckRepo = deckRepo;

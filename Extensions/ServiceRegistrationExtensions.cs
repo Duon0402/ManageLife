@@ -43,7 +43,6 @@ namespace ManageLife.Extensions
             services.AddScoped<IVocabDeckService, VocabDeckService>();
             services.AddScoped<IVocabStudyService, VocabStudyService>();
             services.AddScoped<ISequentialCodeGenerator, SequentialCodeGenerator>();
-            services.AddScoped<ShortUrlCodeGenerator>();
             services.AddScoped<ICodeSequenceService, CodeSequenceService>();
             return services;
         }

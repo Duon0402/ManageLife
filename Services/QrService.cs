@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ManageLife.Core;
+﻿using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Interfaces;
@@ -9,7 +8,7 @@ namespace ManageLife.Services
 {
     public class QrService : ServiceBase<QrService>, IQrService
     {
-        public QrService(IMapper mapper, IAppLogger<QrService> logger, IUserContext userContext) : base(logger, userContext, mapper)
+        public QrService(IAppLogger<QrService> logger, IUserContext userContext) : base(logger, userContext)
         {
         }
 

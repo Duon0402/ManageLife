@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Core;
 using ManageLife.Contexts;
 using ManageLife.Entities;
@@ -15,9 +14,8 @@ namespace ManageLife.Services
 
         public TelegramBotCommandService(
             ITelegramBotCommandRepository repo,
-            IMapper mapper,
             IAppLogger<TelegramBotCommandService> logger,
-            IUserContext userContext) : base(logger, userContext, mapper)
+            IUserContext userContext) : base(logger, userContext)
         {
             _repo = repo;
         }

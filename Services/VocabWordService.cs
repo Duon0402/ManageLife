@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Core;
@@ -18,9 +17,8 @@ namespace ManageLife.Services
         public VocabWordService(
             IAppLogger<VocabWordService> logger,
             IUserContext userContext,
-            IMapper mapper,
             IVocabWordRepository wordRepo,
-            IDictionaryApiService dictionaryService) : base(logger, userContext, mapper)
+            IDictionaryApiService dictionaryService) : base(logger, userContext)
         {
             _wordRepo = wordRepo;
             _dictionaryService = dictionaryService;

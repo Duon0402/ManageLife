@@ -1,4 +1,3 @@
-using AutoMapper;
 using ManageLife.Contexts;
 using ManageLife.Core;
 
@@ -8,13 +7,11 @@ namespace ManageLife.Services
     {
         protected readonly IAppLogger<T> _logger;
         protected readonly IUserContext _userContext;
-        protected readonly IMapper _mapper;
 
-        protected ServiceBase(IAppLogger<T> logger, IUserContext userContext, IMapper mapper)
+        protected ServiceBase(IAppLogger<T> logger, IUserContext userContext)
         {
             _logger = logger;
             _userContext = userContext;
-            _mapper = mapper;
         }
     }
 }
