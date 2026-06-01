@@ -5,42 +5,19 @@ namespace ManageLife.Extensions
 {
     public static class MigrationExtensions
     {
-        /// <summary>
-        /// Dev: tự động apply migrations khi startup.
-        /// Production: chỉ log pending migrations, không tự apply (dùng endpoint admin).
-        /// </summary>
         public static async Task ApplyMigrationsAsync(this WebApplication app)
         {
             using var scope = app.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<AppDbContext>>();
 
-            if (app.Environment.IsDevelopment())
-            {
-                try
-                {
-                    await db.Database.MigrateAsync();
-                    logger.LogInformation("Migrations applied successfully (Development).");
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Migration failed in Development. App will continue.");
-                }
-            }
+            var pending = await db.Database.GetPendingMigrationsAsync();
+            var list = pending.ToList();
+            if (list.Count > 0)
+                logger.LogWarning("{count} pending migration(s): {names}. Use POST /Admin/Database/Migrate to apply.",
+                    list.Count, string.Join(", ", list));
             else
-            {
-                var pending = await db.Database.GetPendingMigrationsAsync();
-                var list = pending.ToList();
-                if (list.Count > 0)
-                {
-                    logger.LogWarning("Production: {count} pending migration(s): {names}. Use POST /Admin/Database/Migrate to apply.",
-                        list.Count, string.Join(", ", list));
-                }
-                else
-                {
-                    logger.LogInformation("Database is up to date.");
-                }
-            }
+                logger.LogInformation("Database is up to date.");
         }
 
         /// <summary>
