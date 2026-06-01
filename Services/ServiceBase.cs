@@ -1,5 +1,6 @@
 using ManageLife.Contexts;
 using ManageLife.Core;
+using ManageLife.Extensions;
 
 namespace ManageLife.Services
 {
@@ -12,6 +13,13 @@ namespace ManageLife.Services
         {
             _logger = logger;
             _userContext = userContext;
+        }
+
+        protected string? Validate(IValidatableRequest request)
+        {
+            var error = request.Validate();
+            if (error.IsNotEmpty()) _logger.Debug(error);
+            return error;
         }
     }
 }

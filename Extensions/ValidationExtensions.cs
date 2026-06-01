@@ -1,28 +1,16 @@
-﻿using ManageLife.Core;
-using ManageLife.Commons;
+using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Extensions
 {
-    //TODO: Cần cải tiến lại phần Validation này
     public static class ValidationExtensions
     {
-        public static ValidationResultModel Validate<T>(this T instance)
+        public static string? Validate(this IValidatableRequest request)
         {
-            if (instance == null)
-            {
-                return ValidationResultModel.Fail(new[] { TranslationKey.Common.Message.DataInvalid });
-            }
-
-            var context = new ValidationContext(instance, null, null);
+            var context = new ValidationContext(request, null, null);
             var results = new List<ValidationResult>();
-
-            bool isValid = Validator.TryValidateObject(instance, context, results, validateAllProperties: true);
-
-            if (isValid)
-                return ValidationResultModel.Success();
-
-            return ValidationResultModel.Fail(results.Select(r => r.ErrorMessage ?? string.Empty));
+            Validator.TryValidateObject(request, context, results, validateAllProperties: true);
+            return results.FirstOrDefault()?.ErrorMessage;
         }
     }
 }

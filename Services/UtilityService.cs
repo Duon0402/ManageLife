@@ -20,12 +20,7 @@ namespace ManageLife.Services
             string msg;
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    return Result.Error<EmailDailyReportModel>(Result.DATA_INVALID.Code, msg);
-                }
+                if (request.Validate() is { } err) return Result.Error<EmailDailyReportModel>(Result.DATA_INVALID.Code, err);
 
                 var currentBusinessDay = request.CurrentBusinessDay.Date;
                 var nextBusinessDay = request.NextBusinessDay.Date;

@@ -1,9 +1,10 @@
 ﻿using ManageLife.Commons;
+using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateTodoTaskRequest
+    public class CreateTodoTaskRequest : IValidatableRequest
     {
         [Required(ErrorMessage = "Tiêu đề không được để trống")]
         public string Title { get; set; } = null!;

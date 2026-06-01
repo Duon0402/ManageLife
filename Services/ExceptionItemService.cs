@@ -2,7 +2,6 @@
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
-using ManageLife.Extensions;
 using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -22,13 +21,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = request.MapTo<ExceptionItemEntity>();
                 var inserted = await _repo.InsertAsync(entity, ct);
@@ -54,13 +48,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repo.GetAsync(request.Id, ct);
 
@@ -94,13 +83,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error<ExceptionItemModel>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<ExceptionItemModel>(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
 
@@ -127,13 +111,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error<List<ExceptionItemModel>>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<List<ExceptionItemModel>>(Result.DATA_INVALID.Code, err);
 
                 var predicate = PredicateBuilder.New<ExceptionItemEntity>(x => x.IsDeleted == false);
 
@@ -160,13 +139,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
 

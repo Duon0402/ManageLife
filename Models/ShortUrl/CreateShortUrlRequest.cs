@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateShortUrlRequest
+    public class CreateShortUrlRequest : IValidatableRequest
     {
         [Required]
         [Url]

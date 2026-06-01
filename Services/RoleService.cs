@@ -1,6 +1,5 @@
 ﻿using ManageLife.Core;
 using ManageLife.Entities;
-using ManageLife.Extensions;
 using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -23,13 +22,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var roleExisted = await _repoRole.FirstOrDefaultAsync(x => x.Name == request.Name.Trim() && x.IsDeleted == false, ct);
                 if (roleExisted != null)
@@ -63,13 +57,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repoRole.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
                 if (entity == null)
@@ -113,13 +102,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repoRole.FirstOrDefaultAsync(x => x.Id == request.RoleId && x.IsDeleted == false, ct);
                 if (entity == null)
@@ -167,13 +151,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error<List<RoleModel>>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<List<RoleModel>>(Result.DATA_INVALID.Code, err);
 
                 var roles = await _userRoleRepo.Query(true)
                     .Where(ur => ur.UserId == request.UserId)
@@ -201,13 +180,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error<RoleModel>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<RoleModel>(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repoRole.FirstOrDefaultAsync(x => x.IsDeleted == false && x.Id == request.RoleId, ct);
 

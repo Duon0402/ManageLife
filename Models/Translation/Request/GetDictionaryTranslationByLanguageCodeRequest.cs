@@ -1,6 +1,8 @@
-﻿namespace ManageLife.Models
+﻿using ManageLife.Core;
+
+namespace ManageLife.Models
 {
-    public class GetDictionaryTranslationByLanguageCodeRequest
+    public class GetDictionaryTranslationByLanguageCodeRequest : IValidatableRequest
     {
         public string LanguageCode { get; set; } = null!;
     }

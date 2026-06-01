@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class ChangePasswordRequest
+    public class ChangePasswordRequest : IValidatableRequest
     {
         [Required(ErrorMessage = "Mật khẩu cũ không được để trống")]
         public string OldPassword { get; set; } = null!;

@@ -2,7 +2,6 @@
 using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Entities;
-using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -41,13 +40,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var existedUser = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName, ct);
                 if (existedUser != null)
@@ -129,13 +123,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userEntity = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName && !x.IsDeleted, ct);
                 if (userEntity == null)
@@ -271,13 +260,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 if (refreshToken == null)
                 {
@@ -360,13 +344,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error<UserModel>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<UserModel>(Result.DATA_INVALID.Code, err);
 
                 var entity = await _userRepo.FirstOrDefaultAsync(x => x.Id == request.UserId && x.IsDeleted == false, ct);
                 if (entity == null)

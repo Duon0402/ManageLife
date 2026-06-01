@@ -1,6 +1,8 @@
-﻿namespace ManageLife.Models
+﻿using ManageLife.Core;
+
+namespace ManageLife.Models
 {
-    public class CronJobCreateRequest
+    public class CronJobCreateRequest : IValidatableRequest
     {
         public string Title { get; set; } = null!;
         public string Url { get; set; } = null!;

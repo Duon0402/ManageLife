@@ -1,8 +1,9 @@
+using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateCodeSequenceRequest
+    public class CreateCodeSequenceRequest : IValidatableRequest
     {
         [Required]
         public string Category { get; set; } = default!;

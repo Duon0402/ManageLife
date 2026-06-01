@@ -1,7 +1,6 @@
 using ManageLife.Core;
 using ManageLife.Contexts;
 using ManageLife.Entities;
-using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
@@ -51,12 +50,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var commandValue = request.Command.TrimStart('/').ToLower();
                 var existed = await _repo.FirstOrDefaultAsync(x => x.IsDeleted == false && x.Command == commandValue, ct);
@@ -89,12 +84,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repo.GetAsync(request.Id, ct);
                 if (entity == null)
@@ -127,12 +118,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repo.GetAsync(request.Id, ct);
                 if (entity == null)

@@ -2,7 +2,6 @@
 using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Entities;
-using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
@@ -71,12 +70,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    string msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, err);
 
                 var cacheItem = CacheSettings.Permissions(request.UserId);
 
@@ -229,12 +224,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, err);
 
                 var permissions = await _repoPermission.Query(true)
                     .Where(p =>
@@ -284,12 +275,8 @@ namespace ManageLife.Services
 
         public async Task<Result> AssignPermissionsAsync(AssignPermissionsRequest request, CancellationToken ct = default)
         {
-            var validation = request.Validate();
-            if (!validation.IsValid)
-            {
-                var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                return Result.Error(Result.DATA_INVALID.Code, msg);
-            }
+            var err = Validate(request);
+            if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
             if (request.PermissionIds.IsEmpty())
             {
                 var msg = "Danh sách quyền không được để trống";
@@ -325,12 +312,8 @@ namespace ManageLife.Services
 
         public async Task<Result> UnassignPermissionsAsync(UnassignPermissionsRequest request, CancellationToken ct = default)
         {
-            var validation = request.Validate();
-            if (!validation.IsValid)
-            {
-                var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                return Result.Error(Result.DATA_INVALID.Code, msg);
-            }
+            var err = Validate(request);
+            if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
             if (request.PermissionIds.IsEmpty())
             {
                 var msg = "Danh sách quyền không được để trống";
@@ -368,13 +351,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, err);
 
                 var cacheItem = CacheSettings.RoleAssignedPermissions(request.RoleId);
                 var cached = await _cache.TryGetValueAsync<List<PermissionModel>>(cacheItem);
@@ -410,13 +388,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, err);
 
                 var cacheItem = CacheSettings.RoleUnassignedPermissions(request.RoleId);
                 var cached = await _cache.TryGetValueAsync<List<PermissionModel>>(cacheItem);

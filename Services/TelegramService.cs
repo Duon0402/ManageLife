@@ -1,6 +1,5 @@
 using ManageLife.Commons;
 using ManageLife.Core;
-using ManageLife.Extensions;
 using ManageLife.Contexts;
 using ManageLife.Entities;
 using ManageLife.Helpers;
@@ -50,12 +49,8 @@ namespace ManageLife.Services
             string msg;
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 if (_chatId == null)
                 {

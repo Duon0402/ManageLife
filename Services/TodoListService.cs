@@ -2,7 +2,6 @@
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
-using ManageLife.Extensions;
 using ManageLife.Contexts;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -22,13 +21,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 bool isDuplicate = await IsDuplicateNameAsync(request.Name);
                 if (isDuplicate)
@@ -62,13 +56,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repo.GetAsync(request.Id, ct);
 
@@ -118,13 +107,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error<TodoListModel>(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<TodoListModel>(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repo.GetAsync(request.Id, ct);
 
@@ -151,13 +135,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var entity = await _repo.GetAsync(request.Id, ct);
                 if (entity == null)

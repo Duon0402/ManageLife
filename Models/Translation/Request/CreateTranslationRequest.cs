@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateTranslationRequest
+    public class CreateTranslationRequest : IValidatableRequest
     {
         [Required]
         public string Key { get; set; } = null!;

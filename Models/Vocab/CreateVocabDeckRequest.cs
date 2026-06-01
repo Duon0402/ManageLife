@@ -1,8 +1,9 @@
+using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateVocabDeckRequest
+    public class CreateVocabDeckRequest : IValidatableRequest
     {
         [Required]
         [MaxLength(150)]

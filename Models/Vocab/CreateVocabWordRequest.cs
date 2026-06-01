@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateVocabWordRequest
+    public class CreateVocabWordRequest : IValidatableRequest
     {
         [Required]
         [MaxLength(100)]

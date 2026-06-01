@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateExceptionItemRequest
+    public class CreateExceptionItemRequest : IValidatableRequest
     {
         [Required]
         public string Type { get; set; } = null!;

@@ -1,6 +1,8 @@
-﻿namespace ManageLife.Models
+﻿using ManageLife.Core;
+
+namespace ManageLife.Models
 {
-    public class GetSettingByIdRequest
+    public class GetSettingByIdRequest : IValidatableRequest
     {
         public string Id { get; set; } = null!;
     }

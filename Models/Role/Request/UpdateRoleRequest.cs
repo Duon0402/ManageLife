@@ -1,8 +1,9 @@
+using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class UpdateRoleRequest
+    public class UpdateRoleRequest : IValidatableRequest
     {
         [Required(ErrorMessage = "Id is required")]
         public string Id { get; set; } = null!;

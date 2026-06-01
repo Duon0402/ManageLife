@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateToDoListRequest
+    public class CreateToDoListRequest : IValidatableRequest
     {
         [Required]
         public string Name { get; set; } = null!;

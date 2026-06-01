@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class GenerateEmailDailyReportRequest
+    public class GenerateEmailDailyReportRequest : IValidatableRequest
     {
         [Required(ErrorMessage = "CurrentBusinessDay is required")]
         public DateTime CurrentBusinessDay { get; set; }

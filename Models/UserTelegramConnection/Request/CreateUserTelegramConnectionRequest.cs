@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateUserTelegramConnectionRequest
+    public class CreateUserTelegramConnectionRequest : IValidatableRequest
     {
         [Required]
         public long ChatId { get; set; } = default!;

@@ -1,8 +1,9 @@
+using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateTelegramBotCommandRequest
+    public class CreateTelegramBotCommandRequest : IValidatableRequest
     {
         [Required(ErrorMessage = "Command không được để trống")]
         public string Command { get; set; } = default!;

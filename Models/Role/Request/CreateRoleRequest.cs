@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class CreateRoleRequest
+    public class CreateRoleRequest : IValidatableRequest
     {
         [Required(ErrorMessage = "Code is required")]
         public string Code { get; set; } = null!;

@@ -1,8 +1,9 @@
 ﻿using ManageLife.Commons;
+using ManageLife.Core;
 
 namespace ManageLife.Models
 {
-    public class CreateSettingRequest
+    public class CreateSettingRequest : IValidatableRequest
     {
         public string Key { get; set; } = null!;
         public string Value { get; set; } = null!;

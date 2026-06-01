@@ -2,7 +2,6 @@
 using ManageLife.Commons;
 using ManageLife.Core;
 using ManageLife.Entities;
-using ManageLife.Extensions;
 using ManageLife.Helpers;
 using ManageLife.Contexts;
 using ManageLife.Interfaces;
@@ -33,13 +32,8 @@ namespace ManageLife.Services
         {
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == request.LanguageId && x.IsDeleted == false, ct);
 
@@ -313,13 +307,8 @@ namespace ManageLife.Services
             await _uow.BeginTransactionAsync(ct);
             try
             {
-                var validation = request.Validate();
-                if (!validation.IsValid)
-                {
-                    var msg = string.Join("\n", validation.Errors.Select(e => $"- {e}"));
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
-                }
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var excelStream = request.File.OpenReadStream();
                 var data = ExcelHelper.Import<ImportTranslationExcelModel>(excelStream);

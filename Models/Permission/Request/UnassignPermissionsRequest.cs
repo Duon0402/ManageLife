@@ -1,9 +1,10 @@
 ﻿using ManageLife.Commons;
+using ManageLife.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-    public class UnassignPermissionsRequest
+    public class UnassignPermissionsRequest : IValidatableRequest
     {
         [Required]
         public string ObjectId { get; set; } = null!;

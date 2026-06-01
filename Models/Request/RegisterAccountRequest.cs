@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManageLife.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManageLife.Models
 {
-	public class RegisterAccountRequest
+	public class RegisterAccountRequest : IValidatableRequest
 	{
         [Required(ErrorMessage = "Tên đăng nhập không được để trống")]
         public string UserName { get; set; } = null!;

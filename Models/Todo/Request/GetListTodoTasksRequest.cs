@@ -1,8 +1,9 @@
 ﻿using ManageLife.Commons;
+using ManageLife.Core;
 
 namespace ManageLife.Models
 {
-    public class GetListTodoTasksRequest
+    public class GetListTodoTasksRequest : IValidatableRequest
     {
         public string? TodoListId { get; set; }
         public DateTime? FromDate { get; set; }
