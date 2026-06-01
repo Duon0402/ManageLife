@@ -41,199 +41,113 @@ namespace ManageLife.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .OldAnnotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
-                name: "VocabDecks",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Description = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TopicId = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    OwnerId = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TotalCards = table.Column<int>(type: "int", nullable: false),
-                    CreatedUser = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UpdatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DeletedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DeletedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VocabDecks", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.Sql(@"CREATE TABLE IF NOT EXISTS `VocabDecks` (
+                `Id` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `Name` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `Description` longtext CHARACTER SET utf8mb4 NULL,
+                `TopicId` longtext CHARACTER SET utf8mb4 NULL,
+                `OwnerId` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `TotalCards` int NOT NULL,
+                `CreatedUser` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `CreatedTime` datetime(6) NOT NULL,
+                `UpdatedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `UpdatedTime` datetime(6) NULL,
+                `DeletedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `DeletedTime` datetime(6) NULL,
+                `IsDeleted` tinyint(1) NOT NULL,
+                PRIMARY KEY (`Id`)
+            ) CHARACTER SET utf8mb4;");
 
-            migrationBuilder.CreateTable(
-                name: "VocabDeckWords",
-                columns: table => new
-                {
-                    DeckId = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    WordId = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    SortOrder = table.Column<int>(type: "int", nullable: false),
-                    AddedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VocabDeckWords", x => new { x.DeckId, x.WordId });
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.Sql(@"CREATE TABLE IF NOT EXISTS `VocabDeckWords` (
+                `DeckId` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `WordId` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `SortOrder` int NOT NULL,
+                `AddedAt` datetime(6) NOT NULL,
+                PRIMARY KEY (`DeckId`, `WordId`)
+            ) CHARACTER SET utf8mb4;");
 
-            migrationBuilder.CreateTable(
-                name: "VocabStudyProgress",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    WordId = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DeckId = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Repetitions = table.Column<int>(type: "int", nullable: false),
-                    EasinessFactor = table.Column<double>(type: "double", nullable: false),
-                    IntervalDays = table.Column<int>(type: "int", nullable: false),
-                    NextReviewDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    LastReviewDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LastQuality = table.Column<int>(type: "int", nullable: true),
-                    TotalReviews = table.Column<int>(type: "int", nullable: false),
-                    CorrectCount = table.Column<int>(type: "int", nullable: false),
-                    StreakCount = table.Column<int>(type: "int", nullable: false),
-                    MasteryLevel = table.Column<int>(type: "int", nullable: false),
-                    CreatedUser = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UpdatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DeletedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DeletedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VocabStudyProgress", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.Sql(@"CREATE TABLE IF NOT EXISTS `VocabStudyProgress` (
+                `Id` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `UserId` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `WordId` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `DeckId` longtext CHARACTER SET utf8mb4 NULL,
+                `Repetitions` int NOT NULL,
+                `EasinessFactor` double NOT NULL,
+                `IntervalDays` int NOT NULL,
+                `NextReviewDate` datetime(6) NOT NULL,
+                `LastReviewDate` datetime(6) NULL,
+                `LastQuality` int NULL,
+                `TotalReviews` int NOT NULL,
+                `CorrectCount` int NOT NULL,
+                `StreakCount` int NOT NULL,
+                `MasteryLevel` int NOT NULL,
+                `CreatedUser` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `CreatedTime` datetime(6) NOT NULL,
+                `UpdatedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `UpdatedTime` datetime(6) NULL,
+                `DeletedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `DeletedTime` datetime(6) NULL,
+                `IsDeleted` tinyint(1) NOT NULL,
+                PRIMARY KEY (`Id`)
+            ) CHARACTER SET utf8mb4;");
 
-            migrationBuilder.CreateTable(
-                name: "VocabStudySessions",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DeckId = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    StudyMode = table.Column<int>(type: "int", nullable: false),
-                    StartedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    FinishedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    TotalCards = table.Column<int>(type: "int", nullable: false),
-                    CorrectCount = table.Column<int>(type: "int", nullable: false),
-                    WrongCount = table.Column<int>(type: "int", nullable: false),
-                    SkippedCount = table.Column<int>(type: "int", nullable: false),
-                    DurationSeconds = table.Column<int>(type: "int", nullable: false),
-                    CreatedUser = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VocabStudySessions", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.Sql(@"CREATE TABLE IF NOT EXISTS `VocabStudySessions` (
+                `Id` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `UserId` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `DeckId` longtext CHARACTER SET utf8mb4 NULL,
+                `StudyMode` int NOT NULL,
+                `StartedAt` datetime(6) NOT NULL,
+                `FinishedAt` datetime(6) NULL,
+                `TotalCards` int NOT NULL,
+                `CorrectCount` int NOT NULL,
+                `WrongCount` int NOT NULL,
+                `SkippedCount` int NOT NULL,
+                `DurationSeconds` int NOT NULL,
+                `CreatedUser` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `CreatedTime` datetime(6) NOT NULL,
+                PRIMARY KEY (`Id`)
+            ) CHARACTER SET utf8mb4;");
 
-            migrationBuilder.CreateTable(
-                name: "VocabTopics",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Description = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Color = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Icon = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    OwnerId = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    IsPublic = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    CreatedUser = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UpdatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DeletedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DeletedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VocabTopics", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.Sql(@"CREATE TABLE IF NOT EXISTS `VocabTopics` (
+                `Id` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `Name` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `Description` longtext CHARACTER SET utf8mb4 NULL,
+                `Color` longtext CHARACTER SET utf8mb4 NULL,
+                `Icon` longtext CHARACTER SET utf8mb4 NULL,
+                `OwnerId` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `IsPublic` tinyint(1) NOT NULL,
+                `CreatedUser` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `CreatedTime` datetime(6) NOT NULL,
+                `UpdatedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `UpdatedTime` datetime(6) NULL,
+                `DeletedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `DeletedTime` datetime(6) NULL,
+                `IsDeleted` tinyint(1) NOT NULL,
+                PRIMARY KEY (`Id`)
+            ) CHARACTER SET utf8mb4;");
 
-            migrationBuilder.CreateTable(
-                name: "VocabWords",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Word = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Phonetic = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    PartOfSpeech = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Definition = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ExampleSentence = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Transaltion = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AudioUrl = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ImageUrl = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DictionarySource = table.Column<int>(type: "int", nullable: false),
-                    RawDictionaryData = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    OwnerId = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedUser = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UpdatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DeletedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DeletedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VocabWords", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.Sql(@"CREATE TABLE IF NOT EXISTS `VocabWords` (
+                `Id` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `Word` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `Phonetic` longtext CHARACTER SET utf8mb4 NULL,
+                `PartOfSpeech` longtext CHARACTER SET utf8mb4 NULL,
+                `Definition` longtext CHARACTER SET utf8mb4 NULL,
+                `ExampleSentence` longtext CHARACTER SET utf8mb4 NULL,
+                `Transaltion` longtext CHARACTER SET utf8mb4 NULL,
+                `AudioUrl` longtext CHARACTER SET utf8mb4 NULL,
+                `ImageUrl` longtext CHARACTER SET utf8mb4 NULL,
+                `DictionarySource` int NOT NULL,
+                `RawDictionaryData` longtext CHARACTER SET utf8mb4 NULL,
+                `OwnerId` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `CreatedUser` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `CreatedTime` datetime(6) NOT NULL,
+                `UpdatedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `UpdatedTime` datetime(6) NULL,
+                `DeletedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `DeletedTime` datetime(6) NULL,
+                `IsDeleted` tinyint(1) NOT NULL,
+                PRIMARY KEY (`Id`)
+            ) CHARACTER SET utf8mb4;");
 
             migrationBuilder.Sql("DROP INDEX IF EXISTS `IX_UserRefreshTokens_RefreshToken` ON `UserRefreshTokens`;");
             migrationBuilder.CreateIndex(
