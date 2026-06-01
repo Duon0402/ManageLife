@@ -1,4 +1,5 @@
 ﻿using ManageLife.Contexts;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Services;
 
@@ -41,6 +42,8 @@ namespace ManageLife.Extensions
             services.AddScoped<IVocabTopicService, VocabTopicService>();
             services.AddScoped<IVocabDeckService, VocabDeckService>();
             services.AddScoped<IVocabStudyService, VocabStudyService>();
+            services.AddScoped<ISequentialCodeGenerator, SequentialCodeGenerator>();
+            services.AddScoped<ShortUrlCodeGenerator>();
             return services;
         }
     }

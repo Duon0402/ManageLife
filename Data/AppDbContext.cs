@@ -43,6 +43,7 @@ namespace ManageLife.Data
         public DbSet<VocabStudySessionEntity> VocabStudySessions { get; set; } = default!;
         public DbSet<ShortUrlEntity> ShortUrls { get; set; } = default!;
         public DbSet<ShortUrlClickEntity> ShortUrlClicks { get; set; } = default!;
+        public DbSet<CodeSequenceEntity> CodeSequences { get; set; } = default!;
 
         #endregion
 
@@ -99,6 +100,10 @@ namespace ManageLife.Data
 
             builder.Entity<VocabStudySessionEntity>()
                 .HasIndex(x => new { x.UserId, x.StartedAt });
+
+            builder.Entity<CodeSequenceEntity>()
+                .HasIndex(x => x.Category)
+                .IsUnique();
 
             builder.Entity<ShortUrlEntity>()
                 .HasIndex(x => x.Code)

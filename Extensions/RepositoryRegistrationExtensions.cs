@@ -35,6 +35,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IVocabDeckWordRepository, VocabDeckWordRepository>();
             services.AddScoped<IVocabStudyProgressRepository, VocabStudyProgressRepository>();
             services.AddScoped<IVocabStudySessionRepository, VocabStudySessionRepository>();
+            services.AddScoped<ICodeSequenceRepository, CodeSequenceRepository>();
 
             return services;
         }
