@@ -86,6 +86,15 @@ namespace ManageLife.Services
                 if (entity == null)
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Code sequence không tồn tại");
 
+                var categoryTrimmed = request.Category.Trim();
+                if (entity.Category != categoryTrimmed)
+                {
+                    var existed = await _repo.FirstOrDefaultAsync(x => x.Category == categoryTrimmed, ct);
+                    if (existed != null)
+                        return Result.Error(Result.DATA_EXISTED.Code, $"Category '{categoryTrimmed}' đã tồn tại");
+                    entity.Category = categoryTrimmed;
+                }
+
                 entity.Prefix = request.Prefix.Trim();
                 entity.Suffix = request.Suffix?.Trim();
                 entity.NumberLength = request.NumberLength;

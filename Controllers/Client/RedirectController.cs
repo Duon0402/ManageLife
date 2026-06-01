@@ -3,7 +3,7 @@ using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManageLife.Controllers
+namespace ManageLife.Controllers.Client
 {
     [AllowAnonymous]
     public class RedirectController : Controller
@@ -28,13 +28,13 @@ namespace ManageLife.Controllers
             if (shortUrl.ExpireAt.HasValue && shortUrl.ExpireAt.Value < DateTime.UtcNow)
                 return NotFound();
 
-            _ = _service.RecordClickAsync(new RecordShortUrlClickRequest
+            await _service.RecordClickAsync(new RecordShortUrlClickRequest
             {
                 Code = code,
                 IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = Request.Headers.UserAgent.ToString(),
                 Referer = Request.Headers.Referer.ToString()
-            }, CancellationToken.None);
+            }, ct);
 
             return Redirect(shortUrl.OriginalUrl);
         }

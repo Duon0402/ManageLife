@@ -1,11 +1,197 @@
 @{
     Options.Title = "URL Shortener";
-    Options.Breadcrumb.Add("/ShortUrl", "URL Shortener");
 }
 
-<div id="short-url-page">
-    <table id="tblShortUrl" class="table w-100"></table>
+<div class="su-page" id="short-url-page">
+
+    <div class="su-header">
+        <h1><i class="fa-solid fa-link"></i> URL Shortener</h1>
+        <button class="su-btn-primary" id="btn-create-link">
+            <i class="fa-solid fa-plus"></i> Tạo link
+        </button>
+    </div>
+
+    <div class="su-card">
+        <table class="su-table">
+            <thead>
+                <tr>
+                    <th>Link rút gọn</th>
+                    <th>URL gốc</th>
+                    <th>Tiêu đề</th>
+                    <th class="text-center">Clicks</th>
+                    <th>Hết hạn</th>
+                    <th>Ngày tạo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="su-tbody">
+                <tr id="su-loading-row">
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-spinner fa-spin me-2"></i>Đang tải...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
 </div>
+
+<!-- Modal tạo link -->
+<div class="modal fade" id="modal-create-link" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-link me-2"></i>Tạo link rút gọn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">URL gốc <span class="text-danger">*</span></label>
+                    <input type="url" class="form-control" id="su-original-url" placeholder="https://example.com/..." />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tiêu đề</label>
+                    <input type="text" class="form-control" id="su-title" placeholder="Mô tả ngắn (tùy chọn)" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Hết hạn</label>
+                    <div id="su-expire-container"></div>
+                    <div class="form-text">Để trống nếu không giới hạn thời gian</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-save-link">
+                    <i class="fa-solid fa-check me-1"></i>Tạo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .su-page { padding: 1.75rem 2rem; }
+
+    .su-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .su-header h1 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c2c54;
+        margin: 0;
+    }
+
+    .su-header h1 i { color: #4b49ac; }
+
+    .su-btn-primary {
+        background: #4b49ac;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.55rem 1.1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+    }
+
+    .su-btn-primary:hover { background: #3d3c8e; }
+
+    .su-card {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #e8eaf0;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+    .su-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+
+    .su-table thead tr { background: #f5f7ff; border-bottom: 2px solid #e8eaf0; }
+
+    .su-table th {
+        padding: 0.75rem 1rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #9ea5b5;
+        white-space: nowrap;
+    }
+
+    .su-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f0f1f7; vertical-align: middle; }
+
+    .su-table tbody tr:last-child td { border-bottom: none; }
+
+    .su-table tbody tr:hover { background: #fafbff; }
+
+    .su-code {
+        font-family: monospace;
+        font-size: 0.85rem;
+        color: #4b49ac;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .su-code:hover { text-decoration: underline; }
+
+    .su-original-url {
+        max-width: 220px;
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #555;
+        font-size: 0.82rem;
+        vertical-align: middle;
+    }
+
+    .su-badge-expire {
+        font-size: 0.75rem;
+        color: #e74c3c;
+        font-weight: 500;
+    }
+
+    .su-badge-no-expire { font-size: 0.75rem; color: #b5bccc; }
+
+    .su-actions { display: flex; gap: 0.4rem; justify-content: flex-end; }
+
+    .su-btn-icon {
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background 0.15s;
+    }
+
+    .su-btn-icon.copy { color: #4b49ac; }
+    .su-btn-icon.copy:hover { background: #eeeeff; }
+    .su-btn-icon.delete { color: #e74c3c; }
+    .su-btn-icon.delete:hover { background: #fff0f0; }
+
+    .su-click-badge {
+        background: #f0eeff;
+        color: #4b49ac;
+        border-radius: 20px;
+        padding: 0.15rem 0.6rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+</style>
 
 <script>
     $(function () {
