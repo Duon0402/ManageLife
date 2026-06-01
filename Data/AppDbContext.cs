@@ -44,6 +44,10 @@ namespace ManageLife.Data
         public DbSet<ShortUrlEntity> ShortUrls { get; set; } = default!;
         public DbSet<ShortUrlClickEntity> ShortUrlClicks { get; set; } = default!;
         public DbSet<CodeSequenceEntity> CodeSequences { get; set; } = default!;
+        public DbSet<NoteEntity> Notes { get; set; } = default!;
+        public DbSet<NoteTagEntity> NoteTags { get; set; } = default!;
+        public DbSet<NoteTagRelationEntity> NoteTagRelations { get; set; } = default!;
+        public DbSet<NoteLinkEntity> NoteLinks { get; set; } = default!;
 
         #endregion
 
@@ -114,6 +118,24 @@ namespace ManageLife.Data
 
             builder.Entity<ShortUrlClickEntity>()
                 .HasIndex(x => new { x.ShortUrlId, x.CreatedTime });
+
+            builder.Entity<NoteTagRelationEntity>()
+                .HasKey(x => new { x.NoteId, x.TagId });
+
+            builder.Entity<NoteLinkEntity>()
+                .HasKey(x => new { x.SourceNoteId, x.TargetNoteId });
+
+            builder.Entity<NoteEntity>()
+                .HasIndex(x => new { x.OwnerId, x.IsDeleted });
+
+            builder.Entity<NoteTagEntity>()
+                .HasIndex(x => new { x.OwnerId, x.IsDeleted });
+
+            builder.Entity<NoteLinkEntity>()
+                .HasIndex(x => x.SourceNoteId);
+
+            builder.Entity<NoteLinkEntity>()
+                .HasIndex(x => x.TargetNoteId);
         }
     }
 }
