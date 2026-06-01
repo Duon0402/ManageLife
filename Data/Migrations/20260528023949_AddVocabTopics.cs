@@ -235,16 +235,19 @@ namespace ManageLife.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.Sql("DROP INDEX IF EXISTS `IX_UserRefreshTokens_RefreshToken` ON `UserRefreshTokens`;");
             migrationBuilder.CreateIndex(
                 name: "IX_UserRefreshTokens_RefreshToken",
                 table: "UserRefreshTokens",
                 column: "RefreshToken");
 
+            migrationBuilder.Sql("DROP INDEX IF EXISTS `IX_UserRefreshTokens_UserId_IsRevoked_ExpiryTime` ON `UserRefreshTokens`;");
             migrationBuilder.CreateIndex(
                 name: "IX_UserRefreshTokens_UserId_IsRevoked_ExpiryTime",
                 table: "UserRefreshTokens",
                 columns: new[] { "UserId", "IsRevoked", "ExpiryTime" });
 
+            migrationBuilder.Sql("DROP INDEX IF EXISTS `IX_Translations_LanguageId` ON `Translations`;");
             migrationBuilder.CreateIndex(
                 name: "IX_Translations_LanguageId",
                 table: "Translations",
