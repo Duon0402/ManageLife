@@ -22,6 +22,9 @@ namespace ManageLife.Controllers.Client
         [AccessPagePermission]
         public IActionResult Edit(string id) => View("Edit", (object)id);
 
+        [AccessPagePermission]
+        public IActionResult Graph() => View();
+
         [HttpGet]
         [ViewPermission]
         public async Task<Result<List<NoteModel>>> GetList(CancellationToken ct)

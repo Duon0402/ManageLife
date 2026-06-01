@@ -32,32 +32,33 @@
                         @T(TranslationKey.Client.Header.Menu.Home)
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentPath.StartsWith("/Todo") ? "active" : "")" href="/Todo">
-                        <i class="fa-solid fa-list-check me-1"></i>Công việc
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentPath.StartsWith("/Folder") ? "active" : "")" href="/Folder">
-                        <i class="fa-solid fa-images me-1"></i>Photo Albums
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentPath.StartsWith("/Vocab") ? "active" : "")" href="/Vocab">
-                        <i class="fa-solid fa-book-open me-1"></i> Từ vựng
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentPath.StartsWith("/Note") ? "active" : "")" href="/Note">
-                        <i class="fa-solid fa-brain me-1"></i> Notes
-                    </a>
-                </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle @(currentPath.StartsWith("/Utility") || currentPath.StartsWith("/VideoDownloader") || currentPath.StartsWith("/ShortUrl") ? "active" : "")"
+                    <a class="nav-link dropdown-toggle @(currentPath != "/" ? "active" : "")"
                        href="#" data-bs-toggle="dropdown">
                         @T(TranslationKey.Client.Header.Menu.Utility.Title)
                     </a>
                     <ul class="dropdown-menu header__dropdown">
+                        <li>
+                            <a class="dropdown-item @(currentPath.StartsWith("/Todo") ? "active" : "")" href="/Todo">
+                                <i class="fa-solid fa-list-check me-2"></i>Công việc
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item @(currentPath.StartsWith("/Folder") ? "active" : "")" href="/Folder">
+                                <i class="fa-solid fa-images me-2"></i>Photo Albums
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item @(currentPath.StartsWith("/Vocab") ? "active" : "")" href="/Vocab">
+                                <i class="fa-solid fa-book-open me-2"></i>Từ vựng
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item @(currentPath.StartsWith("/Note") ? "active" : "")" href="/Note">
+                                <i class="fa-solid fa-brain me-2"></i>Notes
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Utility/EmailDailyReport") ? "active" : "")"
                                href="/Utility/EmailDailyReport">

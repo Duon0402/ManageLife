@@ -1,0 +1,61 @@
+@{
+    Options.Title = "Knowledge Graph";
+}
+
+<div id="note-graph-page">
+    <div class="ng-header">
+        <div class="ng-header-left">
+            <a href="/Note" class="ng-back"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1><i class="fa-solid fa-circle-nodes"></i> Knowledge Graph</h1>
+        </div>
+        <div class="ng-controls">
+            <button class="ng-btn" id="btn-fit" title="Fit tất cả"><i class="fa-solid fa-expand"></i></button>
+            <button class="ng-btn" id="btn-zoom-in" title="Zoom in"><i class="fa-solid fa-plus"></i></button>
+            <button class="ng-btn" id="btn-zoom-out" title="Zoom out"><i class="fa-solid fa-minus"></i></button>
+            <select id="ng-layout" class="ng-select" title="Layout">
+                <option value="cose">Force</option>
+                <option value="circle">Circle</option>
+                <option value="grid">Grid</option>
+                <option value="breadthfirst">Tree</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="ng-wrap">
+        <div id="cy-container"></div>
+        <div class="ng-legend" id="ng-legend"></div>
+        <div class="ng-tooltip d-none" id="ng-tooltip"></div>
+        <div id="ng-empty" class="ng-empty d-none">
+            <i class="fa-solid fa-circle-nodes"></i>
+            <p>Chưa có ghi chú nào hoặc chưa có liên kết.</p>
+            <a href="/Note" class="ng-btn-back">Quay lại danh sách</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ng-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; }
+    .ng-header-left { display:flex; align-items:center; gap:.75rem; }
+    .ng-back { color:#9ea5b5; text-decoration:none; font-size:1rem; }
+    .ng-back:hover { color:#4b49ac; }
+    .ng-header h1 { font-size:1.1rem; font-weight:700; color:#2c2c54; margin:0; }
+    .ng-header h1 i { color:#4b49ac; margin-right:.4rem; }
+    .ng-controls { display:flex; gap:.4rem; align-items:center; }
+    .ng-btn { background:#fff; border:1.5px solid #e8eaf0; border-radius:7px; padding:.35rem .6rem; font-size:.82rem; color:#6c7383; cursor:pointer; transition:all .15s; }
+    .ng-btn:hover { border-color:#4b49ac; color:#4b49ac; }
+    .ng-select { background:#fff; border:1.5px solid #e8eaf0; border-radius:7px; padding:.35rem .5rem; font-size:.82rem; color:#6c7383; cursor:pointer; outline:none; }
+    .ng-wrap { position:relative; background:#fff; border:1px solid #e8eaf0; border-radius:12px; overflow:hidden; height:calc(100vh - 140px); min-height:500px; }
+    #cy-container { width:100%; height:100%; }
+    .ng-legend { position:absolute; bottom:1rem; left:1rem; background:rgba(255,255,255,.9); border:1px solid #e8eaf0; border-radius:8px; padding:.6rem .8rem; font-size:.75rem; display:flex; flex-direction:column; gap:.3rem; max-width:160px; }
+    .ng-legend-item { display:flex; align-items:center; gap:.4rem; }
+    .ng-legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .ng-tooltip { position:absolute; background:rgba(44,44,84,.9); color:#fff; padding:.4rem .7rem; border-radius:6px; font-size:.78rem; pointer-events:none; white-space:nowrap; z-index:10; }
+    .ng-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#b5bccc; }
+    .ng-empty i { font-size:3.5rem; margin-bottom:1rem; opacity:.3; }
+    .ng-empty p { margin:0 0 1rem; text-align:center; }
+    .ng-btn-back { background:#4b49ac; color:#fff; border:none; border-radius:8px; padding:.5rem 1.1rem; font-size:.875rem; font-weight:600; text-decoration:none; }
+</style>
+
+<script>
+    $(function () { new App.NoteGraphPage('#note-graph-page'); });
+</script>
