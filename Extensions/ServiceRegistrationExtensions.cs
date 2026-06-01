@@ -45,6 +45,8 @@ namespace ManageLife.Extensions
             services.AddScoped<ISequentialCodeGenerator, SequentialCodeGenerator>();
             services.AddScoped<ICodeSequenceService, CodeSequenceService>();
             services.AddScoped<IShortUrlService, ShortUrlService>();
+            services.AddScoped<INoteService, NoteService>();
+            services.AddScoped<INoteTagService, NoteTagService>();
             return services;
         }
     }

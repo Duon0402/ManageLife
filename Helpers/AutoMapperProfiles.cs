@@ -79,6 +79,12 @@ namespace ManageLife.Helpers
             // ShortUrl
             CreateMap<ShortUrlEntity, ShortUrlModel>();
             CreateMap<CreateShortUrlRequest, ShortUrlEntity>();
+
+            // Note
+            CreateMap<NoteEntity, NoteModel>();
+            CreateMap<NoteTagEntity, NoteTagModel>();
+            CreateMap<CreateNoteRequest, NoteEntity>();
+            CreateMap<UpdateNoteRequest, NoteEntity>();
         }
     }
 }

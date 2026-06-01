@@ -38,6 +38,10 @@ namespace ManageLife.Extensions
             services.AddScoped<ICodeSequenceRepository, CodeSequenceRepository>();
             services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
             services.AddScoped<IShortUrlClickRepository, ShortUrlClickRepository>();
+            services.AddScoped<INoteRepository, NoteRepository>();
+            services.AddScoped<INoteTagRepository, NoteTagRepository>();
+            services.AddScoped<INoteTagRelationRepository, NoteTagRelationRepository>();
+            services.AddScoped<INoteLinkRepository, NoteLinkRepository>();
 
             return services;
         }
