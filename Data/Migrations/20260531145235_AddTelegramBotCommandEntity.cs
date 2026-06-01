@@ -11,33 +11,20 @@ namespace ManageLife.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "TelegramBotCommands",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Command = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Description = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    SortOrder = table.Column<int>(type: "int", nullable: false),
-                    CreatedUser = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UpdatedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DeletedUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DeletedTime = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TelegramBotCommands", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.Sql(@"CREATE TABLE IF NOT EXISTS `TelegramBotCommands` (
+                `Id` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+                `Command` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `Description` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `SortOrder` int NOT NULL,
+                `CreatedUser` longtext CHARACTER SET utf8mb4 NOT NULL,
+                `CreatedTime` datetime(6) NOT NULL,
+                `UpdatedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `UpdatedTime` datetime(6) NULL,
+                `DeletedUser` longtext CHARACTER SET utf8mb4 NULL,
+                `DeletedTime` datetime(6) NULL,
+                `IsDeleted` tinyint(1) NOT NULL,
+                PRIMARY KEY (`Id`)
+            ) CHARACTER SET utf8mb4;");
         }
 
         /// <inheritdoc />

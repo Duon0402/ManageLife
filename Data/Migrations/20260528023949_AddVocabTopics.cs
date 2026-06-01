@@ -167,16 +167,19 @@ namespace ManageLife.Migrations
                 table: "Translations",
                 column: "LanguageId");
 
+            migrationBuilder.Sql("DROP INDEX IF EXISTS `IX_VocabStudyProgress_UserId_NextReviewDate` ON `VocabStudyProgress`;");
             migrationBuilder.CreateIndex(
                 name: "IX_VocabStudyProgress_UserId_NextReviewDate",
                 table: "VocabStudyProgress",
                 columns: new[] { "UserId", "NextReviewDate" });
 
+            migrationBuilder.Sql("DROP INDEX IF EXISTS `IX_VocabStudySessions_UserId_StartedAt` ON `VocabStudySessions`;");
             migrationBuilder.CreateIndex(
                 name: "IX_VocabStudySessions_UserId_StartedAt",
                 table: "VocabStudySessions",
                 columns: new[] { "UserId", "StartedAt" });
 
+            migrationBuilder.Sql("DROP INDEX IF EXISTS `IX_VocabWords_OwnerId_Word_IsDeleted` ON `VocabWords`;");
             migrationBuilder.CreateIndex(
                 name: "IX_VocabWords_OwnerId_Word_IsDeleted",
                 table: "VocabWords",
