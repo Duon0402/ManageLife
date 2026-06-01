@@ -4,10 +4,120 @@
 }
 
 <div id="note-edit-page" data-note-id="@Model">
+
+    <div class="ne-header">
+        <div class="ne-header-left">
+            <a href="/Note" class="ne-back"><i class="fa-solid fa-arrow-left"></i></a>
+            <input type="text" id="ne-title" class="ne-title-input" placeholder="Tiêu đề ghi chú..." />
+        </div>
+        <div class="ne-header-right">
+            <button class="ne-btn-save" id="btn-save-note">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu
+            </button>
+            <button class="ne-btn-delete" id="btn-delete-note" title="Xóa ghi chú">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="ne-layout">
+        <!-- Editor -->
+        <div class="ne-editor-wrap">
+            <div id="ne-editor-container"></div>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="ne-sidebar">
+
+            <!-- Tags -->
+            <div class="ne-panel">
+                <div class="ne-panel-title">
+                    <i class="fa-solid fa-tags"></i> Tags
+                    <button class="ne-panel-add" id="btn-open-tag-picker" title="Gán tag">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <div id="ne-assigned-tags" class="ne-tags-wrap"></div>
+                <div id="ne-tag-picker" class="ne-tag-picker d-none"></div>
+            </div>
+
+            <!-- Links -->
+            <div class="ne-panel">
+                <div class="ne-panel-title">
+                    <i class="fa-solid fa-arrow-right"></i> Links đến
+                    <button class="ne-panel-add" id="btn-open-link-picker" title="Thêm link">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <div id="ne-linked-notes" class="ne-links-list"></div>
+            </div>
+
+            <!-- Backlinks -->
+            <div class="ne-panel">
+                <div class="ne-panel-title">
+                    <i class="fa-solid fa-arrow-left"></i> Được nhắc đến
+                </div>
+                <div id="ne-backlink-notes" class="ne-links-list"></div>
+            </div>
+
+        </aside>
+    </div>
+
+    <!-- Link picker modal -->
+    <div class="modal fade" id="modal-link-picker" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title">Chọn ghi chú để link</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-2">
+                    <input type="text" class="form-control form-control-sm mb-2" id="link-picker-search" placeholder="Tìm ghi chú..." />
+                    <div id="link-picker-list" style="max-height:240px;overflow-y:auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<style>
+    .ne-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; gap:1rem; }
+    .ne-header-left { display:flex; align-items:center; gap:.75rem; flex:1; min-width:0; }
+    .ne-back { color:#9ea5b5; font-size:1rem; text-decoration:none; flex-shrink:0; }
+    .ne-back:hover { color:#4b49ac; }
+    .ne-title-input { flex:1; min-width:0; border:none; border-bottom:2px solid #e8eaf0; padding:.4rem .2rem; font-size:1.1rem; font-weight:700; color:#2c2c54; background:transparent; outline:none; transition:border-color .2s; }
+    .ne-title-input:focus { border-bottom-color:#4b49ac; }
+    .ne-header-right { display:flex; gap:.5rem; flex-shrink:0; }
+    .ne-btn-save { background:#4b49ac; color:#fff; border:none; border-radius:8px; padding:.45rem 1rem; font-size:.875rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; transition:background .2s; }
+    .ne-btn-save:hover { background:#3d3c8e; }
+    .ne-btn-delete { background:transparent; color:#e74c3c; border:1.5px solid #fecaca; border-radius:8px; padding:.45rem .75rem; font-size:.875rem; cursor:pointer; transition:all .2s; }
+    .ne-btn-delete:hover { background:#fff5f5; }
+    .ne-layout { display:grid; grid-template-columns:1fr 260px; gap:1.25rem; align-items:start; }
+    .ne-editor-wrap { background:#fff; border:1px solid #e8eaf0; border-radius:10px; overflow:hidden; }
+    .ne-sidebar { display:flex; flex-direction:column; gap:.75rem; }
+    .ne-panel { background:#fff; border:1px solid #e8eaf0; border-radius:10px; padding:.9rem; }
+    .ne-panel-title { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#9ea5b5; margin-bottom:.6rem; display:flex; align-items:center; gap:.4rem; }
+    .ne-panel-title i { color:#b5bccc; }
+    .ne-panel-add { margin-left:auto; background:none; border:none; color:#9ea5b5; cursor:pointer; padding:.1rem .3rem; border-radius:4px; font-size:.75rem; transition:color .15s; }
+    .ne-panel-add:hover { color:#4b49ac; }
+    .ne-tags-wrap { display:flex; flex-wrap:wrap; gap:.3rem; min-height:1.5rem; }
+    .ne-tag-item { display:inline-flex; align-items:center; gap:.25rem; padding:.15rem .5rem; border-radius:20px; font-size:.72rem; font-weight:600; color:#fff; cursor:default; }
+    .ne-tag-item .remove-tag { background:none; border:none; color:rgba(255,255,255,.7); cursor:pointer; padding:0; font-size:.65rem; line-height:1; }
+    .ne-tag-item .remove-tag:hover { color:#fff; }
+    .ne-tag-picker { display:flex; flex-wrap:wrap; gap:.3rem; margin-top:.5rem; padding-top:.5rem; border-top:1px solid #f0f1f7; }
+    .ne-tag-option { padding:.2rem .55rem; border-radius:20px; font-size:.72rem; font-weight:600; color:#fff; cursor:pointer; opacity:.6; transition:opacity .15s; }
+    .ne-tag-option:hover, .ne-tag-option.assigned { opacity:1; }
+    .ne-links-list { display:flex; flex-direction:column; gap:.3rem; }
+    .ne-link-item { display:flex; align-items:center; justify-content:space-between; padding:.3rem .5rem; border-radius:6px; background:#f9f9ff; font-size:.8rem; color:#4b49ac; text-decoration:none; }
+    .ne-link-item:hover { background:#eeecff; }
+    .ne-link-item .unlink-btn { background:none; border:none; color:#d0d0e0; cursor:pointer; font-size:.7rem; padding:0 .2rem; }
+    .ne-link-item .unlink-btn:hover { color:#e74c3c; }
+    .ne-empty-panel { font-size:.75rem; color:#c5c9d6; text-align:center; padding:.5rem 0; }
+    .link-picker-item { padding:.4rem .6rem; border-radius:6px; cursor:pointer; font-size:.82rem; color:#2c2c54; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .link-picker-item:hover { background:#f0eeff; color:#4b49ac; }
+    @@media (max-width: 768px) { .ne-layout { grid-template-columns:1fr; } }
+</style>
+
 <script>
-    $(function () {
-        new App.NoteEditPage('#note-edit-page');
-    });
+    $(function () { new App.NoteEditPage('#note-edit-page'); });
 </script>

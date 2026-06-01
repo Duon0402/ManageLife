@@ -3,10 +3,88 @@
 }
 
 <div id="note-index-page">
+    <div class="ni-header">
+        <div>
+            <h1><i class="fa-solid fa-brain"></i> Notes</h1>
+            <p class="ni-subtitle">Ghi chú & Knowledge Graph</p>
+        </div>
+        <div class="ni-header-actions">
+            <button class="ni-btn-primary" id="btn-new-note">
+                <i class="fa-solid fa-plus"></i> Ghi chú mới
+            </button>
+            <button class="ni-btn-outline" id="btn-manage-tags">
+                <i class="fa-solid fa-tags"></i> Tags
+            </button>
+        </div>
+    </div>
+
+    <div class="ni-search-wrap">
+        <i class="fa-solid fa-magnifying-glass ni-search-icon"></i>
+        <input type="text" id="ni-search" class="ni-search-input" placeholder="Tìm kiếm ghi chú..." />
+    </div>
+
+    <div id="ni-notes-grid" class="ni-grid"></div>
+
+    <div id="ni-empty" class="ni-empty d-none">
+        <i class="fa-solid fa-brain"></i>
+        <p>Chưa có ghi chú nào.<br/>Hãy tạo ghi chú đầu tiên!</p>
+    </div>
 </div>
 
+<!-- Modal Tags -->
+<div class="modal fade" id="modal-tags" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-tags me-2"></i>Quản lý Tags</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex gap-2 mb-3">
+                    <input type="text" class="form-control form-control-sm" id="tag-name-input" placeholder="Tên tag..." />
+                    <input type="color" class="form-control form-control-color" id="tag-color-input" value="#4b49ac" title="Chọn màu" style="width:50px" />
+                    <button class="btn btn-sm btn-primary" id="btn-add-tag">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <div id="tag-list" class="d-flex flex-wrap gap-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ni-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.5rem; }
+    .ni-header h1 { font-size:1.2rem; font-weight:700; color:#2c2c54; margin:0 0 2px; }
+    .ni-header h1 i { color:#4b49ac; }
+    .ni-subtitle { font-size:.8rem; color:#9ea5b5; margin:0; }
+    .ni-header-actions { display:flex; gap:.5rem; }
+    .ni-btn-primary { background:#4b49ac; color:#fff; border:none; border-radius:8px; padding:.5rem 1rem; font-size:.875rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; transition:background .2s; }
+    .ni-btn-primary:hover { background:#3d3c8e; }
+    .ni-btn-outline { background:transparent; color:#4b49ac; border:1.5px solid #d6d5f0; border-radius:8px; padding:.5rem 1rem; font-size:.875rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; transition:all .2s; }
+    .ni-btn-outline:hover { background:#f0eeff; }
+    .ni-search-wrap { position:relative; margin-bottom:1.5rem; }
+    .ni-search-icon { position:absolute; left:.9rem; top:50%; transform:translateY(-50%); color:#b5bccc; font-size:.85rem; }
+    .ni-search-input { width:100%; border:1.5px solid #e8eaf0; border-radius:8px; padding:.6rem 1rem .6rem 2.4rem; font-size:.875rem; color:#2c2c54; background:#f9f9ff; outline:none; transition:border-color .2s; }
+    .ni-search-input:focus { border-color:#4b49ac; background:#fff; }
+    .ni-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:1rem; }
+    .ni-card { background:#fff; border:1px solid #e8eaf0; border-radius:10px; padding:1.1rem; cursor:pointer; transition:box-shadow .2s, border-color .2s; }
+    .ni-card:hover { box-shadow:0 4px 16px rgba(75,73,172,.1); border-color:#c5c3f0; }
+    .ni-card-title { font-size:.95rem; font-weight:600; color:#2c2c54; margin-bottom:.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ni-card-preview { font-size:.78rem; color:#9ea5b5; margin-bottom:.75rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.2em; }
+    .ni-card-footer { display:flex; align-items:center; justify-content:space-between; }
+    .ni-card-date { font-size:.72rem; color:#b5bccc; }
+    .ni-card-tags { display:flex; gap:.25rem; flex-wrap:wrap; }
+    .ni-tag { font-size:.68rem; font-weight:600; padding:.15rem .5rem; border-radius:20px; color:#fff; }
+    .ni-card-del { background:none; border:none; color:#e0e0e0; cursor:pointer; font-size:.8rem; padding:.2rem .4rem; border-radius:4px; transition:color .15s; }
+    .ni-card-del:hover { color:#e74c3c; }
+    .ni-empty { text-align:center; padding:4rem 0; color:#b5bccc; }
+    .ni-empty i { font-size:3rem; margin-bottom:1rem; display:block; opacity:.3; }
+    .tag-chip { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .6rem; border-radius:20px; font-size:.78rem; font-weight:600; color:#fff; }
+    .tag-chip .tag-del { background:none; border:none; color:rgba(255,255,255,.7); cursor:pointer; padding:0; line-height:1; font-size:.7rem; }
+    .tag-chip .tag-del:hover { color:#fff; }
+</style>
+
 <script>
-    $(function () {
-        new App.NoteIndexPage('#note-index-page');
-    });
+    $(function () { new App.NoteIndexPage('#note-index-page'); });
 </script>
