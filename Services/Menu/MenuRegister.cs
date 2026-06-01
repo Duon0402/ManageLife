@@ -43,6 +43,8 @@ namespace ManageLife.Services
 
                 new MenuItem<DatabaseController>("Database", x => x.Index(), "fa-solid fa-database"),
 
+                new MenuItem<CodeSequenceController>("Code Sequence", x => x.Index(), "fa-solid fa-barcode"),
+
                 new MenuItem("Language", "fa-solid fa-language", new List<MenuItem>
                 {
                     new MenuItem<LanguageController>("Language", x => x.Index(), "fa-regular fa-circle fa-2xs"),
