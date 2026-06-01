@@ -10,12 +10,14 @@
     "lib": ["ES2018", "DOM"],
     "module": "none",
     "outFile": "wwwroot/js/app.js",
+    "rootDir": "./ClientSrc",
     "moduleResolution": "node",
     "skipLibCheck": true,
     "types": ["jquery", "bootstrap", "datatables.net", "datatables.net-buttons"]
   },
   "include": [
     // NOTE: Phải sắp xếp đúng thứ tự để tránh lỗi khi biên dịch
+    "ClientSrc/Commons/**/*.ts",
     "ClientSrc/Core/**/*.ts",
     "ClientSrc/Models/**/*.ts",
     "ClientSrc/Pages/**/*.ts"

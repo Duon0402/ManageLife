@@ -28,6 +28,7 @@ namespace ManageLife.Data
         public DbSet<TodoListEntity> TodoLists { get; set; } = default!;
         public DbSet<TodoTaskEntity> TodoTasks { get; set; } = default!;
         public DbSet<UserTelegramConnectionEntity> UserTelegramConnections { get; set; } = default!;
+        public DbSet<TelegramBotCommandEntity> TelegramBotCommands { get; set; } = default!;
         public DbSet<FolderEntity> Folders { get; set; } = default!;
         public DbSet<FolderFileEntity> FolderFiles { get; set; } = default!;
         public DbSet<ChatMessageEntity> ChatMessages { get; set; } = default!;

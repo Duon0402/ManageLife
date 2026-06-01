@@ -426,6 +426,49 @@ namespace ManageLife.Migrations
                     b.ToTable("Settings");
                 });
 
+            modelBuilder.Entity("ManageLife.Entities.TelegramBotCommandEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Command")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedUser")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TelegramBotCommands");
+                });
+
             modelBuilder.Entity("ManageLife.Entities.TodoListEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -470,6 +513,9 @@ namespace ManageLife.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
 
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime(6)");
 
@@ -489,7 +535,13 @@ namespace ManageLife.Migrations
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("EstimatedMinutes")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsReminderSent")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("ParentTaskId")
@@ -497,6 +549,15 @@ namespace ManageLife.Migrations
 
                     b.Property<int>("Priority")
                         .HasColumnType("int");
+
+                    b.Property<int>("Recurrence")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RecurrenceEndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ReminderAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime(6)");

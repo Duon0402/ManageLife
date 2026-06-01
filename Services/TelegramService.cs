@@ -1,13 +1,18 @@
-﻿using AutoMapper;
+using AutoMapper;
+using ManageLife.Commons;
 using ManageLife.Core;
 using ManageLife.Extensions;
 using ManageLife.Contexts;
+using ManageLife.Entities;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Settings;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ManageLife.Services
 {
@@ -16,11 +21,29 @@ namespace ManageLife.Services
         private readonly string? _chatId;
         private readonly TelegramBotClient _botClient;
         private readonly ISettingService _settingService;
+        private readonly ITelegramBotCommandService _botCommandService;
+        private readonly IUserRepository _userRepo;
+        private readonly IUserTelegramConnectionRepository _connectionRepo;
+        private readonly ICacheService _cache;
 
-        public TelegramService(IMapper mapper, IOptions<TelegramSettings> options, ISettingService settingService, TelegramBotClient botClient, IAppLogger<TelegramService> logger, IUserContext userContext) : base(logger, userContext, mapper)
+        public TelegramService(
+            IMapper mapper,
+            IOptions<TelegramSettings> options,
+            ISettingService settingService,
+            TelegramBotClient botClient,
+            ITelegramBotCommandService botCommandService,
+            IUserRepository userRepo,
+            IUserTelegramConnectionRepository connectionRepo,
+            ICacheService cache,
+            IAppLogger<TelegramService> logger,
+            IUserContext userContext) : base(logger, userContext, mapper)
         {
             _settingService = settingService;
             _botClient = botClient;
+            _botCommandService = botCommandService;
+            _userRepo = userRepo;
+            _connectionRepo = connectionRepo;
+            _cache = cache;
             _chatId = options.Value.ChatId;
         }
 
@@ -52,54 +75,202 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task HandleUpdateAsync(Update update, CancellationToken ct = default)
+        public async Task<Result> SendMessageToChatAsync(long chatId, string message, CancellationToken ct = default)
         {
-            string msg;
             try
             {
-                if (update.Message is not { } message)
-                    return;
+                await _botClient.SendMessage(chatId, message, cancellationToken: ct);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                var msg = "Đã có lỗi xảy ra khi gửi tin nhắn Telegram";
+                _logger.Error(ex, msg);
+                return Result.Exception(msg, ex);
+            }
+        }
 
-                if (message.Text is not { } messageText)
-                    return;
+        public async Task HandleUpdateAsync(Update update, CancellationToken ct = default)
+        {
+            try
+            {
+                if (update.Message is not { } message) return;
+                if (message.Text is not { } messageText) return;
 
                 var chatId = message.Chat.Id;
+                var messageId = message.MessageId;
+                var isPrivate = message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
 
-                msg = "Received a '{messageText}' message in chat {chatId}.";
-                _logger.Info(msg, messageText, chatId);
+                _logger.Info("Received '{messageText}' in chat {chatId}", messageText, chatId);
 
                 if (messageText.StartsWith("/"))
                 {
-                    await HandleCommandAsync(chatId, messageText);
+                    await HandleCommandAsync(chatId, messageText, isPrivate, ct);
+                }
+                else if (isPrivate)
+                {
+                    // Conversation flow chỉ hoạt động trong private chat
+                    await HandleConversationAsync(chatId, messageId, messageText, ct);
                 }
             }
             catch (Exception ex)
             {
-                msg = "Đã có lỗi xảy ra khi xử lý cập nhật từ Telegram";
-                _logger.Error(ex, msg);
+                _logger.Error(ex, "Đã có lỗi xảy ra khi xử lý cập nhật từ Telegram");
             }
         }
 
-        private async Task HandleCommandAsync(long chatId, string messageText)
+        // ──────────────────── Commands ────────────────────
+
+        private async Task HandleCommandAsync(long chatId, string messageText, bool isPrivate, CancellationToken ct)
         {
-            var command = messageText.Split(' ')[0].ToLower();
+            var rawCommand = messageText.Split(' ')[0].ToLower();
+            // Trong group chat, command có dạng /link@botname — cần strip phần @botname
+            var atIndex = rawCommand.IndexOf('@');
+            var command = atIndex > 0 ? rawCommand[..atIndex] : rawCommand;
 
             switch (command)
             {
                 case "/start":
-                    await _botClient.SendMessage(chatId, "Chào mừng bạn đến với ManageLife Bot! Hãy gửi /help để xem các lệnh hỗ trợ.");
+                    await _botClient.SendMessage(chatId,
+                        "Chào mừng bạn đến với *ManageLife Bot*\\!\nGửi /help để xem các lệnh hỗ trợ\\.",
+                        parseMode: ParseMode.MarkdownV2, cancellationToken: ct);
                     break;
+
                 case "/info":
-                    await _botClient.SendMessage(chatId, $"Chat ID của bạn là: {chatId}");
+                    await _botClient.SendMessage(chatId,
+                        $"Chat ID của bạn là: `{chatId}`",
+                        parseMode: ParseMode.MarkdownV2, cancellationToken: ct);
                     break;
+
                 case "/help":
-                    await _botClient.SendMessage(chatId, "Các lệnh hỗ trợ:\n/start - Bắt đầu\n/info - Lấy thông tin cá nhân\n/help - Hướng dẫn");
+                    await _botClient.SendMessage(chatId,
+                        "📋 *Các lệnh hỗ trợ:*\n\n" +
+                        "/start \\- Bắt đầu\n" +
+                        "/info \\- Lấy Chat ID của bạn\n" +
+                        "/link \\- Liên kết tài khoản ManageLife\n" +
+                        "/help \\- Hướng dẫn",
+                        parseMode: ParseMode.MarkdownV2, cancellationToken: ct);
                     break;
+
+                case "/link":
+                    if (isPrivate)
+                    {
+                        await StartLinkFlowAsync(chatId, ct);
+                    }
+                    else
+                    {
+                        // Group chat: bot không nhận tin nhắn thường (privacy mode)
+                        // → dùng format 1 lần hoặc nhắn riêng với bot
+                        var parts = messageText.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length >= 3)
+                            await HandleLinkWithCredentialsAsync(chatId, parts[1], parts[2], ct);
+                        else
+                            await _botClient.SendMessage(chatId,
+                                "Trong nhóm, hãy dùng lệnh: `/link username password`\n" +
+                                "Hoặc nhắn riêng với bot để bảo mật hơn.",
+                                parseMode: ParseMode.Markdown, cancellationToken: ct);
+                    }
+                    break;
+
                 default:
-                    await _botClient.SendMessage(chatId, "Lệnh không hợp lệ. Gửi /help để xem danh sách lệnh.");
+                    await _botClient.SendMessage(chatId,
+                        "Lệnh không hợp lệ. Gửi /help để xem danh sách lệnh.",
+                        cancellationToken: ct);
                     break;
             }
         }
+
+        // ──────────────────── Conversational flow ────────────────────
+
+        private async Task StartLinkFlowAsync(long chatId, CancellationToken ct)
+        {
+            var state = new TelegramLinkState { Step = TelegramLinkStep.WaitingUsername };
+            await _cache.SetAsync(state, CacheSettings.TelegramLinkState(chatId));
+
+            await _botClient.SendMessage(chatId,
+                "🔗 *Liên kết tài khoản ManageLife*\n\nNhập *username* của bạn:",
+                parseMode: ParseMode.Markdown,
+                replyMarkup: new ForceReplyMarkup(),
+                cancellationToken: ct);
+        }
+
+        private async Task HandleConversationAsync(long chatId, int messageId, string text, CancellationToken ct)
+        {
+            var cacheItem = CacheSettings.TelegramLinkState(chatId);
+            var state = await _cache.TryGetValueAsync<TelegramLinkState>(cacheItem);
+
+            if (state == null) return;
+
+            switch (state.Step)
+            {
+                case TelegramLinkStep.WaitingUsername:
+                    state.Step = TelegramLinkStep.WaitingPassword;
+                    state.Username = text.Trim();
+                    await _cache.SetAsync(state, cacheItem);
+
+                    await _botClient.SendMessage(chatId,
+                        $"Username: *{state.Username}*\n\nNhập *password* của bạn:",
+                        parseMode: ParseMode.Markdown,
+                        replyMarkup: new ForceReplyMarkup(),
+                        cancellationToken: ct);
+                    break;
+
+                case TelegramLinkStep.WaitingPassword:
+                    await _cache.RemoveAsync(cacheItem);
+
+                    // Xóa tin nhắn chứa password để bảo mật
+                    try { await _botClient.DeleteMessage(chatId, messageId, ct); } catch { }
+
+                    await HandleLinkWithCredentialsAsync(chatId, state.Username!, text.Trim(), ct);
+                    break;
+            }
+        }
+
+        private async Task HandleLinkWithCredentialsAsync(long chatId, string username, string password, CancellationToken ct)
+        {
+            var user = await _userRepo.FirstOrDefaultAsync(x => x.UserName == username && !x.IsDeleted && x.IsActive, ct);
+            if (user == null)
+            {
+                await _botClient.SendMessage(chatId, "❌ Tên đăng nhập hoặc mật khẩu không đúng.", cancellationToken: ct);
+                return;
+            }
+
+            bool passwordValid = PasswordHelper.IsLegacyHash(user.HashPassword)
+                ? PasswordHelper.VerifyLegacy(password, user.HashPassword)
+                : PasswordHelper.Verify(password, user.HashPassword);
+
+            if (!passwordValid)
+            {
+                await _botClient.SendMessage(chatId, "❌ Tên đăng nhập hoặc mật khẩu không đúng.", cancellationToken: ct);
+                return;
+            }
+
+            var existing = await _connectionRepo.FirstOrDefaultAsync(x => x.UserId == user.Id && !x.IsDeleted, ct);
+            if (existing != null)
+            {
+                existing.ChatId = chatId;
+                await _connectionRepo.UpdateAsync(existing, ct);
+                await _botClient.SendMessage(chatId,
+                    $"✅ Đã cập nhật liên kết tài khoản *{username}* với Telegram này.",
+                    parseMode: ParseMode.Markdown, cancellationToken: ct);
+            }
+            else
+            {
+                var entity = new UserTelegramConnectionEntity
+                {
+                    Id = IdHelper.NewId(),
+                    UserId = user.Id,
+                    ChatId = chatId,
+                    CreatedUser = username
+                };
+                await _connectionRepo.InsertAsync(entity, ct);
+                await _botClient.SendMessage(chatId,
+                    $"✅ Đã liên kết tài khoản *{username}* thành công!",
+                    parseMode: ParseMode.Markdown, cancellationToken: ct);
+            }
+        }
+
+        // ──────────────────── Webhook & Commands ────────────────────
 
         public async Task<Result<string>> RegisterWebhookAsync(string url, CancellationToken ct = default)
         {
@@ -141,25 +312,27 @@ namespace ManageLife.Services
         {
             try
             {
-                var commands = new List<BotCommand>
-                {
-                    new() { Command = "start", Description = "Bắt đầu sử dụng bot" },
-                    new() { Command = "info", Description = "Lấy thông tin cá nhân của bạn" },
-                    new() { Command = "help", Description = "Xem hướng dẫn sử dụng" }
-                };
+                var dbResult = await _botCommandService.GetListAsync(ct);
+                if (!dbResult.IsOk() || dbResult.Data == null || dbResult.Data.Count == 0)
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Không có command nào trong hệ thống. Hãy thêm commands trước khi đồng bộ.");
 
-                await _botClient.SetMyCommands(commands);
-                return Result.Ok("Registered commands successfully");
+                var commands = dbResult.Data.Select(x => new BotCommand
+                {
+                    Command = x.Command,
+                    Description = x.Description
+                }).ToList();
+
+                await _botClient.SetMyCommands(commands, cancellationToken: ct);
+                return Result.Ok($"Đã đồng bộ {commands.Count} command lên Telegram");
             }
             catch (Exception ex)
             {
-                return Result.Exception("Lỗi khi đăng ký commands", ex);
+                return Result.Exception("Lỗi khi đồng bộ commands lên Telegram", ex);
             }
         }
 
         public async Task<Result<List<BotCommand>>> GetListTelegramBotCommands(CancellationToken ct = default)
         {
-            string msg;
             try
             {
                 var commands = await _botClient.GetMyCommands();
@@ -167,7 +340,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = "Đã có lỗi xảy ra khi lấy danh sách commands";
+                var msg = "Đã có lỗi xảy ra khi lấy danh sách commands";
                 _logger.Error(ex, msg);
                 return Result.Exception<List<BotCommand>>(msg, ex);
             }

@@ -1,0 +1,8 @@
+.db-page {
+    scrollbar-width: thin;
+    scrollbar-color: #e2e8f0 transparent;
+}
+.db-page::-webkit-scrollbar { width: 5px; }
+.db-page::-webkit-scrollbar-track { background: transparent; }
+.db-page::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
+.db-page::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }

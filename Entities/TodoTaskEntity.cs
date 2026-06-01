@@ -5,8 +5,6 @@ namespace ManageLife.Entities
 {
     public class TodoTaskEntity : EntityBase, ICanCreate, ICanUpdate, ISoftDelete
     {
-        // TODO: Cải tiến cho phép lặp lại, ...
-
         public string Title { get; set; } = default!;
         public string? Description { get; set; }
 
@@ -15,10 +13,16 @@ namespace ManageLife.Entities
 
         public DateTime? StartDate { get; set; }
         public DateTime? DueDate { get; set; }
+        public DateTime? CompletedAt { get; set; }
+        public int? EstimatedMinutes { get; set; }
 
-        // Liên kết về danh sách
+        public RecurrenceType Recurrence { get; set; } = RecurrenceType.None;
+        public DateTime? RecurrenceEndDate { get; set; }
+
+        public DateTime? ReminderAt { get; set; }
+        public bool IsReminderSent { get; set; }
+
         public string TodoListId { get; set; } = default!;
-        // Tự liên kết để tạo Subtask
         public string? ParentTaskId { get; set; }
         public string CreatedUser { get; set; } = default!;
         public DateTime CreatedTime { get; set; }

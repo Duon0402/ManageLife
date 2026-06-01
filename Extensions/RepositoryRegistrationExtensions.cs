@@ -8,6 +8,7 @@ namespace ManageLife.Extensions
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             services.AddScoped<IUserTelegramConnectionRepository, UserTelegramConnectionRepository>();
+            services.AddScoped<ITelegramBotCommandRepository, TelegramBotCommandRepository>();
             services.AddScoped<IExceptionItemRepository, ExceptionItemRepository>();
             services.AddScoped<IFileRepository, FileRepository>();
             services.AddScoped<ILanguageRepository, LanguageRepository>();

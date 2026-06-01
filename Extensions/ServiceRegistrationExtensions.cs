@@ -9,6 +9,7 @@ namespace ManageLife.Extensions
         public static IServiceCollection AddApplicationCustomServices(this IServiceCollection services)
         {
             services.AddScoped<IUserTelegramConnectionService, UserTelegramConnectionService>();
+            services.AddScoped<ITelegramBotCommandService, TelegramBotCommandService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IUserContext, UserContext>();
             services.AddScoped<ITranslationContext, TranslationContext>();
@@ -20,6 +21,7 @@ namespace ManageLife.Extensions
             services.AddScoped<ISettingService, SettingService>();
             services.AddScoped<ITodoTaskService, TodoTaskService>();
             services.AddScoped<ITodoListService, TodoListService>();
+            services.AddScoped<ITodoReminderService, TodoReminderService>();
             services.AddSingleton<ICacheService, CacheService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserService, UserService>();
