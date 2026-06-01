@@ -47,6 +47,11 @@
                         <i class="fa-solid fa-book-open me-1"></i> Từ vựng
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentPath.StartsWith("/Note") ? "active" : "")" href="/Note">
+                        <i class="fa-solid fa-brain me-1"></i> Notes
+                    </a>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle @(currentPath.StartsWith("/Utility") || currentPath.StartsWith("/VideoDownloader") || currentPath.StartsWith("/ShortUrl") ? "active" : "")"
                        href="#" data-bs-toggle="dropdown">

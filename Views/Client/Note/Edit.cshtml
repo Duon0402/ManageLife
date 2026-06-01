@@ -1,0 +1,13 @@
+@model string
+@{
+    Options.Title = "Note";
+}
+
+<div id="note-edit-page" data-note-id="@Model">
+</div>
+
+<script>
+    $(function () {
+        new App.NoteEditPage('#note-edit-page');
+    });
+</script>
