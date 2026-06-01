@@ -70,6 +70,11 @@ namespace ManageLife.Helpers
 
             // Vocab Deck
             CreateMap<CreateVocabDeckRequest, VocabDeckEntity>();
+
+            // CodeSequence
+            CreateMap<CodeSequenceEntity, CodeSequenceModel>();
+            CreateMap<CreateCodeSequenceRequest, CodeSequenceEntity>();
+            CreateMap<UpdateCodeSequenceRequest, CodeSequenceEntity>();
         }
     }
 }

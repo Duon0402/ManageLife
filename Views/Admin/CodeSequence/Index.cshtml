@@ -1,0 +1,14 @@
+@{
+    Options.Title = "Code Sequence";
+    Options.Breadcrumb.Add("/Admin/CodeSequence", "Code Sequence");
+}
+
+<div id="admin-code-sequence-page">
+    <table id="tblCodeSequence" class="table w-100"></table>
+</div>
+
+<script>
+    $(function () {
+        new App.AdminCodeSequencePage('#admin-code-sequence-page');
+    });
+</script>
