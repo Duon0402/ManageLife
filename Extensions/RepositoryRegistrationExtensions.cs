@@ -36,6 +36,8 @@ namespace ManageLife.Extensions
             services.AddScoped<IVocabStudyProgressRepository, VocabStudyProgressRepository>();
             services.AddScoped<IVocabStudySessionRepository, VocabStudySessionRepository>();
             services.AddScoped<ICodeSequenceRepository, CodeSequenceRepository>();
+            services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
+            services.AddScoped<IShortUrlClickRepository, ShortUrlClickRepository>();
 
             return services;
         }

@@ -75,6 +75,10 @@ namespace ManageLife.Helpers
             CreateMap<CodeSequenceEntity, CodeSequenceModel>();
             CreateMap<CreateCodeSequenceRequest, CodeSequenceEntity>();
             CreateMap<UpdateCodeSequenceRequest, CodeSequenceEntity>();
+
+            // ShortUrl
+            CreateMap<ShortUrlEntity, ShortUrlModel>();
+            CreateMap<CreateShortUrlRequest, ShortUrlEntity>();
         }
     }
 }

@@ -44,6 +44,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IVocabStudyService, VocabStudyService>();
             services.AddScoped<ISequentialCodeGenerator, SequentialCodeGenerator>();
             services.AddScoped<ICodeSequenceService, CodeSequenceService>();
+            services.AddScoped<IShortUrlService, ShortUrlService>();
             return services;
         }
     }
