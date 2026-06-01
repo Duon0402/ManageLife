@@ -2,6 +2,6 @@ namespace ManageLife.Commons
 {
     public static class CodeSequenceCategory
     {
-        public const string ShortUrl = "ShortUrl";
+        public const string ShortUrl = "SHORT_URL";
     }
 }
