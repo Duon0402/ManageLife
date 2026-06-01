@@ -41,6 +41,8 @@ namespace ManageLife.Data
         public DbSet<VocabDeckWordEntity> VocabDeckWords { get; set; } = default!;
         public DbSet<VocabStudyProgressEntity> VocabStudyProgress { get; set; } = default!;
         public DbSet<VocabStudySessionEntity> VocabStudySessions { get; set; } = default!;
+        public DbSet<ShortUrlEntity> ShortUrls { get; set; } = default!;
+        public DbSet<ShortUrlClickEntity> ShortUrlClicks { get; set; } = default!;
 
         #endregion
 
@@ -97,6 +99,16 @@ namespace ManageLife.Data
 
             builder.Entity<VocabStudySessionEntity>()
                 .HasIndex(x => new { x.UserId, x.StartedAt });
+
+            builder.Entity<ShortUrlEntity>()
+                .HasIndex(x => x.Code)
+                .IsUnique();
+
+            builder.Entity<ShortUrlEntity>()
+                .HasIndex(x => new { x.OwnerId, x.IsDeleted });
+
+            builder.Entity<ShortUrlClickEntity>()
+                .HasIndex(x => new { x.ShortUrlId, x.CreatedTime });
         }
     }
 }
