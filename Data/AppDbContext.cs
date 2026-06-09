@@ -48,6 +48,7 @@ namespace ManageLife.Data
         public DbSet<NoteTagEntity> NoteTags { get; set; } = default!;
         public DbSet<NoteTagRelationEntity> NoteTagRelations { get; set; } = default!;
         public DbSet<NoteLinkEntity> NoteLinks { get; set; } = default!;
+        public DbSet<HabitEntity> Habits { get; set; } = default!;
 
         #endregion
 

@@ -47,6 +47,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IShortUrlService, ShortUrlService>();
             services.AddScoped<INoteService, NoteService>();
             services.AddScoped<INoteTagService, NoteTagService>();
+            services.AddScoped<IHabitService, HabitService>();
             return services;
         }
     }

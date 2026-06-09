@@ -42,6 +42,7 @@ namespace ManageLife.Extensions
             services.AddScoped<INoteTagRepository, NoteTagRepository>();
             services.AddScoped<INoteTagRelationRepository, NoteTagRelationRepository>();
             services.AddScoped<INoteLinkRepository, NoteLinkRepository>();
+            services.AddScoped<IHabitRepository, HabitRepository>();
 
             return services;
         }
