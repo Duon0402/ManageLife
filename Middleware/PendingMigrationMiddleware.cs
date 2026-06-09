@@ -14,7 +14,7 @@ namespace ManageLife.Middleware
 
     public class PendingMigrationMiddleware(RequestDelegate next)
     {
-        private static readonly string[] _adminPrefixes = ["/admin", "/api/admin"];
+        private static readonly string[] _adminPrefixes = ["/admin", "/api/admin", "/auth"];
 
         public async Task InvokeAsync(HttpContext context, DatabaseState dbState)
         {
