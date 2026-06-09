@@ -20,8 +20,7 @@ namespace ManageLife.Core
 
         public static RazorPageOptions GetRazorPageOptions(this RazorPageBase page)
         {
-            var options = page.ViewBag.RazorPageOptions as RazorPageOptions;
-            if (options == null)
+            if (page.ViewBag.RazorPageOptions is not RazorPageOptions options)
             {
                 options = new RazorPageOptions();
                 page.ViewBag.RazorPageOptions = options;
