@@ -1,4 +1,5 @@
 using ManageLife.Data;
+using ManageLife.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Extensions
@@ -10,14 +11,19 @@ namespace ManageLife.Extensions
             using var scope = app.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<AppDbContext>>();
+            var dbState = app.Services.GetRequiredService<DatabaseState>();
 
-            var pending = await db.Database.GetPendingMigrationsAsync();
-            var list = pending.ToList();
-            if (list.Count > 0)
+            var pending = (await db.Database.GetPendingMigrationsAsync()).ToList();
+            if (pending.Count > 0)
+            {
+                dbState.SetPending(pending);
                 logger.LogWarning("{count} pending migration(s): {names}. Use POST /Admin/Database/Migrate to apply.",
-                    list.Count, string.Join(", ", list));
+                    pending.Count, string.Join(", ", pending));
+            }
             else
+            {
                 logger.LogInformation("Database is up to date.");
+            }
         }
 
         /// <summary>
@@ -27,14 +33,19 @@ namespace ManageLife.Extensions
         {
             using var scope = app.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var dbState = app.Services.GetRequiredService<DatabaseState>();
 
             try
             {
                 var pending = (await db.Database.GetPendingMigrationsAsync()).ToList();
                 if (pending.Count == 0)
+                {
+                    dbState.ClearPending();
                     return (true, "Database đã được cập nhật, không có migration nào cần chạy.", []);
+                }
 
                 await db.Database.MigrateAsync();
+                dbState.ClearPending();
                 return (true, $"Đã apply {pending.Count} migration(s) thành công.", pending);
             }
             catch (Exception ex)

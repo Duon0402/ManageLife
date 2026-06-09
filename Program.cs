@@ -29,6 +29,7 @@ builder.Services.AddSignalR();
 
 // Add application services
 builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddSingleton<DatabaseState>();
 
 // Cấu hình Kestrel (request body limit)
 builder.WebHost.ConfigureKestrel(options =>
@@ -71,7 +72,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseMiddleware<ManageLife.Middleware.MaintenanceMiddleware>();
+app.UseMiddleware<PendingMigrationMiddleware>();
+app.UseMiddleware<MaintenanceMiddleware>();
 
 app.UseRouting();
 

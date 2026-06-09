@@ -14,12 +14,16 @@ namespace ManageLife.Middleware
 
         public async Task InvokeAsync(HttpContext context, ISettingContext settings)
         {
-            if (await settings.GetBoolAsync(SettingKeys.Maintenance.Enabled))
-            {
-                var path = context.Request.Path.Value ?? "";
-                var isAllowed = _allowedPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+            var path = context.Request.Path.Value ?? "";
+            var isAllowed = _allowedPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
 
-                if (!isAllowed)
+            if (!isAllowed)
+            {
+                bool maintenanceEnabled;
+                try { maintenanceEnabled = await settings.GetBoolAsync(SettingKeys.Maintenance.Enabled); }
+                catch { maintenanceEnabled = false; }
+
+                if (maintenanceEnabled)
                 {
                     var message = await settings.GetStringAsync(SettingKeys.Maintenance.Message)
                                   ?? "Website đang bảo trì, vui lòng quay lại sau.";
