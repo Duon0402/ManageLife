@@ -1,5 +1,5 @@
-﻿using ManageLife.Core;
 using ManageLife.Commons;
+using ManageLife.Core;
 
 namespace ManageLife.Entities
 {
@@ -8,5 +8,7 @@ namespace ManageLife.Entities
         public string Key { get; set; } = default!;
         public string Value { get; set; } = default!;
         public SettingType Type { get; set; }
+        public string? Group { get; set; }
+        public string? Description { get; set; }
     }
 }

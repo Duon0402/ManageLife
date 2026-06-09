@@ -1,6 +1,8 @@
 @{
     var displayName = UserContext.GetUserName() ?? "";
     var initials = displayName.Length > 0 ? displayName[0].ToString().ToUpper() : "A";
+    var siteName = await SettingContext.GetStringAsync(SettingKeys.Site.Name) ?? "ManageLife";
+    var logoUrl = await SettingContext.GetStringAsync(SettingKeys.Site.LogoUrl);
 }
 
 <header class="admin-header" id="adminHeader">
@@ -9,8 +11,15 @@
             <i class="fa-solid fa-bars"></i>
         </button>
         <a href="/admin" class="header-brand">
-            <i class="fa-solid fa-infinity"></i>
-            <span>ManageLife</span>
+            @if (!string.IsNullOrEmpty(logoUrl))
+            {
+                <img src="@logoUrl" alt="@siteName" style="height:28px;max-width:120px;object-fit:contain;" />
+            }
+            else
+            {
+                <i class="fa-solid fa-infinity"></i>
+                <span>@siteName</span>
+            }
         </a>
     </div>
 

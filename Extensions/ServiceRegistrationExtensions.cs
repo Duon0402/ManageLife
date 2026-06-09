@@ -1,5 +1,4 @@
 ﻿using ManageLife.Contexts;
-using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Services;
 
@@ -48,6 +47,7 @@ namespace ManageLife.Extensions
             services.AddScoped<INoteService, NoteService>();
             services.AddScoped<INoteTagService, NoteTagService>();
             services.AddScoped<IHabitService, HabitService>();
+            services.AddScoped<ISettingContext, SettingContext>();
             return services;
         }
     }

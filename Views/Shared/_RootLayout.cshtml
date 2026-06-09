@@ -1,10 +1,11 @@
 ﻿@{
-    var title = this.GetTitle();
+    var siteName = await SettingContext.GetStringAsync(SettingKeys.Site.Name) ?? "Manage Life";
+    var faviconUrl = await SettingContext.GetStringAsync(SettingKeys.Site.FaviconUrl);
+    var siteDescription = await SettingContext.GetStringAsync(SettingKeys.Site.Description);
+    var primaryColor = await SettingContext.GetStringAsync(SettingKeys.Ui.PrimaryColor);
 
-    if (title.IsEmpty())
-    {
-        title = "Manage Life";
-    }
+    var rawTitle = this.GetTitle();
+    var title = rawTitle.IsEmpty() ? siteName : $"{rawTitle} | {siteName}";
 
     this.UseCss(
         new ResourceLink("~/lib/bootstrap/dist/css/bootstrap.min.css"),
@@ -40,6 +41,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@title</title>
+    @if (!string.IsNullOrEmpty(faviconUrl))
+    {
+        <link rel="icon" href="@faviconUrl" />
+    }
+    @if (!string.IsNullOrEmpty(siteDescription))
+    {
+        <meta name="description" content="@siteDescription" />
+    }
+    @if (!string.IsNullOrEmpty(primaryColor))
+    {
+        <style>:root { --bs-primary: @primaryColor; --primary-color: @primaryColor; }</style>
+    }
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" />

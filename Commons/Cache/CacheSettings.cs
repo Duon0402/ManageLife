@@ -30,5 +30,8 @@ namespace ManageLife.Commons
 
         public static CacheItem TelegramLinkState(long chatId)
             => new($"{_prefix}tele_link_state:{chatId}", expiry: TimeSpan.FromMinutes(5));
+
+        public static CacheItem Settings()
+            => new($"{_prefix}settings", CacheMode.Memory, TimeSpan.FromHours(24));
     }
 }

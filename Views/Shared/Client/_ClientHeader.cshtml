@@ -4,6 +4,10 @@
     var displayName = UserContext.GetUserName() ?? "";
     var initials = displayName.Length > 0 ? displayName[0].ToString().ToUpper() : "?";
     var currentPath = Context.Request.Path.Value ?? "";
+    var siteName = await SettingContext.GetStringAsync(SettingKeys.Site.Name) ?? "Manage Life";
+    var logoUrl = await SettingContext.GetStringAsync(SettingKeys.Site.LogoUrl);
+    var enableChat = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableChat, true);
+    var enableVocab = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableVocab, true);
 }
 
 <header class="header" id="client-header">
@@ -13,7 +17,14 @@
         <!-- Logo -->
         <div class="header__logo">
             <a href="/">
-                <h3 class="brand">Manage Life</h3>
+                @if (!string.IsNullOrEmpty(logoUrl))
+                {
+                    <img src="@logoUrl" alt="@siteName" style="height:32px;max-width:140px;object-fit:contain;" />
+                }
+                else
+                {
+                    <h3 class="brand">@siteName</h3>
+                }
             </a>
         </div>
 
@@ -48,11 +59,14 @@
                                 <i class="fa-solid fa-images me-2"></i>Photo Albums
                             </a>
                         </li>
+                        @if (enableVocab)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Vocab") ? "active" : "")" href="/Vocab">
                                 <i class="fa-solid fa-book-open me-2"></i>Từ vựng
                             </a>
                         </li>
+                        }
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Note") ? "active" : "")" href="/Note">
                                 <i class="fa-solid fa-brain me-2"></i>Notes

@@ -58,6 +58,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     await scope.ServiceProvider.RegisterPermissionsAsync(typeof(Program).Assembly);
+    await scope.ServiceProvider.RegisterSettingsAsync();
 }
 
 // Configure the HTTP request pipeline.
@@ -69,6 +70,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseMiddleware<ManageLife.Middleware.MaintenanceMiddleware>();
 
 app.UseRouting();
 

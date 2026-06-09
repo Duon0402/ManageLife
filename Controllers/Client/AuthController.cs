@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -10,11 +12,13 @@ namespace ManageLife.Controllers.Client
     {
         private readonly IUserService _userService;
         private readonly ITokenService _tokenService;
+        private readonly ISettingContext _settingContext;
 
-        public AuthController(IUserService userService, ITokenService tokenService)
+        public AuthController(IUserService userService, ITokenService tokenService, ISettingContext settingContext)
         {
             _userService = userService;
             _tokenService = tokenService;
+            _settingContext = settingContext;
         }
 
         public IActionResult Login()
@@ -35,6 +39,8 @@ namespace ManageLife.Controllers.Client
         [HttpPost]
         public async Task<Result> Register([FromBody] RegisterAccountRequest model, CancellationToken ct)
         {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableRegistration, true))
+                return Result.Error("FEATURE_DISABLED", "Đăng ký tài khoản hiện đang tạm ngưng");
             return await _userService.RegisterAsync(model, ct);
         }
 

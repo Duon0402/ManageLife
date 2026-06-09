@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
@@ -14,12 +16,14 @@ namespace ManageLife.Controllers.Client
         private readonly IChatService _chatService;
         private readonly IUserService _userService;
         private readonly IAppLogger<ChatController> _logger;
+        private readonly ISettingContext _settingContext;
 
-        public ChatController(IChatService chatService, IUserService userService, IAppLogger<ChatController> logger)
+        public ChatController(IChatService chatService, IUserService userService, IAppLogger<ChatController> logger, ISettingContext settingContext)
         {
             _chatService = chatService;
             _userService = userService;
             _logger = logger;
+            _settingContext = settingContext;
         }
 
         [HttpGet]
@@ -27,6 +31,9 @@ namespace ManageLife.Controllers.Client
         [Route("Index")]
         public async Task<IActionResult> Index(CancellationToken ct)
         {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableChat, true))
+                return NotFound();
+
             var res = await _userService.GetListUsersAsync(ct);
 
             var currentUserId = User.GetUserId();

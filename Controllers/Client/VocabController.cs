@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -11,21 +13,29 @@ namespace ManageLife.Controllers.Client
         private readonly IVocabTopicService _topicService;
         private readonly IVocabDeckService _deckService;
         private readonly IVocabStudyService _studyService;
+        private readonly ISettingContext _settingContext;
 
         public VocabController(
             IVocabWordService wordService,
             IVocabTopicService topicService,
             IVocabDeckService deckService,
-            IVocabStudyService studyService)
+            IVocabStudyService studyService,
+            ISettingContext settingContext)
         {
             _wordService = wordService;
             _topicService = topicService;
             _deckService = deckService;
             _studyService = studyService;
+            _settingContext = settingContext;
         }
 
         [AccessPagePermission]
-        public IActionResult Index() => View();
+        public async Task<IActionResult> Index()
+        {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableVocab, true))
+                return NotFound();
+            return View();
+        }
 
         [AccessPagePermission]
         public async Task<IActionResult> Deck(string id, CancellationToken ct)

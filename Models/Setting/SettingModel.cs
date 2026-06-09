@@ -1,4 +1,4 @@
-﻿using ManageLife.Commons;
+using ManageLife.Commons;
 
 namespace ManageLife.Models
 {
@@ -8,5 +8,7 @@ namespace ManageLife.Models
         public string Key { get; set; } = null!;
         public string Value { get; set; } = null!;
         public SettingType Type { get; set; }
+        public string? Group { get; set; }
+        public string? Description { get; set; }
     }
 }

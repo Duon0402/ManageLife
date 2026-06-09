@@ -1,9 +1,13 @@
-﻿namespace ManageLife.Commons
+namespace ManageLife.Commons
 {
     public enum SettingType
     {
         Text,
         Boolean,
-        File
+        File,
+        Number,
+        Json,
+        Color,
+        Url
     }
 }

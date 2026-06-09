@@ -1,7 +1,7 @@
-﻿using ManageLife.Core;
-using ManageLife.Commons;
+﻿using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Controllers.Admin;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 
@@ -60,7 +60,9 @@ namespace ManageLife.Services
                 new MenuItem("Telegram Bot", "fa-brands fa-telegram", new List<MenuItem>
                 {
                     new MenuItem<TelegramBotCommandController>("Bot Commands", x => x.Index(), "fa-solid fa-terminal"),
-                })
+                }),
+
+                new MenuItem<SettingController>("Settings", x => x.Index(), "fa-solid fa-sliders"),
             };
         }
 

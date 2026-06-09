@@ -1,0 +1,27 @@
+@{
+    Options.Title = "Settings";
+    Options.Breadcrumb.Add("/Admin/Setting", "Settings");
+}
+
+<div id="admin-setting-page">
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span class="fw-bold">
+                <i class="fa-solid fa-sliders me-2 text-primary"></i>Cấu hình Web
+            </span>
+            <small class="text-muted">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                Keys đăng ký tự động qua code. Chỉ có thể thay đổi <strong>giá trị</strong>.
+            </small>
+        </div>
+        <div class="card-body p-0">
+            <table id="tblSetting" class="table w-100"></table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        new App.AdminSettingPage('#admin-setting-page');
+    });
+</script>
