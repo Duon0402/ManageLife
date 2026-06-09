@@ -6,5 +6,6 @@ namespace ManageLife.ViewModels
         public List<string> Pending { get; set; } = [];
         public int PendingCount => Pending.Count;
         public bool IsUpToDate => Pending.Count == 0;
+        public bool HasMigrationKey { get; set; }
     }
 }

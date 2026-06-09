@@ -8,7 +8,8 @@
 <div id="admin-database-page"
      data-pending-count="@Model.PendingCount"
      data-pending="@System.Text.Json.JsonSerializer.Serialize(Model.Pending)"
-     data-applied="@System.Text.Json.JsonSerializer.Serialize(Model.Applied)">
+     data-applied="@System.Text.Json.JsonSerializer.Serialize(Model.Applied)"
+     data-has-migration-key="@Model.HasMigrationKey">
 </div>
 
 <script>
