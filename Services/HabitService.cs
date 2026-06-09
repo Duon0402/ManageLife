@@ -22,6 +22,8 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error<List<HabitModel>>(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var models = await _repo.Query(true)
                     .Where(x => x.OwnerId == userId && !x.IsDeleted)
                     .OrderByDescending(x => x.CreatedTime)
@@ -51,12 +53,15 @@ namespace ManageLife.Services
                 var err = Validate(request);
                 if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var entity = new HabitEntity
                 {
                     Name = request.Name.Trim(),
                     Description = request.Description?.Trim(),
                     IsActive = true,
-                    OwnerId = _userContext.GetUserId()!
+                    OwnerId = userId
                 };
 
                 var inserted = await _repo.InsertAsync(entity, ct);
@@ -80,6 +85,8 @@ namespace ManageLife.Services
                 if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var entity = await _repo.FirstOrDefaultAsync(
                     x => x.Id == request.Id && x.OwnerId == userId && !x.IsDeleted, ct);
 
@@ -111,6 +118,8 @@ namespace ManageLife.Services
                 if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var entity = await _repo.FirstOrDefaultAsync(
                     x => x.Id == request.Id && x.OwnerId == userId && !x.IsDeleted, ct);
 

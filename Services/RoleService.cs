@@ -189,7 +189,7 @@ namespace ManageLife.Services
                 {
                     var msg = "Không tìm thấy Role";
                     _logger.Debug(msg);
-                    return Result.Error<RoleModel>(Result.DATA_EXISTED.Code, msg);
+                    return Result.Error<RoleModel>(Result.DATA_NOT_EXISTED.Code, msg);
                 }
 
                 var model = entity.MapTo<RoleModel>();

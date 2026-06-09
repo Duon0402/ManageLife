@@ -72,7 +72,7 @@ namespace ManageLife.Services
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(cmd.Name))
+                if (cmd.Name.IsEmpty())
                 {
                     _logger.Debug("Tên folder trống");
                     return Result.Error<FolderModel>(Result.DATA_INVALID.Code, "Tên folder không được để trống");

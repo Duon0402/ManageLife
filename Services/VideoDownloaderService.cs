@@ -11,6 +11,10 @@ namespace ManageLife.Services
 {
     public class VideoDownloaderService : ServiceBase<VideoDownloaderService>, IVideoDownloaderService
     {
+        private const string CODE_YT_DLP_NO_INFO = "08";
+        private const string CODE_YT_DLP_PARSE_FAIL = "09";
+        private const string CODE_YT_DLP_DOWNLOAD_FAIL = "11";
+
         private readonly YtDlpManager _ytDlpManager;
         private readonly string? _cookiesFile;
         private readonly string? _cookiesBrowser;
@@ -43,11 +47,11 @@ namespace ManageLife.Services
                 }
 
                 if (json.IsEmpty())
-                    return Result.Error<VideoInfo>("08", $"yt-dlp không lấy được thông tin: {error}");
+                    return Result.Error<VideoInfo>(CODE_YT_DLP_NO_INFO, $"yt-dlp không lấy được thông tin: {error}");
 
                 var info = ParseVideoJson(json, url);
                 if (info == null)
-                    return Result.Error<VideoInfo>("09", "Không thể đọc thông tin video từ yt-dlp");
+                    return Result.Error<VideoInfo>(CODE_YT_DLP_PARSE_FAIL, "Không thể đọc thông tin video từ yt-dlp");
 
                 return Result.Ok(info);
             }
@@ -82,7 +86,7 @@ namespace ManageLife.Services
                 if (!success)
                 {
                     if (File.Exists(tempPath)) File.Delete(tempPath);
-                    return Result.Error<Stream>("11", $"yt-dlp tải về thất bại: {error}");
+                    return Result.Error<Stream>(CODE_YT_DLP_DOWNLOAD_FAIL, $"yt-dlp tải về thất bại: {error}");
                 }
 
                 // DeleteOnClose tự xóa temp file sau khi client nhận xong

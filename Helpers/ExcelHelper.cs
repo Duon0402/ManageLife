@@ -37,7 +37,7 @@ namespace ManageLife.Helpers
 		{
 			var data = new List<T>();
 
-			if (worksheet == null && worksheet?.Dimension == null) return data;
+			if (worksheet == null || worksheet.Dimension == null) return data;
 
 			var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 			var colMapping = new Dictionary<int, PropertyInfo>();
@@ -82,9 +82,9 @@ namespace ManageLife.Helpers
 						object safeValue = Convert.ChangeType(cellValue, map.Value.PropertyType);
 						map.Value.SetValue(obj, safeValue);
 					}
-					catch
+					catch (Exception ex)
 					{
-						// Bỏ qua nếu không convert được
+						System.Diagnostics.Debug.WriteLine($"[ExcelHelper] Cannot convert '{cellValue}' to {map.Value.PropertyType.Name} (row {row}, col {map.Key}): {ex.Message}");
 					}
 				}
 				data.Add(obj);

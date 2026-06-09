@@ -81,35 +81,7 @@ namespace ManageLife.Services
                     return Result.Ok(cachedPermissions);
                 }
 
-                var permissions = await _repoPermission.Query(true)
-                    .Where(p =>
-                        _repoUserPermission.Query(true)
-                            .Any(up =>
-                                up.UserId == request.UserId &&
-                                up.PermissionId == p.Id &&
-                                up.Status == UserPermissionStatus.Grant
-                            )
-                        ||
-                        (
-                            !_repoUserPermission.Query(true)
-                                .Any(up =>
-                                    up.UserId == request.UserId &&
-                                    up.PermissionId == p.Id &&
-                                    up.Status == UserPermissionStatus.Deny
-                                )
-                            &&
-                            _repoUserRole.Query(true)
-                                .Where(ur => ur.UserId == request.UserId)
-                                .Join(
-                                    _repoRolePermission.Query(true),
-                                    ur => ur.RoleId,
-                                    rp => rp.RoleId,
-                                    (ur, rp) => rp.PermissionId
-                                )
-                                .Any(pid => pid == p.Id)
-                        )
-                    )
-                    .ToListAsync(ct);
+                var permissions = await QueryUserAssignedPermissions(request.UserId).ToListAsync(ct);
 
                 var models = permissions.IsNotEmpty()
                     ? permissions.MapToList<PermissionModel>()
@@ -227,37 +199,9 @@ namespace ManageLife.Services
                 var err = Validate(request);
                 if (err.IsNotEmpty()) return Result.Error<List<PermissionModel>>(Result.DATA_INVALID.Code, err);
 
+                var assignedQuery = QueryUserAssignedPermissions(request.UserId);
                 var permissions = await _repoPermission.Query(true)
-                    .Where(p =>
-                        !(
-                            _repoUserPermission.Query(true)
-                                .Any(up =>
-                                    up.UserId == request.UserId &&
-                                    up.PermissionId == p.Id &&
-                                    up.Status == UserPermissionStatus.Grant
-                                )
-
-                            ||
-                            (
-                                !_repoUserPermission.Query(true)
-                                    .Any(up =>
-                                        up.UserId == request.UserId &&
-                                        up.PermissionId == p.Id &&
-                                        up.Status == UserPermissionStatus.Deny
-                                    )
-                                &&
-                                _repoUserRole.Query(true)
-                                    .Where(ur => ur.UserId == request.UserId)
-                                    .Join(
-                                        _repoRolePermission.Query(true),
-                                        ur => ur.RoleId,
-                                        rp => rp.RoleId,
-                                        (ur, rp) => rp.PermissionId
-                                    )
-                                    .Any(pid => pid == p.Id)
-                            )
-                        )
-                    )
+                    .Where(p => !assignedQuery.Any(ap => ap.Id == p.Id))
                     .ToListAsync(ct);
 
                 var models = permissions.IsNotEmpty()
@@ -744,5 +688,22 @@ namespace ManageLife.Services
                 return Result.Exception(msg, ex);
             }
         }
+
+        private IQueryable<PermissionEntity> QueryUserAssignedPermissions(string userId)
+            => _repoPermission.Query(true)
+                .Where(p =>
+                    _repoUserPermission.Query(true)
+                        .Any(up => up.UserId == userId && up.PermissionId == p.Id && up.Status == UserPermissionStatus.Grant)
+                    ||
+                    (
+                        !_repoUserPermission.Query(true)
+                            .Any(up => up.UserId == userId && up.PermissionId == p.Id && up.Status == UserPermissionStatus.Deny)
+                        &&
+                        _repoUserRole.Query(true)
+                            .Where(ur => ur.UserId == userId)
+                            .Join(_repoRolePermission.Query(true), ur => ur.RoleId, rp => rp.RoleId, (ur, rp) => rp.PermissionId)
+                            .Any(pid => pid == p.Id)
+                    )
+                );
     }
 }

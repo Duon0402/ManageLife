@@ -65,6 +65,6 @@ namespace ManageLife.Controllers.Client
 
     public class PrivateRoomRequest
     {
-        public string UserId { get; set; }
+        public string UserId { get; set; } = default!;
     }
 }

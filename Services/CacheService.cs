@@ -36,7 +36,7 @@ public sealed class CacheService : ICacheService
 
                 case CacheMode.Memory:
                     {
-                        return _memoryCache.TryGetValue(cacheItem.Key, out T cached)
+                        return _memoryCache.TryGetValue(cacheItem.Key, out T? cached)
                             ? cached
                             : default;
                     }

@@ -11,6 +11,8 @@ namespace ManageLife.Services
 {
     public class UserService : ServiceBase<UserService>, IUserService
     {
+        private const int RefreshTokenExpiryDays = 7;
+
         private readonly IUserRepository _userRepo;
         private readonly IRoleRepository _roleRepo;
         private readonly IUserRoleRepository _userRoleRepo;
@@ -92,7 +94,7 @@ namespace ManageLife.Services
                     Id = IdHelper.NewId(),
                     UserId = userEntity.Id,
                     RefreshToken = refreshToken,
-                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(7)
+                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(RefreshTokenExpiryDays)
                 };
 
                 var tokenSaved = await _refreshRepo.InsertAsync(refreshEntity, ct);
@@ -181,7 +183,7 @@ namespace ManageLife.Services
                     Id = IdHelper.NewId(),
                     UserId = userEntity.Id,
                     RefreshToken = refreshToken,
-                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(7),
+                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(RefreshTokenExpiryDays),
                 };
 
                 var tokenSaved = await _refreshRepo.InsertAsync(refreshEntity, ct);
@@ -217,15 +219,12 @@ namespace ManageLife.Services
 
         public async Task<Result> LogoutAsync(string? refreshToken, CancellationToken ct = default)
         {
-            string msg;
-            bool b;
             try
             {
                 if (refreshToken == null)
                 {
-                    msg = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_INVALID.Code, msg);
+                    _logger.Debug("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+                    return Result.Error(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
                 }
 
                 var tokenEntity = await _refreshRepo.FirstOrDefaultAsync(r => r.RefreshToken == refreshToken && !r.IsRevoked);
@@ -236,12 +235,11 @@ namespace ManageLife.Services
                 }
 
                 tokenEntity.IsRevoked = true;
-                b = await _refreshRepo.UpdateAsync(tokenEntity);
-                if (!b)
+                var updated = await _refreshRepo.UpdateAsync(tokenEntity);
+                if (!updated)
                 {
-                    msg = "Không thể đăng xuất";
-                    _logger.Debug(msg);
-                    return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
+                    _logger.Debug("Không thể đăng xuất");
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể đăng xuất");
                 }
 
                 _tokenService.ClearTokensCookie();
@@ -250,9 +248,8 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                msg = "Đã có lỗi xảy ra khi đăng xuất";
-                _logger.Error(ex, msg);
-                return Result.Exception(msg, ex);
+                _logger.Error(ex, "Đã có lỗi xảy ra khi đăng xuất");
+                return Result.Exception("Đã có lỗi xảy ra khi đăng xuất", ex);
             }
         }
 

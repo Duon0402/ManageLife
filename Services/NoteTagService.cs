@@ -27,6 +27,8 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error<List<NoteTagModel>>(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var tags = await _tagRepo.Query(true)
                     .Where(t => t.OwnerId == userId && !t.IsDeleted)
                     .OrderBy(t => t.Name)
@@ -49,6 +51,8 @@ namespace ManageLife.Services
                 if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var existed = await _tagRepo.FirstOrDefaultAsync(t => t.OwnerId == userId && t.Name == request.Name.Trim() && !t.IsDeleted, ct);
                 if (existed != null)
                     return Result.Error(Result.DATA_EXISTED.Code, $"Tag '{request.Name}' đã tồn tại");
@@ -79,6 +83,8 @@ namespace ManageLife.Services
                 if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var entity = await _tagRepo.FirstOrDefaultAsync(t => t.Id == request.Id && t.OwnerId == userId && !t.IsDeleted, ct);
                 if (entity == null)
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Tag không tồn tại");
@@ -106,6 +112,8 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var entity = await _tagRepo.FirstOrDefaultAsync(t => t.Id == id && t.OwnerId == userId && !t.IsDeleted, ct);
                 if (entity == null)
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Tag không tồn tại");

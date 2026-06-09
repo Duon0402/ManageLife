@@ -31,6 +31,8 @@ namespace ManageLife.Services
             try
             {
                 var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error<List<ShortUrlModel>>(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var models = await _shortUrlRepo.Query(true)
                     .Where(x => x.OwnerId == userId && !x.IsDeleted)
                     .OrderByDescending(x => x.CreatedTime)
@@ -95,6 +97,9 @@ namespace ManageLife.Services
                 var err = Validate(request);
                 if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
                 var code = await _codeGenerator.NextAsync(CodeSequenceCategory.ShortUrl, ct);
 
                 var entity = new ShortUrlEntity
@@ -103,7 +108,7 @@ namespace ManageLife.Services
                     OriginalUrl = request.OriginalUrl.Trim(),
                     Title = request.Title?.Trim(),
                     ExpireAt = request.ExpireAt,
-                    OwnerId = _userContext.GetUserId()
+                    OwnerId = userId
                 };
 
                 var inserted = await _shortUrlRepo.InsertAsync(entity, ct);

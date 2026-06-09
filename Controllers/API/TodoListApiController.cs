@@ -1,10 +1,12 @@
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManageLife.Controllers.API
 {
+    [Authorize]
     [Route("api/todo-list")]
     public class TodoListApiController : ApiControllerBase
     {

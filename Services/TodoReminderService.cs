@@ -140,7 +140,7 @@ namespace ManageLife.Services
                 _ => ""
             };
 
-            var descLine = !string.IsNullOrWhiteSpace(task.Description) ? $"\n📝 {task.Description}" : "";
+            var descLine = task.Description.IsNotEmpty() ? $"\n📝 {task.Description}" : "";
             return $"🔔 *Nhắc việc*\n\n📌 {task.Title}{descLine}\n⏰ Hạn: {dueText}\n📊 Ưu tiên: {priorityText}";
         }
 

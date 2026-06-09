@@ -126,7 +126,10 @@ namespace ManageLife.Services
         {
             try
             {
-                var entity = await _repo.GetAsync(request.Id, ct);
+                if (request.Id.IsEmpty())
+                    return Result.Error(Result.DATA_INVALID.Code, "Không có ID cấu hình");
+
+                var entity = await _repo.GetAsync(request.Id!, ct);
                 if (entity == null)
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Cấu hình không tồn tại");
 
