@@ -31,7 +31,7 @@ namespace ManageLife.Services
                 m.TodoListName = listMap.GetValueOrDefault(m.TodoListId);
         }
 
-        public async Task<Result> CreateTodoTask(CreateTodoTaskRequest request, CancellationToken ct = default)
+        public async Task<Result> CreateAsync(CreateTodoTaskRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -58,7 +58,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteTodoTask(DeleteTodoTaskRequest request, CancellationToken ct = default)
+        public async Task<Result> DeleteAsync(DeleteTodoTaskRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<TodoTaskModel>>> GetListTodoTasks(GetListTodoTasksRequest request, CancellationToken ct = default)
+        public async Task<Result<List<TodoTaskModel>>> GetListAsync(GetListTodoTasksRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -134,7 +134,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<TodoTaskModel>> GetTodoTaskById(GetTodoTaskByIdRequest request, CancellationToken ct = default)
+        public async Task<Result<TodoTaskModel>> GetByIdAsync(GetTodoTaskByIdRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -160,7 +160,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> UpdateTodoTask(UpdateTodoTaskRequest request, CancellationToken ct = default)
+        public async Task<Result> UpdateAsync(UpdateTodoTaskRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -199,7 +199,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> ChangeTaskStatus(ChangeTaskStatusRequest request, CancellationToken ct = default)
+        public async Task<Result> ChangeStatusAsync(ChangeTaskStatusRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<TodoTaskModel>>> GetTodayTasks(CancellationToken ct = default)
+        public async Task<Result<List<TodoTaskModel>>> GetTodayTasksAsync(CancellationToken ct = default)
         {
             try
             {
@@ -246,7 +246,7 @@ namespace ManageLife.Services
                     x.IsDeleted == false &&
                     x.Status != TodoStatus.Completed &&
                     x.Status != TodoStatus.Cancelled &&
-                    x.CreatedUser == _userContext.GetUserId()
+                    x.CreatedUser == _userContext.GetUserName()
                 );
                 predicate = predicate.And(x =>
                     (x.DueDate >= today && x.DueDate < tomorrow) ||

@@ -1,16 +1,16 @@
-﻿using ManageLife.Core;
+using ManageLife.Core;
 using ManageLife.Models;
 
 namespace ManageLife.Interfaces
 {
     public interface ITodoTaskService
     {
-        public Task<Result> CreateTodoTask(CreateTodoTaskRequest request, CancellationToken ct = default);
-        public Task<Result> UpdateTodoTask(UpdateTodoTaskRequest request, CancellationToken ct = default);
-        public Task<Result> DeleteTodoTask(DeleteTodoTaskRequest request, CancellationToken ct = default);
-        public Task<Result> ChangeTaskStatus(ChangeTaskStatusRequest request, CancellationToken ct = default);
-        public Task<Result<TodoTaskModel>> GetTodoTaskById(GetTodoTaskByIdRequest request, CancellationToken ct = default);
-        public Task<Result<List<TodoTaskModel>>> GetListTodoTasks(GetListTodoTasksRequest request, CancellationToken ct = default);
-        public Task<Result<List<TodoTaskModel>>> GetTodayTasks(CancellationToken ct = default);
+        Task<Result> CreateAsync(CreateTodoTaskRequest request, CancellationToken ct = default);
+        Task<Result> UpdateAsync(UpdateTodoTaskRequest request, CancellationToken ct = default);
+        Task<Result> DeleteAsync(DeleteTodoTaskRequest request, CancellationToken ct = default);
+        Task<Result> ChangeStatusAsync(ChangeTaskStatusRequest request, CancellationToken ct = default);
+        Task<Result<TodoTaskModel>> GetByIdAsync(GetTodoTaskByIdRequest request, CancellationToken ct = default);
+        Task<Result<List<TodoTaskModel>>> GetListAsync(GetListTodoTasksRequest request, CancellationToken ct = default);
+        Task<Result<List<TodoTaskModel>>> GetTodayTasksAsync(CancellationToken ct = default);
     }
 }

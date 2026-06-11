@@ -20,7 +20,7 @@ namespace ManageLife.Controllers.API
         [HttpGet]
         public async Task<IActionResult> GetList(CancellationToken ct)
         {
-            var rs = await _service.GetListTodoLists(ct);
+            var rs = await _service.GetListAsync(ct);
             if (rs.IsOk())
                 return Ok(rs.Data);
 
@@ -30,7 +30,7 @@ namespace ManageLife.Controllers.API
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id, CancellationToken ct)
         {
-            var rs = await _service.GetTodoListById(new GetTodoListByIdRequest { Id = id }, ct);
+            var rs = await _service.GetByIdAsync(new GetTodoListByIdRequest { Id = id }, ct);
             if (rs.IsOk())
                 return Ok(rs.Data);
 
@@ -43,7 +43,7 @@ namespace ManageLife.Controllers.API
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateToDoListRequest request, CancellationToken ct)
         {
-            var rs = await _service.CreateToDoList(request, ct);
+            var rs = await _service.CreateAsync(request, ct);
             if (rs.IsOk())
                 return Ok();
 
@@ -56,7 +56,7 @@ namespace ManageLife.Controllers.API
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] UpdateToDoListRequest request, CancellationToken ct)
         {
-            var rs = await _service.UpdateToDoList(request, ct);
+            var rs = await _service.UpdateAsync(request, ct);
             if (rs.IsOk())
                 return Ok();
 
@@ -72,7 +72,7 @@ namespace ManageLife.Controllers.API
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id, CancellationToken ct)
         {
-            var rs = await _service.DeleteToDoList(new DeleteToDoListRequest { Id = id }, ct);
+            var rs = await _service.DeleteAsync(new DeleteToDoListRequest { Id = id }, ct);
             if (rs.IsOk())
                 return Ok();
 

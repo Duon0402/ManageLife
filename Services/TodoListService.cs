@@ -17,7 +17,7 @@ namespace ManageLife.Services
             _repo = repo;
         }
 
-        public async Task<Result> CreateToDoList(CreateToDoListRequest request, CancellationToken ct = default)
+        public async Task<Result> CreateAsync(CreateToDoListRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> DeleteToDoList(DeleteToDoListRequest request, CancellationToken ct = default)
+        public async Task<Result> DeleteAsync(DeleteToDoListRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<TodoListModel>>> GetListTodoLists(CancellationToken ct = default)
+        public async Task<Result<List<TodoListModel>>> GetListAsync(CancellationToken ct = default)
         {
             try
             {
@@ -103,7 +103,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<TodoListModel>> GetTodoListById(GetTodoListByIdRequest request, CancellationToken ct = default)
+        public async Task<Result<TodoListModel>> GetByIdAsync(GetTodoListByIdRequest request, CancellationToken ct = default)
         {
             try
             {
@@ -131,7 +131,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> UpdateToDoList(UpdateToDoListRequest request, CancellationToken ct = default)
+        public async Task<Result> UpdateAsync(UpdateToDoListRequest request, CancellationToken ct = default)
         {
             try
             {

@@ -331,7 +331,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<List<UserModel>>(msg, ex);
             }
@@ -357,7 +357,7 @@ namespace ManageLife.Services
             }
             catch (Exception ex)
             {
-                var msg = $"Đã có lỗi xảy ra: {ex.Message}";
+                var msg = TranslationKey.Common.Message.SystemError;
                 _logger.Error(ex, msg);
                 return Result.Exception<UserModel>(msg, ex);
             }

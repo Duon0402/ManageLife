@@ -20,7 +20,7 @@ namespace ManageLife.Controllers.API
         [HttpGet("today")]
         public async Task<IActionResult> GetToday(CancellationToken ct)
         {
-            var rs = await _service.GetTodayTasks(ct);
+            var rs = await _service.GetTodayTasksAsync(ct);
             if (rs.IsOk())
                 return Ok(rs.Data);
 
@@ -30,7 +30,7 @@ namespace ManageLife.Controllers.API
         [HttpGet]
         public async Task<IActionResult> GetList([FromQuery] GetListTodoTasksRequest request, CancellationToken ct)
         {
-            var rs = await _service.GetListTodoTasks(request, ct);
+            var rs = await _service.GetListAsync(request, ct);
             if (rs.IsOk())
                 return Ok(rs.Data);
 
@@ -40,7 +40,7 @@ namespace ManageLife.Controllers.API
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id, CancellationToken ct)
         {
-            var rs = await _service.GetTodoTaskById(new GetTodoTaskByIdRequest { Id = id }, ct);
+            var rs = await _service.GetByIdAsync(new GetTodoTaskByIdRequest { Id = id }, ct);
             if (rs.IsOk())
                 return Ok(rs.Data);
 
@@ -53,7 +53,7 @@ namespace ManageLife.Controllers.API
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTodoTaskRequest request, CancellationToken ct)
         {
-            var rs = await _service.CreateTodoTask(request, ct);
+            var rs = await _service.CreateAsync(request, ct);
             if (rs.IsOk())
                 return Ok();
 
@@ -63,7 +63,7 @@ namespace ManageLife.Controllers.API
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] UpdateTodoTaskRequest request, CancellationToken ct)
         {
-            var rs = await _service.UpdateTodoTask(request, ct);
+            var rs = await _service.UpdateAsync(request, ct);
             if (rs.IsOk())
                 return Ok();
 
@@ -77,7 +77,7 @@ namespace ManageLife.Controllers.API
         public async Task<IActionResult> ChangeStatus(string id, [FromBody] ChangeTaskStatusRequest request, CancellationToken ct)
         {
             request.Id = id;
-            var rs = await _service.ChangeTaskStatus(request, ct);
+            var rs = await _service.ChangeStatusAsync(request, ct);
             if (rs.IsOk())
                 return Ok();
 
@@ -90,7 +90,7 @@ namespace ManageLife.Controllers.API
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id, CancellationToken ct)
         {
-            var rs = await _service.DeleteTodoTask(new DeleteTodoTaskRequest { Id = id }, ct);
+            var rs = await _service.DeleteAsync(new DeleteTodoTaskRequest { Id = id }, ct);
             if (rs.IsOk())
                 return Ok();
 
