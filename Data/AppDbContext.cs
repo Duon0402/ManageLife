@@ -13,6 +13,8 @@ namespace ManageLife.Data
         }
 
         #region DbSet<>
+        public DbSet<PomodoroSessionEntity> PomodoroSessions { get; set; } = default!;
+        public DbSet<PomodoroSettingEntity> PomodoroSettings { get; set; } = default!;
         public DbSet<ExceptionItemEntity> ExceptionItems { get; set; } = default!;
         public DbSet<SettingEntity> Settings { get; set; } = default!;
         public DbSet<TranslationEntity> Translations { get; set; } = default!;
@@ -149,6 +151,14 @@ namespace ManageLife.Data
 
             builder.Entity<NoteLinkEntity>()
                 .HasIndex(x => x.TargetNoteId);
+
+            builder.Entity<PomodoroSettingEntity>()
+                .HasIndex(x => x.UserId)
+                .IsUnique();
+
+            builder.Entity<PomodoroSessionEntity>()
+                .HasIndex(x => new { x.UserId, x.StartedAt });
+
         }
     }
 }
