@@ -5,6 +5,7 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ManageLife.Controllers.Client
 {
@@ -45,6 +46,7 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpPost]
+        [EnableRateLimiting("login")]
         public async Task<Result> Login([FromBody] LoginAccountRequest model, CancellationToken ct)
         {
             return await _userService.LoginAsync(model, ct);

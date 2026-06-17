@@ -212,7 +212,7 @@ namespace ManageLife.Services
                     await _cache.RemoveAsync(cacheItem);
 
                     // Xóa tin nhắn chứa password để bảo mật
-                    try { await _botClient.DeleteMessage(chatId, messageId, ct); } catch { }
+                    try { await _botClient.DeleteMessage(chatId, messageId, ct); } catch (Exception ex) { _logger.Warning("Không thể xóa tin nhắn Telegram {MessageId}: {Error}", messageId, ex.Message); }
 
                     await HandleLinkWithCredentialsAsync(chatId, state.Username!, text.Trim(), ct);
                     break;
@@ -228,9 +228,7 @@ namespace ManageLife.Services
                 return;
             }
 
-            bool passwordValid = PasswordHelper.IsLegacyHash(user.HashPassword)
-                ? PasswordHelper.VerifyLegacy(password, user.HashPassword)
-                : PasswordHelper.Verify(password, user.HashPassword);
+            bool passwordValid = PasswordHelper.VerifyPassword(password, user.HashPassword);
 
             if (!passwordValid)
             {

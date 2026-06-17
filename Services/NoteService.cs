@@ -13,6 +13,7 @@ namespace ManageLife.Services
         private readonly INoteTagRepository _tagRepo;
         private readonly INoteTagRelationRepository _relationRepo;
         private readonly INoteLinkRepository _linkRepo;
+        private readonly IUnitOfWork _uow;
 
         public NoteService(
             IAppLogger<NoteService> logger,
@@ -20,12 +21,14 @@ namespace ManageLife.Services
             INoteRepository noteRepo,
             INoteTagRepository tagRepo,
             INoteTagRelationRepository relationRepo,
-            INoteLinkRepository linkRepo) : base(logger, userContext)
+            INoteLinkRepository linkRepo,
+            IUnitOfWork uow) : base(logger, userContext)
         {
             _noteRepo = noteRepo;
             _tagRepo = tagRepo;
             _relationRepo = relationRepo;
             _linkRepo = linkRepo;
+            _uow = uow;
         }
 
         public async Task<Result<List<NoteModel>>> GetListAsync(CancellationToken ct = default)
@@ -93,6 +96,7 @@ namespace ManageLife.Services
 
         public async Task<Result> CreateAsync(CreateNoteRequest request, CancellationToken ct = default)
         {
+            await _uow.BeginTransactionAsync(ct);
             try
             {
                 var err = Validate(request);
@@ -113,10 +117,13 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể tạo note");
 
                 await SyncTagRelationsAsync(entity.Id, request.TagIds, ct);
+
+                await _uow.CommitAsync(ct);
                 return Result.Ok();
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Tạo note thất bại");
                 return Result.Exception("Có lỗi xảy ra", ex);
             }
@@ -155,6 +162,7 @@ namespace ManageLife.Services
 
         public async Task<Result> DeleteAsync(string id, CancellationToken ct = default)
         {
+            await _uow.BeginTransactionAsync(ct);
             try
             {
                 var userId = _userContext.GetUserId();
@@ -174,10 +182,12 @@ namespace ManageLife.Services
                 if (!deleted)
                     return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xóa note");
 
+                await _uow.CommitAsync(ct);
                 return Result.Ok();
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Xóa note thất bại");
                 return Result.Exception("Có lỗi xảy ra", ex);
             }

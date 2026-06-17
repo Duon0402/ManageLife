@@ -257,9 +257,25 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request, CancellationToken ct = default)
+        public async Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (request?.Id == null)
+                    return Result.Error<TranslationModel>(Result.DATA_INVALID.Code, TranslationKey.Common.Message.DataInvalid);
+
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
+                if (entity == null)
+                    return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, TranslationKey.Common.Message.DataNotExisted);
+
+                return Result.Ok(entity.MapTo<TranslationModel>());
+            }
+            catch (Exception ex)
+            {
+                var msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
+                return Result.Exception<TranslationModel>(msg, ex);
+            }
         }
 
         public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request, CancellationToken ct = default)
@@ -322,6 +338,13 @@ namespace ManageLife.Services
 
                 var languagesList = data.Select(x => x.Language).ToList();
 
+                var languages = await _languageRepo.Query(true)
+                    .Where(l => languagesList.Contains(l.Name) || languagesList.Contains(l.Code))
+                    .ToListAsync(ct);
+
+                var langByName = languages.ToDictionary(l => l.Name, l => l, StringComparer.OrdinalIgnoreCase);
+                var langByCode = languages.ToDictionary(l => l.Code, l => l, StringComparer.OrdinalIgnoreCase);
+
                 var existingEntities = await _repo.Query()
                     .Join(_languageRepo.Query().Where(l => languagesList.Contains(l.Name) || languagesList.Contains(l.Code)),
                         t => t.LanguageId,
@@ -329,8 +352,29 @@ namespace ManageLife.Services
                         (t, l) => t)
                     .ToListAsync(ct);
 
+                var existingMap = existingEntities
+                    .Where(e => !e.IsDeleted)
+                    .ToDictionary(e => (e.LanguageId, e.Key));
+
                 var insertEntities = new List<TranslationEntity>();
                 var updateEntities = new List<TranslationEntity>();
+
+                foreach (var row in data)
+                {
+                    if (!langByName.TryGetValue(row.Language, out var lang) &&
+                        !langByCode.TryGetValue(row.Language, out lang))
+                        continue;
+
+                    if (existingMap.TryGetValue((lang.Id, row.Key), out var existing))
+                    {
+                        existing.Value = row.Value;
+                        updateEntities.Add(existing);
+                    }
+                    else
+                    {
+                        insertEntities.Add(new TranslationEntity { Key = row.Key, Value = row.Value, LanguageId = lang.Id });
+                    }
+                }
 
                 if (insertEntities.IsNotEmpty())
                 {
@@ -367,9 +411,42 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request, CancellationToken ct = default)
+        public async Task<Result> UpdateTranslationAsync(UpdateTranslationRequest request, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
+                if (entity == null)
+                    return Result.DATA_NOT_EXISTED;
+
+                var duplicate = await _repo.FirstOrDefaultAsync(
+                    x => x.Id != request.Id && x.LanguageId == request.LanguageId && x.Key == request.Key && x.IsDeleted == false, ct);
+                if (duplicate != null)
+                    return Result.Error(Result.DATA_EXISTED.Code, TranslationKey.Common.Message.DataExisted);
+
+                entity.Key = request.Key;
+                entity.Value = request.Value;
+                entity.LanguageId = request.LanguageId;
+
+                var updated = await _repo.UpdateAsync(entity, ct);
+                if (!updated)
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, TranslationKey.Common.Message.UpdateError);
+
+                var language = await _languageRepo.FirstOrDefaultAsync(x => x.Id == entity.LanguageId, ct);
+                if (language != null)
+                    await _cache.RemoveAsync(CacheSettings.Translations(language.Code));
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                var msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
+                return Result.Exception(msg, ex);
+            }
         }
     }
 }

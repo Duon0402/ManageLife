@@ -118,8 +118,7 @@ namespace ManageLife.Services
                 if (entity == null)
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                var currentUser = _userContext.GetUserName();
-                if (entity.CreatedUser != currentUser)
+                if (!IsOwner(entity))
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
                 await _uow.BeginTransactionAsync(ct);
@@ -154,8 +153,7 @@ namespace ManageLife.Services
                 if (folder == null)
                     return Result.Error<List<FolderFileItemModel>>(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                var currentUser = _userContext.GetUserName();
-                if (folder.CreatedUser != currentUser)
+                if (!IsOwner(folder))
                     return Result.Error<List<FolderFileItemModel>>(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
                 var models = await (
@@ -187,8 +185,7 @@ namespace ManageLife.Services
                 if (folder == null)
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                var currentUser = _userContext.GetUserName();
-                if (folder.CreatedUser != currentUser)
+                if (!IsOwner(folder))
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
                 var existing = await _folderFileRepo.FirstOrDefaultAsync(
@@ -221,8 +218,7 @@ namespace ManageLife.Services
                 if (folder == null)
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
-                var currentUser = _userContext.GetUserName();
-                if (folder.CreatedUser != currentUser)
+                if (!IsOwner(folder))
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Folder không tồn tại");
 
                 var entity = await _folderFileRepo.FirstOrDefaultAsync(
@@ -245,5 +241,7 @@ namespace ManageLife.Services
                 return Result.Exception("Lỗi khi xoá file khỏi folder", ex);
             }
         }
+
+        private bool IsOwner(FolderEntity folder) => folder.CreatedUser == _userContext.GetUserName();
     }
 }

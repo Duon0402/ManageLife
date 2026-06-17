@@ -130,14 +130,18 @@ namespace ManageLife.Services
             }
         }
 
-        private static async Task<bool> CanRunAsync(string path, CancellationToken ct)
+        private async Task<bool> CanRunAsync(string path, CancellationToken ct)
         {
             try
             {
                 var (output, _) = await RunAsync(path, ["--version"], ct);
                 return output.IsNotEmpty();
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                _logger.Debug("yt-dlp không chạy được tại '{Path}': {Error}", path, ex.Message);
+                return false;
+            }
         }
 
         private static async Task<(string? output, string? error)> RunAsync(string path, string[] args, CancellationToken ct)

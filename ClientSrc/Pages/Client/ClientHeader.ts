@@ -59,7 +59,7 @@ namespace App {
                         $menu.append($('<li>').append($item));
                     });
                 }
-            });
+            }).catch((err: unknown) => console.error('Không thể tải danh sách ngôn ngữ', err));
         }
 
         private bindLogout(): void {
@@ -93,6 +93,9 @@ namespace App {
                 } else {
                     ToastService.error(res.message || "Không đổi được ngôn ngữ");
                 }
+            }).catch((err: unknown) => {
+                console.error('Không thể đổi ngôn ngữ', err);
+                ToastService.error('Lỗi hệ thống');
             });
         }
     }

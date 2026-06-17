@@ -94,6 +94,18 @@ namespace ManageLife.Data
             builder.Entity<TranslationEntity>()
                 .HasIndex(x => x.LanguageId);
 
+            builder.Entity<TranslationEntity>()
+                .HasIndex(x => new { x.LanguageId, x.IsDeleted });
+
+            builder.Entity<UserTelegramConnectionEntity>()
+                .HasIndex(x => new { x.UserId, x.IsDeleted });
+
+            builder.Entity<HabitEntity>()
+                .HasIndex(x => new { x.OwnerId, x.IsDeleted });
+
+            builder.Entity<VocabDeckEntity>()
+                .HasIndex(x => x.TopicId);
+
             builder.Entity<VocabDeckWordEntity>()
                 .HasKey(x => new { x.DeckId, x.WordId });
 

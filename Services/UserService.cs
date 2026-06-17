@@ -141,9 +141,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, "Tài khoản của bạn đã bị khóa");
                 }
 
-                var passwordValid = PasswordHelper.IsLegacyHash(userEntity.HashPassword)
-                    ? PasswordHelper.VerifyLegacy(request.Password, userEntity.HashPassword)
-                    : PasswordHelper.Verify(request.Password, userEntity.HashPassword);
+                var passwordValid = PasswordHelper.VerifyPassword(request.Password, userEntity.HashPassword);
 
                 if (!passwordValid)
                 {
@@ -281,9 +279,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
                 }
 
-                var oldPasswordValid = PasswordHelper.IsLegacyHash(user.HashPassword)
-                    ? PasswordHelper.VerifyLegacy(request.OldPassword, user.HashPassword)
-                    : PasswordHelper.Verify(request.OldPassword, user.HashPassword);
+                var oldPasswordValid = PasswordHelper.VerifyPassword(request.OldPassword, user.HashPassword);
 
                 if (!oldPasswordValid)
                 {

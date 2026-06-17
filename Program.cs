@@ -3,7 +3,9 @@ using ManageLife.Extensions;
 using ManageLife.Hubs;
 using ManageLife.Middleware;
 using ManageLife.Services;
+using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,12 +31,25 @@ builder.Services.AddSignalR();
 
 // Add application services
 builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<DatabaseState>();
 
-// Cấu hình Kestrel (request body limit)
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("login", limiter =>
+    {
+        limiter.PermitLimit = 10;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiter.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
+// Giới hạn upload 200MB — tránh DoS qua large file upload
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = null;
+    options.Limits.MaxRequestBodySize = 200L * 1024 * 1024;
 });
 
 builder.Services.AddHostedService<TelegramUploadWorker>();
@@ -72,11 +87,11 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseMiddleware<PendingMigrationMiddleware>();
-app.UseMiddleware<MaintenanceMiddleware>();
-
 app.UseRouting();
 
+app.UseMiddleware<PendingMigrationMiddleware>();
+app.UseMiddleware<MaintenanceMiddleware>();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseMiddleware<JwtAuthenticationMiddleware>();
 app.UseAuthorization();

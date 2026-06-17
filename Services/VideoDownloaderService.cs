@@ -174,7 +174,7 @@ namespace ManageLife.Services
             }
         }
 
-        private static VideoInfo? ParseVideoJson(string json, string originalUrl)
+        private VideoInfo? ParseVideoJson(string json, string originalUrl)
         {
             try
             {
@@ -202,7 +202,11 @@ namespace ManageLife.Services
                     Duration = duration,
                 };
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Không thể parse JSON video info từ yt-dlp");
+                return null;
+            }
         }
 
         private static string ExtractMusicUrl(JsonElement root)

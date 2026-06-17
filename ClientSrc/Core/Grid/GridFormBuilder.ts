@@ -307,7 +307,8 @@ namespace App {
                 }
             }
 
-            (this.$modal as any).modal('show');
+            const el = this.$modal[0];
+            if (el) bootstrap.Modal.getOrCreateInstance(el).show();
         }
 
         /**
@@ -315,7 +316,8 @@ namespace App {
          */
         hide(): void {
             if (!this.$modal) return;
-            (this.$modal as any).modal('hide');
+            const el = this.$modal[0];
+            if (el) bootstrap.Modal.getOrCreateInstance(el).hide();
         }
 
         /**
