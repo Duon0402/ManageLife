@@ -68,5 +68,12 @@ namespace ManageLife.Controllers.Admin
 
             return File(rs.Data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "translation_template.xlsx");
         }
+
+        [HttpPost]
+        [InsertPermission]
+        public async Task<Result> ImportTemplate([FromForm] ImportTranslationExcelRequest request, CancellationToken ct)
+        {
+            return await _service.ImportTranslationExcelAsync(request, ct);
+        }
     }
 }

@@ -27,6 +27,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<IPermissionGuard, PermissionGuard>();
+            services.AddScoped<ITranslationFileService, TranslationFileService>();
             services.AddScoped<ITranslationService, TranslationService>();
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ICronJobService, CronJobService>();

@@ -1,4 +1,5 @@
-﻿using OfficeOpenXml;
+﻿using ManageLife.Core;
+using OfficeOpenXml;
 using System.Reflection;
 
 namespace ManageLife.Helpers
@@ -91,6 +92,67 @@ namespace ManageLife.Helpers
 			}
 
 			return data;
+		}
+
+		/// <summary>
+		/// Đọc Excel thành list row, mỗi row là dictionary {header: cellValue}.
+		/// Dùng cho các file có cột động (không biết trước số cột).
+		/// </summary>
+		public static List<Dictionary<string, string>> ImportAsRows(
+			Stream excelStream,
+			int sheetIndex = 0,
+			int? startRowHeader = null,
+			int? startRowData = null)
+		{
+			using var package = new ExcelPackage(excelStream);
+			var ws = package.Workbook.Worksheets[sheetIndex];
+			return ImportAsRowsFromWorksheet(ws, startRowHeader, startRowData);
+		}
+
+		public static List<Dictionary<string, string>> ImportAsRows(
+			Stream excelStream,
+			string sheetName,
+			int? startRowHeader = null,
+			int? startRowData = null)
+		{
+			using var package = new ExcelPackage(excelStream);
+			var ws = package.Workbook.Worksheets[sheetName];
+			return ImportAsRowsFromWorksheet(ws, startRowHeader, startRowData);
+		}
+
+		private static List<Dictionary<string, string>> ImportAsRowsFromWorksheet(
+			ExcelWorksheet ws,
+			int? startRowHeader,
+			int? startRowData)
+		{
+			var result = new List<Dictionary<string, string>>();
+			if (ws?.Dimension == null) return result;
+
+			int headerRow = startRowHeader ?? ws.Dimension.Start.Row;
+			int dataRow = startRowData ?? headerRow + 1;
+			int lastCol = ws.Dimension.End.Column;
+			int lastRow = ws.Dimension.End.Row;
+
+			var headers = new Dictionary<int, string>();
+			for (int col = ws.Dimension.Start.Column; col <= lastCol; col++)
+			{
+				var header = ws.Cells[headerRow, col].Text?.Trim();
+				if (header.IsNotEmpty())
+					headers[col] = header;
+			}
+
+			for (int row = dataRow; row <= lastRow; row++)
+			{
+				var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+				foreach (var (col, header) in headers)
+				{
+					var value = ws.Cells[row, col].Text?.Trim() ?? string.Empty;
+					dict[header] = value;
+				}
+				result.Add(dict);
+			}
+
+			return result;
 		}
 	}
 }
