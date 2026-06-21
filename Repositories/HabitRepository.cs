@@ -1,6 +1,5 @@
 using ManageLife.Contexts;
 using ManageLife.Core;
-using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Interfaces;
 

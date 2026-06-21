@@ -193,10 +193,7 @@ namespace App {
         /**
          * Handle form save submission
          */
-        private async handleFormSave(submission: IFormSubmission<T>): Promise<void> {
-            // This method should be overridden or handled by callbacks
-            // You can emit events or call API services here
-            console.log('Form submitted:', submission);
+        private async handleFormSave(_submission: IFormSubmission<T>): Promise<void> {
         }
 
         /**

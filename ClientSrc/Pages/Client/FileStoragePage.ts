@@ -10,8 +10,7 @@ namespace App {
                 title: 'Fast File Uploader',
                 instructionText: 'Drop large files here or'
             })
-                .onSuccess((file, res) => {
-                    console.log(`Successfully uploaded: ${file.name}`);
+                .onSuccess((_file, _res) => {
                 })
                 .onError((file, err) => {
                     console.error(`Error uploading: ${file.name}`, err);

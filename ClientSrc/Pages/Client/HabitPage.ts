@@ -60,8 +60,8 @@ namespace App {
 
                 $tbody.append(`
                     <tr>
-                        <td><span class="habit-name">${this.escape(habit.name)}</span></td>
-                        <td><span class="habit-desc">${habit.description ? this.escape(habit.description) : '<span class="text-muted">-</span>'}</span></td>
+                        <td><span class="habit-name">${Utils.escapeHtml(habit.name)}</span></td>
+                        <td><span class="habit-desc">${habit.description ? Utils.escapeHtml(habit.description) : '<span class="text-muted">-</span>'}</span></td>
                         <td class="text-center">${badge}</td>
                         <td>${new Date(habit.createdTime).toLocaleDateString('vi-VN')}</td>
                         <td>
@@ -152,7 +152,7 @@ namespace App {
 
         private async deleteHabit(habit: HabitModel): Promise<void> {
             await MessageService.confirm(
-                `Xóa thói quen <strong>${this.escape(habit.name)}</strong>?`,
+                `Xóa thói quen <strong>${Utils.escapeHtml(habit.name)}</strong>?`,
                 'Xác nhận xóa',
                 async () => {
                     LoadingService.show();
@@ -173,12 +173,5 @@ namespace App {
             );
         }
 
-        private escape(str: string): string {
-            return str
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
     }
 }

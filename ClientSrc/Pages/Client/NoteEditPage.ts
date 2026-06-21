@@ -1,7 +1,4 @@
 namespace App {
-    interface NoteTagModel { id: string; name: string; color: string; }
-    interface NoteModel { id: string; title: string; content: string | null; tags: NoteTagModel[]; createdTime: string; updatedTime: string | null; }
-    interface NoteDetailModel extends NoteModel { linkedNotes: NoteModel[]; backlinkNotes: NoteModel[]; }
 
     export class NoteEditPage extends BasePage {
         private noteId!: string;
@@ -26,13 +23,13 @@ namespace App {
         }
 
         protected bindEvents(): void {
-            $('#btn-save-note').on('click', () => this.saveNote());
-            $('#btn-delete-note').on('click', () => this.deleteNote());
-            $('#btn-open-tag-picker').on('click', () => this.toggleTagPicker());
-            $('#btn-open-link-picker').on('click', () => this.openLinkPicker());
+            this.root.find('#btn-save-note').on('click', () => this.saveNote());
+            this.root.find('#btn-delete-note').on('click', () => this.deleteNote());
+            this.root.find('#btn-open-tag-picker').on('click', () => this.toggleTagPicker());
+            this.root.find('#btn-open-link-picker').on('click', () => this.openLinkPicker());
             $('#link-picker-search').on('input', () => this.filterLinkPicker());
 
-            $('#ne-title').on('input', () => { this.isDirty = true; });
+            this.root.find('#ne-title').on('input', () => { this.isDirty = true; });
 
             $(window).on('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -62,7 +59,7 @@ namespace App {
                 this.allNotes = (notesRes.isOk() ? notesRes.data || [] : [])
                     .filter((n: NoteModel) => n.id !== this.noteId);
 
-                $('#ne-title').val(this.note.title);
+                this.root.find('#ne-title').val(this.note.title);
                 this.editor.setValue(this.note.content || '');
                 this.isDirty = false;
 
@@ -75,7 +72,7 @@ namespace App {
         }
 
         private async saveNote(): Promise<void> {
-            const title = ($('#ne-title').val() as string).trim();
+            const title = (this.root.find('#ne-title').val() as string).trim();
             if (!title) { ToastService.warning('Vui lòng nhập tiêu đề'); return; }
 
             const tagIds = this.note.tags.map(t => t.id);
@@ -117,7 +114,7 @@ namespace App {
         // ── Tags ──────────────────────────────────────────────────────────────
 
         private renderAssignedTags(): void {
-            const $wrap = $('#ne-assigned-tags');
+            const $wrap = this.root.find('#ne-assigned-tags');
             $wrap.empty();
             if (!this.note.tags.length) {
                 $wrap.html('<span class="ne-empty-panel">Chưa có tag</span>');
@@ -141,7 +138,7 @@ namespace App {
         }
 
         private toggleTagPicker(): void {
-            const $picker = $('#ne-tag-picker');
+            const $picker = this.root.find('#ne-tag-picker');
             if ($picker.hasClass('d-none')) {
                 $picker.empty().removeClass('d-none');
                 const assignedIds = new Set(this.note.tags.map(t => t.id));
@@ -168,7 +165,7 @@ namespace App {
             this.note.tags = this.note.tags.filter(t => t.id !== tagId);
             this.isDirty = true;
             this.renderAssignedTags();
-            $('#ne-tag-picker').addClass('d-none');
+            this.root.find('#ne-tag-picker').addClass('d-none');
         }
 
         private assignTag(tagId: string): void {
@@ -177,13 +174,13 @@ namespace App {
             this.note.tags.push(tag);
             this.isDirty = true;
             this.renderAssignedTags();
-            $('#ne-tag-picker').addClass('d-none');
+            this.root.find('#ne-tag-picker').addClass('d-none');
         }
 
         // ── Links ─────────────────────────────────────────────────────────────
 
         private renderLinkedNotes(): void {
-            const $list = $('#ne-linked-notes');
+            const $list = this.root.find('#ne-linked-notes');
             $list.empty();
             if (!this.note.linkedNotes.length) {
                 $list.html('<div class="ne-empty-panel">Chưa có link</div>');
@@ -206,7 +203,7 @@ namespace App {
         }
 
         private renderBacklinks(): void {
-            const $list = $('#ne-backlink-notes');
+            const $list = this.root.find('#ne-backlink-notes');
             $list.empty();
             if (!this.note.backlinkNotes.length) {
                 $list.html('<div class="ne-empty-panel">Không có backlink</div>');

@@ -26,7 +26,6 @@ namespace App {
 
             this.currentUserId = (attrId || hiddenId || windowId || '').trim().toLowerCase();
 
-            console.log("Chat initialized. Attr ID:", attrId, "Hidden ID:", hiddenId, "Window ID:", windowId, "Final ID:", this.currentUserId);
             this.initSignalR();
         }
 
@@ -50,9 +49,7 @@ namespace App {
                 .withAutomaticReconnect()
                 .build();
 
-            this.connection.start().then(() => {
-                console.log("Connected to ChatHub.");
-            }).catch((err: any) => console.error(err.toString()));
+            this.connection.start().catch((err: any) => console.error(err.toString()));
 
             this.connection.on("ReceiveMessage", (message: ChatMessageModel) => {
                 if (message.roomId === this.currentRoomId) {
@@ -175,10 +172,6 @@ namespace App {
             const $list = this.root.find('#messagesList');
             const senderId = (msg.senderId || '').trim().toLowerCase();
             const isMe = senderId === this.currentUserId;
-
-            if (msg.id.indexOf('temp-') === -1) {
-                console.log(`Rendering message from ${senderId}. isMe: ${isMe} (Matching against: ${this.currentUserId})`);
-            }
 
             const marginClass = isMe ? "ms-auto" : "me-auto";
             const alignClass = isMe ? "align-items-end" : "align-items-start";

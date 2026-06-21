@@ -13,6 +13,7 @@ namespace ManageLife.Services
         private readonly INoteTagRepository _tagRepo;
         private readonly INoteTagRelationRepository _relationRepo;
         private readonly INoteLinkRepository _linkRepo;
+        private readonly IUnitOfWork _uow;
 
         public NoteService(
             IAppLogger<NoteService> logger,
@@ -20,12 +21,14 @@ namespace ManageLife.Services
             INoteRepository noteRepo,
             INoteTagRepository tagRepo,
             INoteTagRelationRepository relationRepo,
-            INoteLinkRepository linkRepo) : base(logger, userContext)
+            INoteLinkRepository linkRepo,
+            IUnitOfWork uow) : base(logger, userContext)
         {
             _noteRepo = noteRepo;
             _tagRepo = tagRepo;
             _relationRepo = relationRepo;
             _linkRepo = linkRepo;
+            _uow = uow;
         }
 
         public async Task<Result<List<NoteModel>>> GetListAsync(CancellationToken ct = default)
@@ -93,6 +96,7 @@ namespace ManageLife.Services
 
         public async Task<Result> CreateAsync(CreateNoteRequest request, CancellationToken ct = default)
         {
+            await _uow.BeginTransactionAsync(ct);
             try
             {
                 var err = Validate(request);
@@ -113,10 +117,13 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể tạo note");
 
                 await SyncTagRelationsAsync(entity.Id, request.TagIds, ct);
+
+                await _uow.CommitAsync(ct);
                 return Result.Ok();
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Tạo note thất bại");
                 return Result.Exception("Có lỗi xảy ra", ex);
             }
@@ -155,6 +162,7 @@ namespace ManageLife.Services
 
         public async Task<Result> DeleteAsync(string id, CancellationToken ct = default)
         {
+            await _uow.BeginTransactionAsync(ct);
             try
             {
                 var userId = _userContext.GetUserId();
@@ -165,19 +173,21 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Note không tồn tại");
 
                 var relations = await _relationRepo.FindAsync(r => r.NoteId == id, ct);
-                foreach (var rel in relations) await _relationRepo.DeleteAsync(rel, ct);
+                if (relations.Any()) await _relationRepo.BulkDeleteAsync(relations, ct);
 
                 var links = await _linkRepo.FindAsync(l => l.SourceNoteId == id || l.TargetNoteId == id, ct);
-                foreach (var link in links) await _linkRepo.DeleteAsync(link, ct);
+                if (links.Any()) await _linkRepo.BulkDeleteAsync(links, ct);
 
                 var deleted = await _noteRepo.DeleteAsync(entity, ct);
                 if (!deleted)
                     return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xóa note");
 
+                await _uow.CommitAsync(ct);
                 return Result.Ok();
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Xóa note thất bại");
                 return Result.Exception("Có lỗi xảy ra", ex);
             }
@@ -298,27 +308,22 @@ namespace ManageLife.Services
 
         private async Task<List<NoteTagModel>> GetTagsForNoteAsync(string noteId, CancellationToken ct)
         {
-            var tagIds = (await _relationRepo.FindAsync(r => r.NoteId == noteId, ct))
-                .Select(r => r.TagId).ToList();
-
-            if (!tagIds.Any()) return new();
-
-            return await _tagRepo.Query(true)
-                .Where(t => tagIds.Contains(t.Id) && !t.IsDeleted)
-                .Select(t => new NoteTagModel { Id = t.Id, Name = t.Name, Color = t.Color })
+            return await _relationRepo.Query(true)
+                .Where(r => r.NoteId == noteId)
+                .Join(_tagRepo.Query(true).Where(t => !t.IsDeleted),
+                    r => r.TagId, t => t.Id,
+                    (r, t) => new NoteTagModel { Id = t.Id, Name = t.Name, Color = t.Color })
                 .ToListAsync(ct);
         }
 
         private async Task<List<NoteModel>> GetLinkedNotesAsync(string userId, string noteId, bool isOutgoing, CancellationToken ct)
         {
-            var linkedIds = isOutgoing
-                ? (await _linkRepo.FindAsync(l => l.SourceNoteId == noteId, ct)).Select(l => l.TargetNoteId).ToList()
-                : (await _linkRepo.FindAsync(l => l.TargetNoteId == noteId, ct)).Select(l => l.SourceNoteId).ToList();
-
-            if (!linkedIds.Any()) return new();
+            var linkQuery = isOutgoing
+                ? _linkRepo.Query(true).Where(l => l.SourceNoteId == noteId).Select(l => l.TargetNoteId)
+                : _linkRepo.Query(true).Where(l => l.TargetNoteId == noteId).Select(l => l.SourceNoteId);
 
             return await _noteRepo.Query(true)
-                .Where(n => linkedIds.Contains(n.Id) && n.OwnerId == userId && !n.IsDeleted)
+                .Where(n => linkQuery.Contains(n.Id) && n.OwnerId == userId && !n.IsDeleted)
                 .Select(n => new NoteModel { Id = n.Id, Title = n.Title, CreatedTime = n.CreatedTime, UpdatedTime = n.UpdatedTime })
                 .ToListAsync(ct);
         }
@@ -326,12 +331,13 @@ namespace ManageLife.Services
         private async Task SyncTagRelationsAsync(string noteId, List<string> tagIds, CancellationToken ct)
         {
             var existing = await _relationRepo.FindAsync(r => r.NoteId == noteId, ct);
+            if (existing.Any()) await _relationRepo.BulkDeleteAsync(existing, ct);
 
-            foreach (var rel in existing)
-                await _relationRepo.DeleteAsync(rel, ct);
+            var newRelations = tagIds.Distinct()
+                .Select(tagId => new NoteTagRelationEntity { NoteId = noteId, TagId = tagId })
+                .ToList();
 
-            foreach (var tagId in tagIds.Distinct())
-                await _relationRepo.InsertAsync(new NoteTagRelationEntity { NoteId = noteId, TagId = tagId }, ct);
+            if (newRelations.Count > 0) await _relationRepo.BulkInsertAsync(newRelations, ct);
         }
     }
 }

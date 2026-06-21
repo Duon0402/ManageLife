@@ -1,9 +1,4 @@
 namespace App {
-    interface NoteTagModel { id: string; name: string; color: string; }
-    interface NoteModel {
-        id: string; title: string; content: string | null;
-        tags: NoteTagModel[]; createdTime: string; updatedTime: string | null;
-    }
 
     export class NoteIndexPage extends BasePage {
         private notes: NoteModel[] = [];

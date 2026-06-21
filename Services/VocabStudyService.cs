@@ -114,48 +114,45 @@ namespace ManageLife.Services
                     progress?.IntervalDays ?? 0,
                     request.Quality);
 
-                if (progress == null)
+                bool isNew = progress == null;
+                if (isNew)
                 {
                     progress = new VocabStudyProgressEntity
                     {
                         UserId = userId!,
                         WordId = request.WordId,
                         DeckId = request.DeckId,
-                        EasinessFactor = 2.5
+                        TotalReviews = 0,
+                        CorrectCount = 0,
+                        StreakCount = 0
                     };
-                    progress.Repetitions = reps;
-                    progress.EasinessFactor = ef;
-                    progress.IntervalDays = interval;
-                    progress.NextReviewDate = nextDate;
-                    progress.LastReviewDate = DateTime.UtcNow;
-                    progress.LastQuality = request.Quality;
-                    progress.TotalReviews = 1;
-                    progress.CorrectCount = request.Quality >= 3 ? 1 : 0;
-                    progress.StreakCount = request.Quality >= 3 ? 1 : 0;
-                    progress.MasteryLevel = Sm2Algorithm.GetMasteryLevel(reps, interval);
-                    await _progressRepo.InsertAsync(progress, ct);
+                }
+
+                progress!.Repetitions = reps;
+                progress.EasinessFactor = ef;
+                progress.IntervalDays = interval;
+                progress.NextReviewDate = nextDate;
+                progress.LastReviewDate = DateTime.UtcNow;
+                progress.LastQuality = request.Quality;
+                progress.TotalReviews++;
+
+                bool correct = request.Quality >= 3;
+                if (correct)
+                {
+                    progress.CorrectCount++;
+                    progress.StreakCount++;
                 }
                 else
                 {
-                    progress.Repetitions = reps;
-                    progress.EasinessFactor = ef;
-                    progress.IntervalDays = interval;
-                    progress.NextReviewDate = nextDate;
-                    progress.LastReviewDate = DateTime.UtcNow;
-                    progress.LastQuality = request.Quality;
-                    progress.TotalReviews++;
-                    if (request.Quality >= 3)
-                    {
-                        progress.CorrectCount++;
-                        progress.StreakCount++;
-                    }
-                    else
-                    {
-                        progress.StreakCount = 0;
-                    }
-                    progress.MasteryLevel = Sm2Algorithm.GetMasteryLevel(reps, interval);
-                    await _progressRepo.UpdateAsync(progress, ct);
+                    progress.StreakCount = 0;
                 }
+
+                progress.MasteryLevel = Sm2Algorithm.GetMasteryLevel(reps, interval);
+
+                if (isNew)
+                    await _progressRepo.InsertAsync(progress, ct);
+                else
+                    await _progressRepo.UpdateAsync(progress, ct);
 
                 return Result.Ok();
             }

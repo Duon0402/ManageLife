@@ -16,7 +16,7 @@ namespace App {
         }
 
         protected bindEvents(): void {
-            $('#btn-show-answer').on('click', () => this.showAnswer());
+            this.root.find('#btn-show-answer').on('click', () => this.showAnswer());
 
             this.root.on('click', '.btn-rating', async (e) => {
                 if (!this.isAnswerShown) return;
@@ -24,7 +24,7 @@ namespace App {
                 await this.submitAndNext(quality);
             });
 
-            $('#card-audio-btn').on('click', () => {
+            this.root.find('#card-audio-btn').on('click', () => {
                 if (this.currentAudioUrl) new Audio(this.currentAudioUrl).play();
             });
         }
@@ -34,11 +34,11 @@ namespace App {
         private async loadCards(): Promise<void> {
             const res = await ApiService.get('/Vocab/GetDueCards', { deckId: this.deckId });
 
-            $('#study-loading').hide();
+            this.root.find('#study-loading').hide();
 
             if (!res.isOk()) {
                 ToastService.error(res.message || 'Không thể tải thẻ học');
-                $('#study-empty').show();
+                this.root.find('#study-empty').show();
                 return;
             }
 
@@ -48,11 +48,11 @@ namespace App {
             this.againCount = 0;
 
             if (!this.cards.length) {
-                $('#study-empty').show();
+                this.root.find('#study-empty').show();
                 return;
             }
 
-            $('#study-area').show();
+            this.root.find('#study-area').show();
             this.showCard(0);
         }
 
@@ -64,44 +64,44 @@ namespace App {
             this.currentAudioUrl = card.audioUrl || null;
 
             // Front
-            $('#card-word').text(card.word);
-            $('#card-phonetic').text(card.phonetic || '');
+            this.root.find('#card-word').text(card.word);
+            this.root.find('#card-phonetic').text(card.phonetic || '');
             if (card.audioUrl) {
-                $('#card-audio-btn').show();
+                this.root.find('#card-audio-btn').show();
             } else {
-                $('#card-audio-btn').hide();
+                this.root.find('#card-audio-btn').hide();
             }
-            $('#card-badge-new').toggle(card.isNew);
+            this.root.find('#card-badge-new').toggle(card.isNew);
 
             // Back
-            $('#card-back-pos').html(card.partOfSpeech ? `<span class="card-back-pos">${card.partOfSpeech}</span>` : '');
-            $('#card-back-definition').text(card.definition || '');
-            $('#card-back-translation').text(card.translation ? `🇻🇳 ${card.translation}` : '');
+            this.root.find('#card-back-pos').html(card.partOfSpeech ? `<span class="card-back-pos">${card.partOfSpeech}</span>` : '');
+            this.root.find('#card-back-definition').text(card.definition || '');
+            this.root.find('#card-back-translation').text(card.translation ? `🇻🇳 ${card.translation}` : '');
             if (card.exampleSentence) {
-                $('#card-back-example').text(card.exampleSentence).show();
+                this.root.find('#card-back-example').text(card.exampleSentence).show();
             } else {
-                $('#card-back-example').hide();
+                this.root.find('#card-back-example').hide();
             }
 
             // Reset flip
-            $('#flashcard').removeClass('flipped');
-            $('#btn-show-answer').show();
-            $('#rating-buttons').hide();
+            this.root.find('#flashcard').removeClass('flipped');
+            this.root.find('#btn-show-answer').show();
+            this.root.find('#rating-buttons').hide();
 
             // Progress
             const done = index;
             const total = this.cards.length;
             const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-            $('#progress-text').text(`${done} / ${total}`);
-            $('#progress-remain').text(`Còn lại: ${total - done}`);
-            $('#progress-bar').css('width', pct + '%');
+            this.root.find('#progress-text').text(`${done} / ${total}`);
+            this.root.find('#progress-remain').text(`Còn lại: ${total - done}`);
+            this.root.find('#progress-bar').css('width', pct + '%');
         }
 
         private showAnswer(): void {
             this.isAnswerShown = true;
-            $('#flashcard').addClass('flipped');
-            $('#btn-show-answer').hide();
-            $('#rating-buttons').show();
+            this.root.find('#flashcard').addClass('flipped');
+            this.root.find('#btn-show-answer').hide();
+            this.root.find('#rating-buttons').show();
         }
 
         // ── Submit & advance ──────────────────────────────────────────────────
@@ -110,7 +110,7 @@ namespace App {
             const card = this.cards[this.currentIndex];
 
             // Disable buttons during submit
-            $('#rating-buttons .btn-rating').prop('disabled', true);
+            this.root.find('#rating-buttons .btn-rating').prop('disabled', true);
 
             const res = await ApiService.post('/Vocab/SubmitReview', {
                 wordId: card.wordId,
@@ -120,7 +120,7 @@ namespace App {
 
             if (!res.isOk()) {
                 ToastService.error(res.message || 'Lưu kết quả thất bại');
-                $('#rating-buttons .btn-rating').prop('disabled', false);
+                this.root.find('#rating-buttons .btn-rating').prop('disabled', false);
                 return;
             }
 
@@ -145,17 +145,17 @@ namespace App {
 
         private showSummary(): void {
             const total = this.currentIndex;
-            $('#study-area').hide();
-            $('#stat-total').text(total);
-            $('#stat-correct').text(this.correctCount);
-            $('#stat-again').text(this.againCount);
+            this.root.find('#study-area').hide();
+            this.root.find('#stat-total').text(total);
+            this.root.find('#stat-correct').text(this.correctCount);
+            this.root.find('#stat-again').text(this.againCount);
 
             // Final progress = 100%
-            $('#progress-bar').css('width', '100%');
-            $('#progress-text').text(`${total} / ${total}`);
-            $('#progress-remain').text('Hoàn thành!');
+            this.root.find('#progress-bar').css('width', '100%');
+            this.root.find('#progress-text').text(`${total} / ${total}`);
+            this.root.find('#progress-remain').text('Hoàn thành!');
 
-            $('#study-summary').show();
+            this.root.find('#study-summary').show();
         }
     }
 }

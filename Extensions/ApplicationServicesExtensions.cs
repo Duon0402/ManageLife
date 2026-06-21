@@ -115,7 +115,7 @@ namespace ManageLife.Extensions
             #region File Upload Limits
             services.Configure<FormOptions>(o =>
             {
-                o.MultipartBodyLengthLimit = long.MaxValue;
+                o.MultipartBodyLengthLimit = 200L * 1024 * 1024;
             });
             #endregion
 
@@ -128,8 +128,7 @@ namespace ManageLife.Extensions
                 Password = redisSettings.Password,
             };
 
-            var redis = ConnectionMultiplexer.Connect(redisConfig);
-            services.AddSingleton<IConnectionMultiplexer>(redis);
+            services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConfig));
             #endregion
 
             #region SeriLog

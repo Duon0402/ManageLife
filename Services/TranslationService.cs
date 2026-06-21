@@ -260,9 +260,25 @@ namespace ManageLife.Services
             }
         }
 
-        public Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request, CancellationToken ct = default)
+        public async Task<Result<TranslationModel>> GetTranslationByIdAsync(GetTranslationByIdRequest request, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (request?.Id == null)
+                    return Result.Error<TranslationModel>(Result.DATA_INVALID.Code, TranslationKey.Common.Message.DataInvalid);
+
+                var entity = await _repo.FirstOrDefaultAsync(x => x.Id == request.Id && x.IsDeleted == false, ct);
+                if (entity == null)
+                    return Result.Error<TranslationModel>(Result.DATA_NOT_EXISTED.Code, TranslationKey.Common.Message.DataNotExisted);
+
+                return Result.Ok(entity.MapTo<TranslationModel>());
+            }
+            catch (Exception ex)
+            {
+                var msg = TranslationKey.Common.Message.SystemError;
+                _logger.Error(ex, msg);
+                return Result.Exception<TranslationModel>(msg, ex);
+            }
         }
 
         public async Task<Result<TranslationModel>> GetTranslationByKeyAsync(GetTranslationByKeyRequest request, CancellationToken ct = default)

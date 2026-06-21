@@ -8,8 +8,8 @@ namespace App {
         protected initialize(): void {
             const $el = this.root;
             this.pendingCount = parseInt($el.data('pending-count') ?? '0');
-            this.pending      = JSON.parse($el.attr('data-pending') || '[]');
-            this.applied      = JSON.parse($el.attr('data-applied') || '[]');
+            try { this.pending = JSON.parse($el.attr('data-pending') || '[]'); } catch { this.pending = []; }
+            try { this.applied = JSON.parse($el.attr('data-applied') || '[]'); } catch { this.applied = []; }
 
             this.render();
 

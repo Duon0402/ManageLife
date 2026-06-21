@@ -17,6 +17,9 @@ namespace ManageLife.Helpers
         public static bool IsLegacyHash(string hash)
             => !hash.StartsWith("$2");
 
+        public static bool VerifyPassword(string password, string hash)
+            => IsLegacyHash(hash) ? VerifyLegacy(password, hash) : Verify(password, hash);
+
         // Chỉ dùng trong migration path: verify SHA256 legacy hash
         internal static bool VerifyLegacy(string password, string hash)
         {

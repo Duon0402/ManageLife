@@ -10,18 +10,18 @@ namespace ManageLife.Services
     public class TodoReminderService : ITodoReminderService
     {
         private readonly ITodoTaskRepository _taskRepo;
-        private readonly IUserTelegramConnectionService _telegramConnectionService;
+        private readonly IUserTelegramConnectionRepository _connectionRepo;
         private readonly ITelegramService _telegramService;
         private readonly IAppLogger<TodoReminderService> _logger;
 
         public TodoReminderService(
             ITodoTaskRepository taskRepo,
-            IUserTelegramConnectionService telegramConnectionService,
+            IUserTelegramConnectionRepository connectionRepo,
             ITelegramService telegramService,
             IAppLogger<TodoReminderService> logger)
         {
             _taskRepo = taskRepo;
-            _telegramConnectionService = telegramConnectionService;
+            _connectionRepo = connectionRepo;
             _telegramService = telegramService;
             _logger = logger;
         }
@@ -49,13 +49,15 @@ namespace ManageLife.Services
                 if (taskList.Count == 0)
                     return Result.Ok();
 
+                var userIds = taskList.Select(t => t.CreatedUser).Distinct().ToList();
+                var connections = await _connectionRepo.FindAsync(c => userIds.Contains(c.UserId) && !c.IsDeleted, ct);
+                var connectionMap = connections.ToDictionary(c => c.UserId);
+
                 foreach (var task in taskList)
                 {
-                    var connectionResult = await _telegramConnectionService
-                        .GetUserTelegramConnectionByUserIdAsync(
-                            new GetUserTelegramConnectionByUserIdRequest { UserId = task.CreatedUser }, ct);
+                    connectionMap.TryGetValue(task.CreatedUser, out var connection);
 
-                    if (!connectionResult.IsOk() || connectionResult.Data == null)
+                    if (connection == null)
                     {
                         task.IsReminderSent = true;
                         await _taskRepo.UpdateAsync(task, ct);
@@ -63,7 +65,7 @@ namespace ManageLife.Services
                     }
 
                     var message = BuildReminderMessage(task);
-                    await _telegramService.SendMessageToChatAsync(connectionResult.Data.ChatId, message, ct);
+                    await _telegramService.SendMessageToChatAsync(connection.ChatId, message, ct);
 
                     task.IsReminderSent = true;
                     await _taskRepo.UpdateAsync(task, ct);
@@ -98,22 +100,19 @@ namespace ManageLife.Services
                 if (taskList.Count == 0)
                     return Result.Ok();
 
-                var grouped = taskList.GroupBy(x => x.CreatedUser);
+                var grouped = taskList.GroupBy(x => x.CreatedUser).ToList();
+
+                var userIds = grouped.Select(g => g.Key).ToList();
+                var connections = await _connectionRepo.FindAsync(c => userIds.Contains(c.UserId) && !c.IsDeleted, ct);
+                var connectionMap = connections.ToDictionary(c => c.UserId);
 
                 foreach (var group in grouped)
                 {
-                    var userId = group.Key;
-                    var userTasks = group.ToList();
-
-                    var connectionResult = await _telegramConnectionService
-                        .GetUserTelegramConnectionByUserIdAsync(
-                            new GetUserTelegramConnectionByUserIdRequest { UserId = userId }, ct);
-
-                    if (!connectionResult.IsOk() || connectionResult.Data == null)
+                    if (!connectionMap.TryGetValue(group.Key, out var connection))
                         continue;
 
-                    var message = BuildDailySummaryMessage(userTasks);
-                    await _telegramService.SendMessageToChatAsync(connectionResult.Data.ChatId, message, ct);
+                    var message = BuildDailySummaryMessage(group.ToList());
+                    await _telegramService.SendMessageToChatAsync(connection.ChatId, message, ct);
                 }
 
                 _logger.Info("Đã gửi tóm tắt ngày cho {count} người dùng", grouped.Count());

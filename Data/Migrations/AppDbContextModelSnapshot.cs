@@ -346,7 +346,7 @@ namespace ManageLife.Migrations
 
                     b.Property<string>("OwnerId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime?>("UpdatedTime")
                         .HasColumnType("datetime(6)");
@@ -355,6 +355,8 @@ namespace ManageLife.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "IsDeleted");
 
                     b.ToTable("Habits");
                 });
@@ -558,6 +560,86 @@ namespace ManageLife.Migrations
                     b.ToTable("Permissions");
                 });
 
+            modelBuilder.Entity("ManageLife.Entities.PomodoroSessionEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "StartedAt");
+
+                    b.ToTable("PomodoroSessions");
+                });
+
+            modelBuilder.Entity("ManageLife.Entities.PomodoroSettingEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("BackgroundFileId")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("FocusMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LongBreakMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShortBreakMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("YoutubeUrl")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("PomodoroSettings");
+                });
+
             modelBuilder.Entity("ManageLife.Entities.RoleEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -618,6 +700,12 @@ namespace ManageLife.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Group")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Key")
                         .IsRequired()
@@ -926,6 +1014,8 @@ namespace ManageLife.Migrations
 
                     b.HasIndex("LanguageId");
 
+                    b.HasIndex("LanguageId", "IsDeleted");
+
                     b.ToTable("Translations");
                 });
 
@@ -1070,9 +1160,11 @@ namespace ManageLife.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsDeleted");
 
                     b.ToTable("UserTelegramConnections");
                 });
@@ -1110,7 +1202,7 @@ namespace ManageLife.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("TopicId")
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("TotalCards")
                         .HasColumnType("int");
@@ -1122,6 +1214,8 @@ namespace ManageLife.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TopicId");
 
                     b.ToTable("VocabDecks");
                 });

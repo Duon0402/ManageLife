@@ -8,7 +8,9 @@ namespace App {
         private gridBuilder!: GridBuilder<UserTelegramConnectionModel>;
 
         protected initialize(): void {
-            this.loadUserOptions().then(userOptions => this.initGrid(userOptions));
+            this.loadUserOptions()
+                .then(userOptions => this.initGrid(userOptions))
+                .catch((err: unknown) => console.error('Không thể tải danh sách user', err));
         }
 
         private async loadUserOptions(): Promise<ISelectOption[]> {
