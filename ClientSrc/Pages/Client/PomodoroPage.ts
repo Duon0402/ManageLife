@@ -67,6 +67,7 @@ namespace App {
         private sessionQueue: SessionPayload[] = [];
         private isFlushing = false;
         private audioCtx: AudioContext | null = null;
+        private youtubeVolume = 80;
 
         protected initialize(): void {
             this.loadSettings();
@@ -103,6 +104,12 @@ namespace App {
             this.root.find('#btn-reset').on('click', () => this.resetTimer(true));
             this.root.find('#btn-save-settings').on('click', () => this.saveSettings());
             this.root.find('#input-youtube').on('blur', () => this.previewYoutube());
+            this.root.find('#input-yt-volume').on('input', (e) => {
+                const vol = parseInt($(e.currentTarget).val() as string);
+                this.youtubeVolume = vol;
+                this.root.find('#yt-volume-val').text(`${vol}%`);
+                this.setYoutubeVolume(vol);
+            });
 
             this.root.find('#btn-toggle-settings').on('click', () => this.togglePanel('settings'));
             this.root.find('#btn-toggle-stats').on('click', () => this.togglePanel('stats'));
@@ -186,6 +193,7 @@ namespace App {
                 .html('<i class="fa-solid fa-pause me-1"></i>Tạm dừng');
 
             this.controlYoutube('playVideo');
+            window.setTimeout(() => this.setYoutubeVolume(this.youtubeVolume), 300);
             this.setFocusMode(true);
             this.updateFavicon('⏱️');
             this.updateSettingsLock(true);
@@ -600,7 +608,9 @@ namespace App {
             const $wrap = this.root.find('#youtube-embed-wrap');
             const $frame = this.root.find('#youtube-frame');
 
-            if (!url) { $wrap.hide(); return; }
+            const hasUrl = !!url;
+            this.root.find('#youtube-volume-wrap').toggle(hasUrl);
+            if (!hasUrl) { $wrap.hide(); return; }
 
             const videoId = this.extractYoutubeId(url);
             if (videoId) {
@@ -611,10 +621,14 @@ namespace App {
             }
         }
 
-        private controlYoutube(func: string): void {
+        private controlYoutube(func: string, args: any[] = []): void {
             const frame = this.root.find('#youtube-frame')[0] as HTMLIFrameElement | undefined;
             if (!frame?.contentWindow) return;
-            frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args: '' }), '*');
+            frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+        }
+
+        private setYoutubeVolume(vol: number): void {
+            this.controlYoutube('setVolume', [vol]);
         }
 
         private extractYoutubeId(url: string): string | null {

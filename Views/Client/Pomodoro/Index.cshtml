@@ -106,6 +106,13 @@
                 <input type="text" id="input-youtube" class="form-control form-control-sm"
                        placeholder="https://youtube.com/watch?v=..." />
             </div>
+            <div class="pomo-row" id="youtube-volume-wrap" style="display:none">
+                <label>Âm lượng</label>
+                <div class="pomo-vol-wrap">
+                    <input type="range" id="input-yt-volume" min="0" max="100" value="80" class="pomo-vol-slider" />
+                    <span id="yt-volume-val" class="pomo-vol-val">80%</span>
+                </div>
+            </div>
             <div class="pomo-row pomo-row-full" id="youtube-embed-wrap" style="display:none">
                 <div class="ratio ratio-16x9">
                     <iframe id="youtube-frame" src="" title="YouTube" allowfullscreen></iframe>
@@ -433,6 +440,27 @@
     }
 
     .pomo-num:focus { outline: none; border-color: #4b49ac; }
+
+    .pomo-vol-wrap {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        flex: 1;
+    }
+
+    .pomo-vol-slider {
+        flex: 1;
+        accent-color: #4b49ac;
+        cursor: pointer;
+    }
+
+    .pomo-vol-val {
+        font-size: .78rem;
+        font-weight: 600;
+        color: #4b49ac;
+        min-width: 32px;
+        text-align: right;
+    }
 
     .pomo-btn-save {
         width: 100%;
