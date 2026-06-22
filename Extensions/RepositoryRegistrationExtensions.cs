@@ -43,6 +43,8 @@ namespace ManageLife.Extensions
             services.AddScoped<INoteTagRelationRepository, NoteTagRelationRepository>();
             services.AddScoped<INoteLinkRepository, NoteLinkRepository>();
             services.AddScoped<IHabitRepository, HabitRepository>();
+            services.AddScoped<IPomodoroSessionRepository, PomodoroSessionRepository>();
+            services.AddScoped<IPomodoroSettingRepository, PomodoroSettingRepository>();
 
             return services;
         }

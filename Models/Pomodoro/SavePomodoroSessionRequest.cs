@@ -7,5 +7,7 @@ namespace ManageLife.Models
     {
         public PomodoroSessionType Type { get; set; }
         public int DurationMinutes { get; set; }
+        public DateTime StartedAt { get; set; }
+        public bool IsCompleted { get; set; }
     }
 }

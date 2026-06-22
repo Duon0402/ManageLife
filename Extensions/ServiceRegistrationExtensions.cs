@@ -48,6 +48,7 @@ namespace ManageLife.Extensions
             services.AddScoped<INoteService, NoteService>();
             services.AddScoped<INoteTagService, NoteTagService>();
             services.AddScoped<IHabitService, HabitService>();
+            services.AddScoped<IPomodoroService, PomodoroService>();
             services.AddScoped<ISettingContext, SettingContext>();
             return services;
         }

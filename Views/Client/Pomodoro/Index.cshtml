@@ -1,0 +1,602 @@
+@model PomodoroSettingModel
+@using System.Text.Json
+@{
+    Options.Title = "Pomodoro";
+    var jsonOpts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+}
+
+<div class="pomo-page" id="pomodoro-page">
+
+    <!-- Timer Hero -->
+    <div class="pomo-hero">
+        <div class="pomo-tabs">
+            <button class="pomo-tab active" data-type="0">
+                <i class="fa-solid fa-brain me-1"></i>Focus
+            </button>
+            <button class="pomo-tab" data-type="1">
+                <i class="fa-solid fa-coffee me-1"></i>Short Break
+            </button>
+            <button class="pomo-tab" data-type="2">
+                <i class="fa-solid fa-bed me-1"></i>Long Break
+            </button>
+        </div>
+
+        <div class="pomo-timer-wrap">
+            <svg class="pomo-ring" viewBox="0 0 200 200">
+                <circle class="pomo-ring-bg" cx="100" cy="100" r="85" />
+                <circle class="pomo-ring-fg" id="timer-ring" cx="100" cy="100" r="85"
+                        stroke-dasharray="534" stroke-dashoffset="0" />
+            </svg>
+            <div class="pomo-time-inner">
+                <div class="pomo-time" id="timer-display">25:00</div>
+                <div class="pomo-type-label" id="type-label">Focus</div>
+            </div>
+        </div>
+
+        <div class="pomo-controls">
+            <button class="pomo-btn-icon" id="btn-reset" title="Reset">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+            <button class="pomo-btn-start" id="btn-start">
+                <i class="fa-solid fa-play me-1"></i>Bắt đầu
+            </button>
+            <div style="width:40px"></div>
+        </div>
+
+        <div class="pomo-loop-info" id="loop-status"></div>
+
+        <!-- Panel toggle buttons -->
+        <div class="pomo-panel-btns">
+            <button class="pomo-panel-btn" id="btn-toggle-settings" title="Cài đặt">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Cài đặt</span>
+            </button>
+            <button class="pomo-panel-btn" id="btn-toggle-stats" title="Thống kê">
+                <i class="fa-solid fa-chart-simple"></i>
+                <span>Thống kê</span>
+            </button>
+        </div>
+        <div class="pomo-keyboard-hint">
+            <kbd>Space</kbd> bắt đầu / dừng &nbsp; <kbd>R</kbd> reset
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="pomo-overlay" id="pomo-overlay"></div>
+
+    <!-- Settings Sidebar -->
+    <div class="pomo-sidebar" id="sidebar-settings">
+        <div class="pomo-sidebar-header">
+            <span><i class="fa-solid fa-sliders me-2"></i>Cài đặt</span>
+            <button class="pomo-sidebar-close" id="close-settings">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="pomo-sidebar-body">
+            <div class="pomo-row">
+                <label>Focus</label>
+                <div class="pomo-num-wrap">
+                    <input type="number" id="input-focus" class="pomo-num" min="1" max="120" value="25" />
+                    <span>phút</span>
+                </div>
+            </div>
+            <div class="pomo-row">
+                <label>Short Break</label>
+                <div class="pomo-num-wrap">
+                    <input type="number" id="input-short" class="pomo-num" min="1" max="60" value="5" />
+                    <span>phút</span>
+                </div>
+            </div>
+            <div class="pomo-row">
+                <label>Long Break</label>
+                <div class="pomo-num-wrap">
+                    <input type="number" id="input-long" class="pomo-num" min="1" max="60" value="15" />
+                    <span>phút</span>
+                </div>
+            </div>
+            <div class="pomo-row">
+                <label>Số vòng</label>
+                <div class="pomo-num-wrap">
+                    <input type="number" id="input-loops" class="pomo-num" min="1" max="20" placeholder="∞" />
+                    <span>vòng</span>
+                </div>
+            </div>
+            <div class="pomo-row pomo-row-full">
+                <label>YouTube URL</label>
+                <input type="text" id="input-youtube" class="form-control form-control-sm"
+                       placeholder="https://youtube.com/watch?v=..." />
+            </div>
+            <div class="pomo-row pomo-row-full" id="youtube-embed-wrap" style="display:none">
+                <div class="ratio ratio-16x9">
+                    <iframe id="youtube-frame" src="" title="YouTube" allowfullscreen></iframe>
+                </div>
+            </div>
+            <div id="settings-lock-note" class="pomo-lock-note" style="display:none">
+                <i class="fa-solid fa-lock me-1"></i>Tạm dừng timer để thay đổi cài đặt
+            </div>
+            <button class="pomo-btn-save mt-3" id="btn-save-settings">
+                <i class="fa-solid fa-check me-1"></i>Lưu cài đặt
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Sidebar -->
+    <div class="pomo-sidebar" id="sidebar-stats">
+        <div class="pomo-sidebar-header">
+            <span><i class="fa-solid fa-chart-simple me-2"></i>7 ngày qua</span>
+            <button class="pomo-sidebar-close" id="close-stats">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="pomo-sidebar-body">
+            <div class="pomo-stats">
+                <div class="pomo-stat">
+                    <div class="pomo-stat-val" id="stat-focus-time">0 phút</div>
+                    <div class="pomo-stat-label">Thời gian focus</div>
+                </div>
+                <div class="pomo-stat">
+                    <div class="pomo-stat-val" id="stat-sessions">0</div>
+                    <div class="pomo-stat-label">Phiên hoàn thành</div>
+                </div>
+            </div>
+            <div id="pomo-chart" class="pomo-chart"></div>
+            <div id="sessions-list" class="sessions-list">
+                <p class="text-center text-muted py-3" style="font-size:.85rem">
+                    <i class="fa-solid fa-spinner fa-spin me-1"></i>Đang tải...
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    body { overflow: hidden; }
+
+    .pomo-page {
+        height: calc(100vh - 64px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    /* ── Hero ── */
+    .pomo-hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 480px;
+    }
+
+    .pomo-tabs {
+        display: flex;
+        gap: .5rem;
+        background: #f0f1f8;
+        border-radius: 30px;
+        padding: 4px;
+        margin-bottom: 2rem;
+    }
+
+    .pomo-tab {
+        border: none;
+        background: transparent;
+        border-radius: 24px;
+        padding: .42rem 1.1rem;
+        font-size: .82rem;
+        font-weight: 600;
+        color: #7a7a9d;
+        cursor: pointer;
+        transition: background .18s, color .18s;
+    }
+
+    .pomo-tab.active {
+        background: #4b49ac;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(75,73,172,.35);
+    }
+
+    /* ── Ring ── */
+    .pomo-timer-wrap {
+        position: relative;
+        width: 240px;
+        height: 240px;
+        margin-bottom: 2rem;
+    }
+
+    .pomo-ring {
+        width: 240px;
+        height: 240px;
+        transform: rotate(-90deg);
+    }
+
+    .pomo-ring-bg {
+        fill: none;
+        stroke: #e8eaf0;
+        stroke-width: 10;
+    }
+
+    .pomo-ring-fg {
+        fill: none;
+        stroke: #4b49ac;
+        stroke-width: 10;
+        stroke-linecap: round;
+        transition: stroke-dashoffset .8s linear, stroke .3s;
+    }
+
+    .pomo-time-inner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pomo-time {
+        font-size: 3.2rem;
+        font-weight: 800;
+        color: #2c2c54;
+        letter-spacing: 2px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .pomo-type-label {
+        font-size: .78rem;
+        font-weight: 600;
+        color: #9ea5b5;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 2px;
+    }
+
+    /* ── Controls ── */
+    .pomo-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: .75rem;
+    }
+
+    .pomo-btn-start {
+        background: #4b49ac;
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        padding: .7rem 2.5rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(75,73,172,.4);
+        transition: background .2s, transform .1s;
+        min-width: 150px;
+    }
+
+    .pomo-btn-start:hover { background: #3d3c8e; }
+    .pomo-btn-start:active { transform: scale(.97); }
+    .pomo-btn-start.paused { background: #e67e22; box-shadow: 0 4px 14px rgba(230,126,34,.4); }
+    .pomo-btn-start.paused:hover { background: #ca6f1e; }
+
+    .pomo-btn-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid #e0e0ef;
+        background: #fff;
+        color: #4b49ac;
+        font-size: .9rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .15s;
+    }
+
+    .pomo-btn-icon:hover { background: #f0f1ff; }
+
+    .pomo-loop-info {
+        font-size: .82rem;
+        font-weight: 600;
+        color: #9ea5b5;
+        min-height: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ── Panel toggle buttons ── */
+    .pomo-panel-btns {
+        display: flex;
+        gap: .75rem;
+        margin-top: .5rem;
+    }
+
+    .pomo-panel-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        border: 1.5px solid #dde0f0;
+        background: #fff;
+        border-radius: 20px;
+        padding: .4rem 1rem;
+        font-size: .8rem;
+        font-weight: 600;
+        color: #7a7a9d;
+        cursor: pointer;
+        transition: background .15s, border-color .15s, color .15s;
+    }
+
+    .pomo-panel-btn:hover,
+    .pomo-panel-btn.active {
+        background: #f0f1ff;
+        border-color: #4b49ac;
+        color: #4b49ac;
+    }
+
+    /* ── Overlay ── */
+    .pomo-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.25);
+        z-index: 1040;
+        backdrop-filter: blur(2px);
+    }
+
+    .pomo-overlay.show { display: block; }
+
+    /* ── Sidebar ── */
+    .pomo-sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 340px;
+        height: 100vh;
+        background: #fff;
+        box-shadow: -4px 0 24px rgba(0,0,0,.12);
+        transform: translateX(100%);
+        transition: transform .3s cubic-bezier(.4,0,.2,1);
+        z-index: 1050;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pomo-sidebar.open { transform: translateX(0); }
+
+    @@media (max-width: 400px) { .pomo-sidebar { width: 100vw; } }
+
+    .pomo-sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        font-size: .85rem;
+        font-weight: 700;
+        color: #2c2c54;
+        border-bottom: 1px solid #eef0f8;
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 1;
+    }
+
+    .pomo-sidebar-close {
+        border: none;
+        background: transparent;
+        color: #aaa;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: .2rem .4rem;
+        border-radius: 4px;
+        transition: color .15s, background .15s;
+    }
+
+    .pomo-sidebar-close:hover { color: #e74c3c; background: #fff0f0; }
+
+    .pomo-sidebar-body { padding: 1.25rem; flex: 1; }
+
+    /* ── Settings rows ── */
+    .pomo-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: .85rem;
+        font-size: .875rem;
+    }
+
+    .pomo-row label { color: #555; font-weight: 600; margin: 0; }
+
+    .pomo-row-full {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .35rem;
+    }
+
+    .pomo-num-wrap {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        color: #888;
+        font-size: .82rem;
+    }
+
+    .pomo-num {
+        width: 64px;
+        text-align: center;
+        border: 1.5px solid #dde0f0;
+        border-radius: 6px;
+        padding: .3rem .4rem;
+        font-size: .875rem;
+        font-weight: 600;
+        color: #2c2c54;
+    }
+
+    .pomo-num:focus { outline: none; border-color: #4b49ac; }
+
+    .pomo-btn-save {
+        width: 100%;
+        background: #f5f7ff;
+        color: #4b49ac;
+        border: 1.5px solid #dde0f0;
+        border-radius: 8px;
+        padding: .55rem;
+        font-size: .875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+    .pomo-btn-save:hover { background: #eeeeff; }
+
+    /* ── Stats ── */
+    .pomo-stats {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .pomo-stat {
+        flex: 1;
+        background: #f8f9fd;
+        border-radius: 8px;
+        padding: .85rem;
+        text-align: center;
+    }
+
+    .pomo-stat-val {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #4b49ac;
+    }
+
+    .pomo-stat-label {
+        font-size: .72rem;
+        color: #9ea5b5;
+        font-weight: 600;
+        margin-top: 3px;
+    }
+
+    /* ── Session list ── */
+    .sessions-list { font-size: .82rem; }
+
+    .session-item {
+        display: grid;
+        grid-template-columns: 1fr auto auto auto;
+        align-items: center;
+        gap: .5rem;
+        padding: .55rem 0;
+        border-bottom: 1px solid #f0f1f7;
+    }
+
+    .session-item:last-child { border-bottom: none; }
+    .session-type { font-weight: 600; }
+    .session-duration { color: #888; white-space: nowrap; }
+    .session-time { color: #aaa; font-size: .75rem; white-space: nowrap; }
+
+    /* ── Bar chart ── */
+    .pomo-chart {
+        display: flex;
+        align-items: flex-end;
+        height: 80px;
+        gap: 3px;
+        margin-bottom: 1.1rem;
+        padding: 0 .1rem;
+    }
+
+    .pomo-bar-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        gap: 2px;
+    }
+
+    .pomo-bar-count {
+        font-size: .62rem;
+        font-weight: 700;
+        color: #4b49ac;
+        min-height: 11px;
+        line-height: 1;
+    }
+
+    .pomo-bar-wrap {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .pomo-bar {
+        width: 100%;
+        background: linear-gradient(to top, #4b49ac, #7b79d0);
+        border-radius: 3px 3px 0 0;
+        min-height: 2px;
+        transition: height .4s ease;
+        opacity: .8;
+    }
+
+    .pomo-bar-label {
+        font-size: .58rem;
+        color: #bbb;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    /* ── Keyboard hint ── */
+    .pomo-keyboard-hint {
+        margin-top: .6rem;
+        font-size: .7rem;
+        color: #c5c9dc;
+    }
+
+    .pomo-keyboard-hint kbd {
+        background: #f0f1f8;
+        border: 1px solid #dde0f0;
+        border-radius: 3px;
+        padding: .1rem .35rem;
+        font-size: .65rem;
+        color: #7a7a9d;
+        font-family: monospace;
+    }
+
+    /* ── Focus mode — ẩn header khi đang chạy ── */
+    .layout .header {
+        transition: height .35s ease;
+        overflow: hidden;
+    }
+
+    body.pomo-focus-mode .layout .header {
+        height: 0 !important;
+    }
+
+    body.pomo-focus-mode .pomo-page {
+        height: 100vh !important;
+    }
+
+    /* ── Settings lock ── */
+    .pomo-lock-note {
+        font-size: .75rem;
+        color: #e67e22;
+        font-weight: 600;
+        padding: .4rem .6rem;
+        background: #fff8f0;
+        border: 1px solid #fde8cc;
+        border-radius: 6px;
+        margin-bottom: .5rem;
+    }
+
+    .pomo-num:disabled,
+    #input-youtube:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+    }
+</style>
+
+<script>
+    window.__pomodoroSettings = @Html.Raw(JsonSerializer.Serialize(Model, jsonOpts));
+    $(function () {
+        new App.PomodoroPage('#pomodoro-page');
+    });
+</script>

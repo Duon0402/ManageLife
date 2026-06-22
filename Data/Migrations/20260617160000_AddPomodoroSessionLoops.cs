@@ -11,17 +11,17 @@ namespace ManageLife.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
-SET @sql = IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA=DATABASE()
-       AND TABLE_NAME='PomodoroSettings'
-       AND COLUMN_NAME='SessionLoops') = 0,
-    'ALTER TABLE `PomodoroSettings` ADD `SessionLoops` int NULL',
-    'SELECT 1');
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-");
+            SET @sql = IF(
+                (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA=DATABASE()
+                   AND TABLE_NAME='PomodoroSettings'
+                   AND COLUMN_NAME='SessionLoops') = 0,
+                'ALTER TABLE `PomodoroSettings` ADD `SessionLoops` int NULL',
+                'SELECT 1');
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+            ");
         }
 
         /// <inheritdoc />
