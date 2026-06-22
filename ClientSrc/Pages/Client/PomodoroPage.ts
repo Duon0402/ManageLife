@@ -158,6 +158,7 @@ namespace App {
             this.root.find(`.pomo-tab[data-type="${type}"]`).addClass('active');
             this.updateRingColor();
             this.resetTimer();
+            this.updateLoopStatus();
         }
 
         private updateRingColor(): void {
@@ -271,7 +272,6 @@ namespace App {
                 this.switchType(0);
             }
 
-            this.updateLoopStatus();
             this.startTimer();
         }
 
