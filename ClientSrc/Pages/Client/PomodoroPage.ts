@@ -30,19 +30,10 @@ namespace App {
         isCompleted: boolean;
     }
 
-    interface SavedTimerState {
-        currentType: number;
-        remainingSeconds: number;
-        totalSeconds: number;
-        startedAt: string | null;
-        completedFocusInCycle: number;
-    }
-
     const TYPE_NAMES = ['Focus', 'Short Break', 'Long Break'];
     const TYPE_COLORS = ['#4b49ac', '#27ae60', '#e67e22'];
     const TYPE_ICONS = ['fa-brain', 'fa-coffee', 'fa-bed'];
     const RING_CIRCUMFERENCE = 2 * Math.PI * 85;
-    const LS_KEY = 'pomo_timer_state';
     const DEFAULT_SESSION_LOOPS = 4;
 
     export class PomodoroPage extends BasePage {
@@ -136,9 +127,7 @@ namespace App {
                 if (!res.isOk() || !res.data) return;
                 this.settings = res.data as PomodoroSettings;
             }
-            const savedRaw = localStorage.getItem(LS_KEY);
             this.applySettings();
-            if (savedRaw) this.restoreTimerState(savedRaw);
         }
 
         private applySettings(): void {
@@ -233,7 +222,6 @@ namespace App {
             this.totalSeconds = this.durationForType(this.currentType) * 60;
             this.remainingSeconds = this.totalSeconds;
 
-            localStorage.removeItem(LS_KEY);
             this.updateDisplay();
             this.root.find('#btn-start')
                 .removeClass('paused')
@@ -249,13 +237,11 @@ namespace App {
             const progress = this.totalSeconds > 0 ? this.remainingSeconds / this.totalSeconds : 0;
             this.root.find('#timer-ring').css('stroke-dashoffset', RING_CIRCUMFERENCE * (1 - progress));
 
-            if (this.isRunning) this.saveTimerState();
         }
 
         private onTimerComplete(): void {
             this.pauseTimer();
             this.root.find('#timer-display').text('00:00');
-            localStorage.removeItem(LS_KEY);
 
             this.playBeep();
             this.showNotification(
@@ -561,44 +547,6 @@ namespace App {
                 osc.start(ctx.currentTime);
                 osc.stop(ctx.currentTime + duration);
             } catch {}
-        }
-
-        // ── LocalStorage state backup ─────────────────────────
-
-        private saveTimerState(): void {
-            try {
-                const state: SavedTimerState = {
-                    currentType: this.currentType,
-                    remainingSeconds: this.remainingSeconds,
-                    totalSeconds: this.totalSeconds,
-                    startedAt: this.startedAt?.toISOString() ?? null,
-                    completedFocusInCycle: this.completedFocusInCycle
-                };
-                localStorage.setItem(LS_KEY, JSON.stringify(state));
-            } catch {}
-        }
-
-        private restoreTimerState(raw: string): void {
-            try {
-                const state: SavedTimerState = JSON.parse(raw);
-                if (state.currentType !== this.currentType) {
-                    this.currentType = state.currentType;
-                    this.root.find('.pomo-tab').removeClass('active');
-                    this.root.find(`.pomo-tab[data-type="${this.currentType}"]`).addClass('active');
-                    this.updateRingColor();
-                }
-                this.totalSeconds = state.totalSeconds;
-                this.remainingSeconds = state.remainingSeconds;
-                this.completedFocusInCycle = state.completedFocusInCycle;
-                if (state.startedAt) this.startedAt = new Date(state.startedAt);
-                this.updateDisplay();
-                this.updateLoopStatus();
-                this.root.find('#btn-start')
-                    .removeClass('paused')
-                    .html('<i class="fa-solid fa-play me-1"></i>Tiếp tục');
-            } catch {
-                localStorage.removeItem(LS_KEY);
-            }
         }
 
         // ── YouTube ───────────────────────────────────────────
