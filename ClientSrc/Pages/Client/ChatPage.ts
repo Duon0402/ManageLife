@@ -1,6 +1,16 @@
 namespace App {
 
-    // ─── MODEL ───────────────────────────────────────────────────────────────
+    // ─── MODELS ──────────────────────────────────────────────────────────────
+
+    interface ChatUserItem {
+        id: string;
+        displayName: string;
+    }
+
+    interface ChatPageModel {
+        currentUserId: string;
+        users: ChatUserItem[];
+    }
 
     interface ChatMessageModel {
         id: string;
@@ -10,22 +20,18 @@ namespace App {
         createdTime: string;
     }
 
-    // ─── CHAT PAGE ────────────────────────────────────────────────────
+    // ─── CHAT PAGE ────────────────────────────────────────────────────────────
 
-    export class ChatPage extends BasePage {
+    export class ChatPage extends BasePage<ChatPageModel> {
 
         private connection: any; // signalR.HubConnection
+        private connectionReady: Promise<void> = Promise.resolve();
         private currentRoomId: string | null = null;
         private currentUserId: string = '';
-        private typingTimer: number;
+        private typingTimer: number = 0;
 
         protected initialize(): void {
-            const attrId = this.root.attr('data-user-id');
-            const hiddenId = $('#current-user-id-hidden').val() as string;
-            const windowId = (window as any).chatUserId;
-
-            this.currentUserId = (attrId || hiddenId || windowId || '').trim().toLowerCase();
-
+            this.currentUserId = (this.model.currentUserId || '').trim().toLowerCase();
             this.initSignalR();
         }
 
@@ -43,36 +49,39 @@ namespace App {
         }
 
         private initSignalR(): void {
-            // signalR should be loaded globally in layout or index view
             this.connection = new (window as any).signalR.HubConnectionBuilder()
                 .withUrl("/chathub")
                 .withAutomaticReconnect()
                 .build();
 
-            this.connection.start().catch((err: any) => console.error(err.toString()));
+            this.connectionReady = this.connection.start().catch((err: any) => console.error(err.toString()));
+
+            this.connection.onreconnected(() => {
+                if (this.currentRoomId) {
+                    this.connection.invoke("JoinRoom", this.currentRoomId).catch((err: any) => console.error(err));
+                }
+            });
 
             this.connection.on("ReceiveMessage", (message: ChatMessageModel) => {
                 if (message.roomId === this.currentRoomId) {
-                    const senderIdArr = (message.senderId || '').trim().toLowerCase();
-                    // If it's our own message, we already rendered it optimistically
-                    if (senderIdArr !== this.currentUserId) {
+                    const senderId = (message.senderId || '').trim().toLowerCase();
+                    if (senderId !== this.currentUserId) {
                         this.renderMessage(message);
                         this.scrollToBottom();
                     }
-
                     this.connection.invoke("MarkAsRead", this.currentRoomId).catch((err: any) => console.error(err));
                 }
             });
 
             this.connection.on("UserTyping", (data: any) => {
-                if (data.roomId === this.currentRoomId && data.userId !== this.currentUserId) {
+                if (data.roomId === this.currentRoomId && (data.userId || '').trim().toLowerCase() !== this.currentUserId) {
                     const $indicator = this.root.find("#typingIndicator");
-                    if (data.isTyping) {
-                        $indicator.show();
-                    } else {
-                        $indicator.hide();
-                    }
+                    data.isTyping ? $indicator.show() : $indicator.hide();
                 }
+            });
+
+            this.connection.on("MessagesRead", (_data: { roomId: string; userId: string }) => {
+                // placeholder: cập nhật UI read receipt nếu cần sau này
             });
         }
 
@@ -85,6 +94,8 @@ namespace App {
 
             LoadingService.show();
             try {
+                await this.connectionReady;
+
                 const res = await ApiService.post('/Chat/CreateOrGetPrivateRoom', { userId: targetUserId });
 
                 if (res.isOk()) {
@@ -93,7 +104,6 @@ namespace App {
                     }
 
                     this.currentRoomId = res.data as string;
-                    this.root.find('#currentRoomInfo').text(`Room ID: ${this.currentRoomId}`);
                     this.root.find('#messagesList').empty();
 
                     await this.connection.invoke("JoinRoom", this.currentRoomId);
@@ -121,7 +131,6 @@ namespace App {
 
             if (!content || !this.currentRoomId) return;
 
-            // --- Optimistic UI ---
             const tempMessage: ChatMessageModel = {
                 id: 'temp-' + Date.now(),
                 roomId: this.currentRoomId,
@@ -133,25 +142,24 @@ namespace App {
             this.renderMessage(tempMessage);
             this.scrollToBottom();
             $input.val('');
-            // ---------------------
 
             try {
                 await this.connection.invoke("SendMessage", this.currentRoomId, content);
             } catch (err) {
                 console.error(err);
                 ToastService.error("Không thể gửi tin nhắn.");
-                // Optionally: remove the temp message or mark it as failed
             }
         }
 
         private handleTyping(): void {
             if (!this.currentRoomId) return;
 
-            this.connection.invoke("Typing", this.currentRoomId, true).catch(() => { });
+            const roomId = this.currentRoomId;
+            this.connection.invoke("Typing", roomId, true).catch(() => { });
 
             clearTimeout(this.typingTimer);
             this.typingTimer = window.setTimeout(() => {
-                this.connection.invoke("Typing", this.currentRoomId, false).catch(() => { });
+                this.connection.invoke("Typing", roomId, false).catch(() => { });
             }, 1000);
         }
 
@@ -160,12 +168,18 @@ namespace App {
                 const res = await ApiService.get(`/Chat/${roomId}/messages`, { pageSize: 50 });
                 if (res.isOk() && res.data) {
                     const messages = res.data as ChatMessageModel[];
-                    messages.reverse().forEach((msg: ChatMessageModel) => this.renderMessage(msg));
+                    messages.reverse().forEach((msg) => this.renderMessage(msg));
                     this.scrollToBottom();
                 }
             } catch (err) {
                 console.error("Failed to load history", err);
             }
+        }
+
+        private getUserDisplayName(userId: string): string {
+            const normalized = (userId || '').trim().toLowerCase();
+            const user = (this.model.users || []).find(u => u.id.trim().toLowerCase() === normalized);
+            return user?.displayName || userId.substring(0, 8);
         }
 
         private renderMessage(msg: ChatMessageModel): void {
@@ -178,8 +192,8 @@ namespace App {
             const bubbleClass = isMe ? "bg-primary text-white shadow-sm" : "bg-white border shadow-sm";
             const borderRadius = isMe ? "border-radius: 15px 15px 2px 15px;" : "border-radius: 15px 15px 15px 2px;";
 
-            const senderName = isMe ? "Bạn" : `User ${msg.senderId.substring(0, 5)}`;
-            const senderElem = !isMe ? `<small class="d-block fw-bold mb-1 text-primary">${senderName}</small>` : '';
+            const senderName = isMe ? "Bạn" : this.getUserDisplayName(msg.senderId);
+            const senderElem = !isMe ? `<small class="d-block fw-bold mb-1 text-primary">${this.escapeHtml(senderName)}</small>` : '';
 
             const timeStr = msg.createdTime || (msg as any).sentAt;
             const timeDisplay = timeStr ? new Date(timeStr).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '';
@@ -190,9 +204,7 @@ namespace App {
                     <div class="p-2 px-3 ${bubbleClass}" style="${borderRadius}">
                         ${senderElem}
                         <div class="message-content" style="word-break: break-word; white-space: pre-wrap;">${this.escapeHtml(msg.content)}</div>
-                        <small class="d-block mt-1 text-end ${timeColor}" style="font-size: 0.7em;">
-                            ${timeDisplay}
-                        </small>
+                        <small class="d-block mt-1 text-end ${timeColor}" style="font-size: 0.7em;">${timeDisplay}</small>
                     </div>
                 </div>
             `;
@@ -208,9 +220,7 @@ namespace App {
 
         private scrollToBottom(): void {
             const box = this.root.find('#chatBox')[0];
-            if (box) {
-                box.scrollTop = box.scrollHeight;
-            }
+            if (box) box.scrollTop = box.scrollHeight;
         }
     }
 }

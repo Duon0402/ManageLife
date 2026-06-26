@@ -4,6 +4,7 @@ using ManageLife.Core;
 using ManageLife.Extensions;
 using ManageLife.Interfaces;
 using ManageLife.Models;
+using ManageLife.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,13 +35,27 @@ namespace ManageLife.Controllers.Client
             if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableChat, true))
                 return NotFound();
 
-            var res = await _userService.GetListUsersAsync(ct);
+            var currentUserId = User.GetUserId() ?? string.Empty;
 
-            var currentUserId = User.GetUserId();
+            var usersResult = await _userService.GetListUsersAsync(ct);
+            var users = usersResult.IsOk() && usersResult.Data != null
+                ? usersResult.Data
+                    .Where(u => u.Id != currentUserId && u.IsActive && !u.IsDeleted)
+                    .Select(u => new ChatUserItem
+                    {
+                        Id = u.Id,
+                        DisplayName = string.IsNullOrWhiteSpace(u.FullName) ? u.UserName : u.FullName
+                    })
+                    .ToList()
+                : [];
 
-            _logger.Info($"Chat Index - UserID: {currentUserId}, Claims: {string.Join("|", User.Claims.Select(c => $"{c.Type}={c.Value}"))}");
+            var vm = new ChatViewModel
+            {
+                CurrentUserId = currentUserId,
+                Users = users
+            };
 
-            return View();
+            return View(vm);
         }
 
         [HttpPost("CreateOrGetPrivateRoom")]
@@ -59,6 +74,14 @@ namespace ManageLife.Controllers.Client
         [HttpGet("{roomId}/messages")]
         public async Task<Result<List<ChatMessageModel>>> GetMessages(string roomId, [FromQuery] DateTime? before, [FromQuery] int pageSize = 50, CancellationToken ct = default)
         {
+            var currentUserId = User.GetUserId();
+            if (string.IsNullOrEmpty(currentUserId))
+                return Result.Error<List<ChatMessageModel>>("401", "Unauthorized");
+
+            var isMember = await _chatService.IsMemberAsync(roomId, currentUserId, ct);
+            if (!isMember)
+                return Result.Error<List<ChatMessageModel>>("403", "Không có quyền truy cập room này.");
+
             return await _chatService.GetMessagesAsync(roomId, before, pageSize, ct);
         }
     }

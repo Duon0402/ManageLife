@@ -5,6 +5,11 @@
     {
       "library": "bootstrap-datepicker@1.9.0",
       "destination": "wwwroot/lib/bootstrap-datepicker/"
+    },
+    {
+      "library": "microsoft-signalr@7.0.5",
+      "destination": "wwwroot/lib/microsoft-signalr/",
+      "files": ["signalr.min.js"]
     }
   ]
 }

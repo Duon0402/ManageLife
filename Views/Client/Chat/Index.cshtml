@@ -1,21 +1,28 @@
+@model ManageLife.ViewModels.ChatViewModel
 @{
     ViewData["Title"] = "Chat Test";
 }
 
-<div class="container mt-4" id="chat-page" data-user-id="@User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value">
+<div class="container mt-4" id="chat-page">
     <h2><i class="fa-regular fa-comments me-2"></i> Chat Test</h2>
-    
+
     <div class="row mt-4">
         <!-- Sidebar for User Selection -->
         <div class="col-md-4 border-end">
-            <h4>Select User</h4>
+            <h4>Chọn người dùng</h4>
             <div class="mb-3">
-                <input type="text" id="targetUserId" class="form-control" placeholder="Enter User ID">
+                <select id="targetUserId" class="form-select">
+                    <option value="">-- Chọn người dùng --</option>
+                    @foreach (var user in Model.Users)
+                    {
+                        <option value="@user.Id">@user.DisplayName</option>
+                    }
+                </select>
                 <button id="startChatBtn" class="btn btn-primary mt-2 w-100">
                     <i class="fa-regular fa-paper-plane me-2"></i> Bắt đầu chat
                 </button>
             </div>
-            
+
             <hr />
             <h5>Current Room</h5>
             <div id="currentRoomInfo" class="text-muted">No room selected</div>
@@ -26,22 +33,25 @@
             <div id="chatBox" class="border rounded p-3 mb-3 d-flex flex-column" style="height: 400px; overflow-y: scroll; background-color: #f8f9fa;">
                 <div id="messagesList" class="d-flex flex-column w-100 mt-auto"></div>
             </div>
-            
+
             <div id="typingIndicator" class="text-muted mb-2" style="display: none; font-size: 0.9em;">
-                <em>User is typing...</em>
+                <em>Đang nhập...</em>
             </div>
 
             <div class="input-group">
-                <input type="text" id="messageInput" class="form-control" placeholder="Type a message..." disabled>
-                <button id="sendBtn" class="btn btn-success" disabled>Send</button>
+                <input type="text" id="messageInput" class="form-control" placeholder="Nhập tin nhắn..." disabled>
+                <button id="sendBtn" class="btn btn-success" disabled>Gửi</button>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script src="~/lib/microsoft-signalr/signalr.min.js"></script>
 <script>
     $(function () {
-        new App.ChatPage("#chat-page");
+        new App.ChatPage("#chat-page", {
+            currentUserId: '@Model.CurrentUserId',
+            users: @Html.Raw(Json.Serialize(Model.Users.Select(u => new { id = u.Id, displayName = u.DisplayName })))
+        });
     });
 </script>
