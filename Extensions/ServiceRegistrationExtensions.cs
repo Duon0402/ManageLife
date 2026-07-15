@@ -50,6 +50,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IHabitService, HabitService>();
             services.AddScoped<IPomodoroService, PomodoroService>();
             services.AddScoped<ISettingContext, SettingContext>();
+            services.AddScoped<IEmailService, EmailService>();
             return services;
         }
     }

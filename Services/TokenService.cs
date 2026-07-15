@@ -27,6 +27,7 @@ namespace ManageLife.Services
         private readonly IUserRoleRepository _userRoleRepo;
         private readonly IUnitOfWork _uow;
         private readonly ICacheService _cache;
+        private readonly ISettingContext _settingContext;
 
         public TokenService(
             IUserRefreshTokenRepository refreshRepo,
@@ -37,6 +38,7 @@ namespace ManageLife.Services
             IHttpContextAccessor httpContextAccessor,
             IUnitOfWork uow,
             ICacheService cache,
+            ISettingContext settingContext,
             IAppLogger<TokenService> logger,
             IUserContext userContext) : base(logger, userContext)
         {
@@ -48,6 +50,7 @@ namespace ManageLife.Services
             _userRoleRepo = userRoleRepo;
             _uow = uow;
             _cache = cache;
+            _settingContext = settingContext;
         }
 
         #region Access Token
@@ -208,7 +211,7 @@ namespace ManageLife.Services
                     .ToListAsync(ct);
 
                 var newAccessToken = GenerateAccessToken(tokenEntity.UserId, user.UserName, user.SecurityStamp!, roles);
-                SetTokensCookie(newAccessToken, newRefreshToken);
+                await SetTokensCookieAsync(newAccessToken, newRefreshToken);
 
                 return Result.Ok(new AuthTokenModel
                 {
@@ -227,16 +230,18 @@ namespace ManageLife.Services
         #endregion
 
         #region Cookie Management
-        public void SetTokensCookie(string accessToken, string refreshToken)
+        public async Task SetTokensCookieAsync(string accessToken, string refreshToken)
         {
             var context = _httpContextAccessor.HttpContext!;
+
+            var sessionTimeoutMinutes = await _settingContext.GetIntAsync(SettingKeys.Security.SessionTimeoutMinutes, 60);
 
             context.Response.Cookies.Append("accessToken", accessToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTimeHelper.UtcNow().AddMinutes(60)
+                Expires = DateTimeHelper.UtcNow().AddMinutes(sessionTimeoutMinutes)
             });
 
             context.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions

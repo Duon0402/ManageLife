@@ -54,7 +54,7 @@ namespace ManageLife.Middleware
                     var result = await tokenService.RefreshTokenAsync(refreshToken, ct);
                     if (result.IsOk() && result.Data.AccessToken.IsNotEmpty() && result.Data.RefreshToken.IsNotEmpty())
                     {
-                        tokenService.SetTokensCookie(result.Data.AccessToken, result.Data.RefreshToken);
+                        await tokenService.SetTokensCookieAsync(result.Data.AccessToken, result.Data.RefreshToken);
                         var newPrincipal = tokenService.ValidateAccessToken(result.Data.AccessToken);
                         if (newPrincipal != null)
                         {

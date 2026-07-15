@@ -616,6 +616,9 @@ namespace ManageLife.Migrations
                     b.Property<int>("LongBreakMinutes")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SessionLoops")
+                        .HasColumnType("int");
+
                     b.Property<int>("ShortBreakMinutes")
                         .HasColumnType("int");
 

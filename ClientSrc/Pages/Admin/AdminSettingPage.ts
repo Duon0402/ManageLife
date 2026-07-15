@@ -6,7 +6,8 @@ namespace App {
         Number = 3,
         Json = 4,
         Color = 5,
-        Url = 6
+        Url = 6,
+        Password = 7
     }
 
     interface SettingModel {
@@ -21,6 +22,11 @@ namespace App {
     export class AdminSettingPage extends BasePage {
 
         protected initialize(): void {
+            this.addPageAction({
+                icon: 'fa-paper-plane',
+                label: 'Gửi email thử',
+                onClick: () => this.sendTestEmail()
+            });
             this.initGrid();
         }
 
@@ -42,7 +48,7 @@ namespace App {
         private initGrid(): void {
             new GridBuilder<SettingModel>('#tblSetting')
                 .setDataSource({ url: '/Admin/Setting/GetList' })
-                .setOptions({ searching: false, ordering: false, scrollX: false })
+                .setOptions({ searching: false, ordering: false })
                 .addColumn({
                     field: 'group',
                     title: 'Nhóm',
@@ -93,6 +99,8 @@ namespace App {
                     return `<input type="url" class="form-control form-control-sm setting-value-input" value="${val}" placeholder="https://...">`;
                 case SettingType.Json:
                     return `<textarea class="form-control form-control-sm setting-value-input" rows="3">${val}</textarea>`;
+                case SettingType.Password:
+                    return `<input type="password" class="form-control form-control-sm setting-value-input" value="${val}" autocomplete="new-password">`;
                 default:
                     return `<input type="text" class="form-control form-control-sm setting-value-input" value="${val}">`;
             }
@@ -111,6 +119,21 @@ namespace App {
                 ToastService.error('Lỗi hệ thống');
             } finally {
                 $btn?.prop('disabled', false);
+            }
+        }
+
+        private async sendTestEmail(): Promise<void> {
+            const email = window.prompt('Nhập địa chỉ email nhận thử:');
+            if (!email) return;
+            try {
+                const res = await ApiService.post('/Admin/Setting/SendTestEmail', { to: email });
+                if (res.isOk()) {
+                    ToastService.success('Đã gửi email thử');
+                } else {
+                    ToastService.error(res.message || 'Gửi email thất bại');
+                }
+            } catch {
+                ToastService.error('Lỗi hệ thống');
             }
         }
 

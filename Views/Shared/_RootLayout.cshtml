@@ -2,6 +2,8 @@
     var siteName = await SettingContext.GetStringAsync(SettingKeys.Site.Name) ?? "Manage Life";
     var faviconUrl = await SettingContext.GetStringAsync(SettingKeys.Site.FaviconUrl);
     var siteDescription = await SettingContext.GetStringAsync(SettingKeys.Site.Description);
+    var metaKeywords = await SettingContext.GetStringAsync(SettingKeys.Seo.MetaKeywords);
+    var googleAnalyticsId = await SettingContext.GetStringAsync(SettingKeys.Seo.GoogleAnalyticsId);
     var primaryColor = await SettingContext.GetStringAsync(SettingKeys.Ui.PrimaryColor);
 
     var rawTitle = this.GetTitle();
@@ -48,6 +50,20 @@
     @if (!string.IsNullOrEmpty(siteDescription))
     {
         <meta name="description" content="@siteDescription" />
+    }
+    @if (!string.IsNullOrEmpty(metaKeywords))
+    {
+        <meta name="keywords" content="@metaKeywords" />
+    }
+    @if (!string.IsNullOrEmpty(googleAnalyticsId))
+    {
+        <script async src="https://www.googletagmanager.com/gtag/js?id=@googleAnalyticsId"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', '@googleAnalyticsId');
+        </script>
     }
     @if (!string.IsNullOrEmpty(primaryColor))
     {

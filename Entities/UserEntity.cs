@@ -17,5 +17,7 @@ namespace ManageLife.Entities
         public string? DeletedUser { get; set; }
         public DateTime? DeletedTime { get; set; }
         public bool IsDeleted { get; set; }
+        public int AccessFailedCount { get; set; }
+        public DateTime? LockoutEnd { get; set; }
     }
 }

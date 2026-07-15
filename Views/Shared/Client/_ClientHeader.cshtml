@@ -8,6 +8,7 @@
     var logoUrl = await SettingContext.GetStringAsync(SettingKeys.Site.LogoUrl);
     var enableChat = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableChat, true);
     var enableVocab = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableVocab, true);
+    var enablePomodoro = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnablePomodoro, true);
 }
 
 <header class="header" id="client-header">
@@ -77,11 +78,14 @@
                                 <i class="fa-solid fa-repeat me-2"></i>Thói quen
                             </a>
                         </li>
+                        @if (enablePomodoro)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Pomodoro") ? "active" : "")" href="/Pomodoro">
                                 <i class="fa-solid fa-clock me-2"></i>Pomodoro
                             </a>
                         </li>
+                        }
                         <li><hr class="dropdown-divider" /></li>
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Utility/EmailDailyReport") ? "active" : "")"

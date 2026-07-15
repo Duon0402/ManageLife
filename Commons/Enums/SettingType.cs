@@ -8,6 +8,7 @@ namespace ManageLife.Commons
         Number,
         Json,
         Color,
-        Url
+        Url,
+        Password
     }
 }

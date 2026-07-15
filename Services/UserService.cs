@@ -19,6 +19,7 @@ namespace ManageLife.Services
         private readonly IUserRefreshTokenRepository _refreshRepo;
         private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _uow;
+        private readonly ISettingContext _settingContext;
 
         public UserService(
             IUserRepository userRepo,
@@ -27,6 +28,7 @@ namespace ManageLife.Services
             IUserRefreshTokenRepository refreshRepo,
             ITokenService tokenService,
             IUnitOfWork uow,
+            ISettingContext settingContext,
             IUserContext userContext,
             IAppLogger<UserService> logger) : base(logger, userContext)
         {
@@ -36,6 +38,7 @@ namespace ManageLife.Services
             _refreshRepo = refreshRepo;
             _tokenService = tokenService;
             _uow = uow;
+            _settingContext = settingContext;
         }
 
         public async Task<Result> RegisterAsync(RegisterAccountRequest request, CancellationToken ct = default)
@@ -108,7 +111,7 @@ namespace ManageLife.Services
 
                 var roles = new List<string> { roleEntity.Name };
                 var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, userEntity.SecurityStamp!, roles);
-                _tokenService.SetTokensCookie(accessToken, refreshToken);
+                await _tokenService.SetTokensCookieAsync(accessToken, refreshToken);
 
                 return Result.Ok();
             }
@@ -141,11 +144,34 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, "Tài khoản của bạn đã bị khóa");
                 }
 
+                if (userEntity.LockoutEnd.HasValue)
+                {
+                    if (userEntity.LockoutEnd.Value > DateTimeHelper.UtcNow())
+                    {
+                        _logger.Debug("Tài khoản đang bị khóa tạm thời do đăng nhập sai nhiều lần");
+                        return Result.Error(Result.DATA_INVALID.Code, "Tài khoản tạm thời bị khoá do đăng nhập sai quá nhiều lần, vui lòng thử lại sau");
+                    }
+
+                    // Lockout đã hết hạn — cấp lại lượt thử mới, tránh khoá vô thời hạn chỉ vì gõ sai 1 lần sau đó
+                    userEntity.AccessFailedCount = 0;
+                    userEntity.LockoutEnd = null;
+                }
+
                 var passwordValid = PasswordHelper.VerifyPassword(request.Password, userEntity.HashPassword);
 
                 if (!passwordValid)
                 {
                     _logger.Debug("Mật khẩu không đúng");
+
+                    var maxLoginAttempts = await _settingContext.GetIntAsync(SettingKeys.Security.MaxLoginAttempts, 5);
+                    var lockoutMinutes = await _settingContext.GetIntAsync(SettingKeys.Security.LockoutMinutes, 15);
+
+                    userEntity.AccessFailedCount++;
+                    if (userEntity.AccessFailedCount >= maxLoginAttempts)
+                        userEntity.LockoutEnd = DateTimeHelper.UtcNow().AddMinutes(lockoutMinutes);
+
+                    await _userRepo.UpdateAsync(userEntity, ct);
+
                     return Result.Error(Result.DATA_INVALID.Code, "Tên đăng nhập hoặc mật khẩu không đúng");
                 }
 
@@ -162,6 +188,13 @@ namespace ManageLife.Services
                 if (userEntity.SecurityStamp.IsEmpty())
                 {
                     userEntity.SecurityStamp = IdHelper.NewId();
+                    needsUpdate = true;
+                }
+
+                if (userEntity.AccessFailedCount != 0 || userEntity.LockoutEnd.HasValue)
+                {
+                    userEntity.AccessFailedCount = 0;
+                    userEntity.LockoutEnd = null;
                     needsUpdate = true;
                 }
 
@@ -202,7 +235,7 @@ namespace ManageLife.Services
                     .ToListAsync(ct);
 
                 var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, userEntity.SecurityStamp!, roles);
-                _tokenService.SetTokensCookie(accessToken, refreshToken);
+                await _tokenService.SetTokensCookieAsync(accessToken, refreshToken);
 
                 return Result.Ok();
             }

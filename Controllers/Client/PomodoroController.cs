@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -9,15 +11,20 @@ namespace ManageLife.Controllers.Client
     public class PomodoroController : WebClientControllerBase
     {
         private readonly IPomodoroService _service;
+        private readonly ISettingContext _settingContext;
 
-        public PomodoroController(IPomodoroService service)
+        public PomodoroController(IPomodoroService service, ISettingContext settingContext)
         {
             _service = service;
+            _settingContext = settingContext;
         }
 
         [AccessPagePermission]
         public async Task<IActionResult> Index(CancellationToken ct)
         {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnablePomodoro, true))
+                return NotFound();
+
             var result = await _service.GetSettingsAsync(ct);
             var model = result.Data ?? new PomodoroSettingModel { FocusMinutes = 25, ShortBreakMinutes = 5, LongBreakMinutes = 15 };
             return View(model);

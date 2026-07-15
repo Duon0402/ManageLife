@@ -1,3 +1,4 @@
+using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Entities;
@@ -9,6 +10,8 @@ namespace ManageLife.Services
 {
     public class SettingService : ISettingService
     {
+        private const string PasswordMask = "••••••••";
+
         private readonly ISettingRepository _repo;
         private readonly ISettingContext _settingContext;
 
@@ -36,6 +39,12 @@ namespace ManageLife.Services
                         Description = x.Description
                     })
                     .ToListAsync(ct);
+
+                foreach (var s in entities)
+                {
+                    if (s.Type == SettingType.Password && s.Value.IsNotEmpty())
+                        s.Value = PasswordMask;
+                }
 
                 return Result.Ok(entities);
             }
@@ -108,6 +117,10 @@ namespace ManageLife.Services
                 var entity = await _repo.GetAsync(request.Id, ct);
                 if (entity == null)
                     return Result.Error(Result.DATA_NOT_EXISTED.Code, "Cấu hình không tồn tại");
+
+                // Giá trị vẫn là placeholder ẩn (admin không đổi) — bỏ qua để không ghi đè mật khẩu thật
+                if (entity.Type == SettingType.Password && request.Value == PasswordMask)
+                    return Result.Ok();
 
                 entity.Value = request.Value ?? string.Empty;
                 await _repo.UpdateAsync(entity, ct);
@@ -188,7 +201,7 @@ namespace ManageLife.Services
         {
             Id = e.Id,
             Key = e.Key,
-            Value = e.Value,
+            Value = e.Type == SettingType.Password && e.Value.IsNotEmpty() ? PasswordMask : e.Value,
             Type = e.Type,
             Group = e.Group,
             Description = e.Description
