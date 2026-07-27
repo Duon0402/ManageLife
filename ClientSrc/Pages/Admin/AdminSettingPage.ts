@@ -48,7 +48,7 @@ namespace App {
         private initGrid(): void {
             new GridBuilder<SettingModel>('#tblSetting')
                 .setDataSource({ url: '/Admin/Setting/GetList' })
-                .setOptions({ searching: false, ordering: false })
+                .setOptions({ searching: true, paging: true, pageLength: 20, ordering: false })
                 .addColumn({
                     field: 'group',
                     title: 'Nhóm',
@@ -73,7 +73,7 @@ namespace App {
                     className: 'btn-outline-primary',
                     visible: (row) => row.type !== SettingType.Boolean,
                     onClick: (data, e) => {
-                        const $btn = $(e.currentTarget);
+                        const $btn = $(e!.currentTarget);
                         const val = $btn.closest('tr').find('.setting-value-input').val() as string;
                         this.saveSetting(data.id, val, $btn);
                     }

@@ -19,7 +19,7 @@ namespace ManageLife.Services
         private readonly ITelegramUploadQueue _queue;
         private readonly string _tempFolder = "temp";
 
-        public TelegramFileService(IFileRepository repo, IOptions<TelegramSettings> options, ITelegramUploadQueue queue, TelegramBotClient botClient, IAppLogger<TelegramFileService> logger, IUserContext userContext) : base(logger, userContext)
+        public TelegramFileService(IFileRepository repo, IOptions<TelegramOptions> options, ITelegramUploadQueue queue, TelegramBotClient botClient, IAppLogger<TelegramFileService> logger, IUserContext userContext) : base(logger, userContext)
         {
             var settings = options.Value;
             _repo = repo;

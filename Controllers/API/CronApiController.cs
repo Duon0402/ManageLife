@@ -16,7 +16,7 @@ namespace ManageLife.Controllers.API
 
         public CronApiController(
             ITodoReminderService reminderService,
-            IOptions<CronJobSettings> cronSettings)
+            IOptions<CronJobOptions> cronSettings)
         {
             _reminderService = reminderService;
             _webhookSecret = cronSettings.Value.WebhookSecret;

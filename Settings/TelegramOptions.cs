@@ -1,6 +1,6 @@
 namespace ManageLife.Settings
 {
-    public class TelegramSettings
+    public class TelegramOptions
     {
         public const string Section = "TelegramSettings";
         public string BotToken { get; set; } = null!;

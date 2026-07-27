@@ -25,7 +25,7 @@ namespace ManageLife.Services
         private readonly ICacheService _cache;
 
         public TelegramService(
-            IOptions<TelegramSettings> options,
+            IOptions<TelegramOptions> options,
             ISettingService settingService,
             TelegramBotClient botClient,
             ITelegramBotCommandService botCommandService,

@@ -19,7 +19,7 @@ namespace ManageLife.Services
 {
     public class TokenService : ServiceBase<TokenService>, ITokenService
     {
-        private readonly JwtSettings _jwt;
+        private readonly JwtOptions _jwt;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserRefreshTokenRepository _refreshRepo;
         private readonly IUserRepository _userRepo;
@@ -34,7 +34,7 @@ namespace ManageLife.Services
             IUserRepository userRepo,
             IRoleRepository roleRepo,
             IUserRoleRepository userRoleRepo,
-            IOptions<JwtSettings> jwtOptions,
+            IOptions<JwtOptions> jwtOptions,
             IHttpContextAccessor httpContextAccessor,
             IUnitOfWork uow,
             ICacheService cache,

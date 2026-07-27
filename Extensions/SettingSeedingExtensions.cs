@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManageLife.Extensions
 {
-    public static class SettingRegistrationExtensions
+    public static class SettingSeedingExtensions
     {
         public static async Task RegisterSettingsAsync(this IServiceProvider services)
         {

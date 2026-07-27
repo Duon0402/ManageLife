@@ -58,10 +58,17 @@
     min-height: 0;
 }
 
-/* Cell fills the row via align-items:stretch, becomes flex column for .dt-scroll */
-.grid-container .dt-layout-table .dt-layout-cell {
-    display: flex;
+/* Cell fills the row, becomes flex column for .dt-scroll. Real classes are
+   .dt-layout-start/-end/-full (DataTables doesn't emit .dt-layout-cell); !important
+   needed to beat the CDN's own "display:block !important" on this cell; height:100%
+   needed since align-items:stretch alone doesn't clamp this Bootstrap col. */
+.grid-container .dt-layout-table .dt-layout-cell,
+.grid-container .dt-layout-table .dt-layout-start,
+.grid-container .dt-layout-table .dt-layout-end,
+.grid-container .dt-layout-table .dt-layout-full {
+    display: flex !important;
     flex-direction: column;
+    height: 100%;
     min-height: 0;
     overflow: hidden;
 }

@@ -1,6 +1,6 @@
 namespace ManageLife.Settings
 {
-    public class VideoDownloaderSettings
+    public class VideoDownloaderOptions
     {
         public const string Section = "VideoDownloader";
 

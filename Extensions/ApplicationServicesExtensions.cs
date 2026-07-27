@@ -41,14 +41,14 @@ namespace ManageLife.Extensions
 
             services.AddSingleton<TelegramBotClient>(sp =>
             {
-                var settings = sp.GetRequiredService<IOptions<TelegramSettings>>().Value;
+                var settings = sp.GetRequiredService<IOptions<TelegramOptions>>().Value;
                 return new TelegramBotClient(settings.BotToken
                     ?? throw new InvalidOperationException("TelegramSettings:BotToken is not configured."));
             });
 
             services.AddHttpClient<CronJobApiClient>((sp, client) =>
             {
-                var settings = sp.GetRequiredService<IOptions<CronJobSettings>>().Value;
+                var settings = sp.GetRequiredService<IOptions<CronJobOptions>>().Value;
                 client.BaseAddress = new Uri(settings.BaseUrl);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
                     settings.ApiKey ?? throw new InvalidOperationException("CronJob:ApiKey is not configured."));
@@ -62,7 +62,7 @@ namespace ManageLife.Extensions
             });
 
             #region JWT Authentication
-            var jwt = config.GetSection(JwtSettings.Section).Get<JwtSettings>()!;
+            var jwt = config.GetSection(JwtOptions.Section).Get<JwtOptions>()!;
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -120,7 +120,7 @@ namespace ManageLife.Extensions
             #endregion
 
             #region Redis
-            var redisSettings = config.GetSection(RedisSettings.Section).Get<RedisSettings>()!;
+            var redisSettings = config.GetSection(RedisOptions.Section).Get<RedisOptions>()!;
             var redisConfig = new ConfigurationOptions
             {
                 EndPoints = { redisSettings.EndPoints },

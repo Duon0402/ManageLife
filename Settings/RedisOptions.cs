@@ -1,6 +1,6 @@
 namespace ManageLife.Settings
 {
-    public class RedisSettings
+    public class RedisOptions
     {
         public const string Section = "Redis";
         public string EndPoints { get; set; } = null!;

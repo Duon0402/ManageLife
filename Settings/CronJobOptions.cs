@@ -1,6 +1,6 @@
 namespace ManageLife.Settings
 {
-    public class CronJobSettings
+    public class CronJobOptions
     {
         public const string Section = "CronJob";
         public string ApiKey { get; set; } = null!;

@@ -25,7 +25,7 @@ namespace ManageLife.Services
 
         private const string YtDlpDownloadUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/";
 
-        public YtDlpManager(IOptions<VideoDownloaderSettings> options, IHttpClientFactory httpClientFactory, IAppLogger<YtDlpManager> logger)
+        public YtDlpManager(IOptions<VideoDownloaderOptions> options, IHttpClientFactory httpClientFactory, IAppLogger<YtDlpManager> logger)
         {
             _configuredPath = options.Value.YtDlpPath;
             _httpClientFactory = httpClientFactory;

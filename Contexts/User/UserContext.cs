@@ -18,7 +18,7 @@ namespace ManageLife.Contexts
         public string? GetUserName() => User?.FindFirstValue(ClaimTypes.Name);
 
         public IEnumerable<string> GetUserRoles()
-            => User?.FindAll(ClaimTypes.Role).Select(c => c.Value) ?? Enumerable.Empty<string>();
+            => User?.FindAll(ClaimTypes.Role).Select(c => c.Value) ?? [];
 
         public bool HasRole(string role) => User?.IsInRole(role) ?? false;
     }

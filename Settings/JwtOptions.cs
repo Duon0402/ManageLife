@@ -1,6 +1,6 @@
 namespace ManageLife.Settings
 {
-    public class JwtSettings
+    public class JwtOptions
     {
         public const string Section = "Jwt";
         public string Key { get; set; } = null!;

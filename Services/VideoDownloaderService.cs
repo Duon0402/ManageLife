@@ -19,7 +19,7 @@ namespace ManageLife.Services
         private readonly string? _cookiesFile;
         private readonly string? _cookiesBrowser;
 
-        public VideoDownloaderService(YtDlpManager ytDlpManager, IOptions<VideoDownloaderSettings> options, IAppLogger<VideoDownloaderService> logger, IUserContext userContext) : base(logger, userContext)
+        public VideoDownloaderService(YtDlpManager ytDlpManager, IOptions<VideoDownloaderOptions> options, IAppLogger<VideoDownloaderService> logger, IUserContext userContext) : base(logger, userContext)
         {
             _ytDlpManager = ytDlpManager;
             _cookiesFile = options.Value.CookiesFile;
