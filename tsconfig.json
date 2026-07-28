@@ -20,6 +20,7 @@
     "ClientSrc/Commons/**/*.ts",
     "ClientSrc/Core/**/*.ts",
     "ClientSrc/Models/**/*.ts",
+    "ClientSrc/Services/**/*.ts",
     "ClientSrc/Pages/**/*.ts"
   ],
   "exclude": [

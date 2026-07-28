@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -10,16 +12,20 @@ namespace ManageLife.Controllers.Client
     {
         private readonly IFolderService _folderService;
         private readonly ITelegramFileService _telegramFileService;
+        private readonly ISettingContext _settingContext;
 
-        public FolderController(IFolderService folderService, ITelegramFileService telegramFileService)
+        public FolderController(IFolderService folderService, ITelegramFileService telegramFileService, ISettingContext settingContext)
         {
             _folderService = folderService;
             _telegramFileService = telegramFileService;
+            _settingContext = settingContext;
         }
 
         [AccessPagePermission]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableFolder, true))
+                return NotFound();
             return View();
         }
 

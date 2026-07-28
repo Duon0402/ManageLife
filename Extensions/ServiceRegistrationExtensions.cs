@@ -51,6 +51,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IPomodoroService, PomodoroService>();
             services.AddScoped<ISettingContext, SettingContext>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IAnkiCardService, AnkiCardService>();
             return services;
         }
     }

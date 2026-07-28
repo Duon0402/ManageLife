@@ -51,6 +51,7 @@ namespace ManageLife.Data
         public DbSet<NoteTagRelationEntity> NoteTagRelations { get; set; } = default!;
         public DbSet<NoteLinkEntity> NoteLinks { get; set; } = default!;
         public DbSet<HabitEntity> Habits { get; set; } = default!;
+        public DbSet<AnkiCardEntity> AnkiCards { get; set; } = default!;
 
         #endregion
 
@@ -158,6 +159,9 @@ namespace ManageLife.Data
 
             builder.Entity<PomodoroSessionEntity>()
                 .HasIndex(x => new { x.UserId, x.StartedAt });
+
+            builder.Entity<AnkiCardEntity>()
+                .HasIndex(x => new { x.OwnerId, x.IsDeleted });
 
         }
     }

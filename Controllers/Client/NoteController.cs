@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -9,15 +11,22 @@ namespace ManageLife.Controllers.Client
     {
         private readonly INoteService _noteService;
         private readonly INoteTagService _tagService;
+        private readonly ISettingContext _settingContext;
 
-        public NoteController(INoteService noteService, INoteTagService tagService)
+        public NoteController(INoteService noteService, INoteTagService tagService, ISettingContext settingContext)
         {
             _noteService = noteService;
             _tagService = tagService;
+            _settingContext = settingContext;
         }
 
         [AccessPagePermission]
-        public IActionResult Index() => View();
+        public async Task<IActionResult> Index()
+        {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableNote, true))
+                return NotFound();
+            return View();
+        }
 
         [AccessPagePermission]
         public IActionResult Edit(string id) => View("Edit", (object)id);

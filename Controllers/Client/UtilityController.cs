@@ -1,4 +1,6 @@
-﻿using ManageLife.Core;
+﻿using ManageLife.Commons;
+using ManageLife.Contexts;
+using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -9,10 +11,12 @@ namespace ManageLife.Controllers.Client
     public class UtilityController : WebClientControllerBase
     {
         private readonly IUtilityService _service;
+        private readonly ISettingContext _settingContext;
 
-        public UtilityController(IUtilityService service)
+        public UtilityController(IUtilityService service, ISettingContext settingContext)
         {
             _service = service;
+            _settingContext = settingContext;
         }
 
         public IActionResult Index()
@@ -21,8 +25,10 @@ namespace ManageLife.Controllers.Client
         }
 
         [Authorize]
-        public IActionResult EmailDailyReport()
+        public async Task<IActionResult> EmailDailyReport()
         {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableEmailDailyReport, true))
+                return NotFound();
             return View("EmailDailyReport");
         }
 

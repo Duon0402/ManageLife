@@ -37,6 +37,14 @@ namespace ManageLife.Extensions
                 new() { Key = SettingKeys.Feature.EnableChat, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Chat" },
                 new() { Key = SettingKeys.Feature.EnableVocab, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng học Từ vựng" },
                 new() { Key = SettingKeys.Feature.EnablePomodoro, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Pomodoro" },
+                new() { Key = SettingKeys.Feature.EnableAnkiCard, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng nhập thẻ + xuất file Anki" },
+                new() { Key = SettingKeys.Feature.EnableTodo, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Công việc (Todo)" },
+                new() { Key = SettingKeys.Feature.EnableFolder, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Photo Albums" },
+                new() { Key = SettingKeys.Feature.EnableNote, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Notes" },
+                new() { Key = SettingKeys.Feature.EnableHabit, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Thói quen (Habit)" },
+                new() { Key = SettingKeys.Feature.EnableShortUrl, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng URL Shortener" },
+                new() { Key = SettingKeys.Feature.EnableVideoDownloader, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Video Downloader" },
+                new() { Key = SettingKeys.Feature.EnableEmailDailyReport, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng gửi báo cáo Email hàng ngày" },
 
                 // --- UI ---
                 new() { Key = SettingKeys.Ui.PrimaryColor, Value = "#4b49ac", Type = SettingType.Color, Group = "UI", Description = "Màu chủ đạo của giao diện" },

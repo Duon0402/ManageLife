@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -9,15 +11,22 @@ namespace ManageLife.Controllers.Client
     {
         private readonly ITodoTaskService _taskService;
         private readonly ITodoListService _listService;
+        private readonly ISettingContext _settingContext;
 
-        public TodoController(ITodoTaskService taskService, ITodoListService listService)
+        public TodoController(ITodoTaskService taskService, ITodoListService listService, ISettingContext settingContext)
         {
             _taskService = taskService;
             _listService = listService;
+            _settingContext = settingContext;
         }
 
         [AccessPagePermission]
-        public IActionResult Index() => View();
+        public async Task<IActionResult> Index()
+        {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableTodo, true))
+                return NotFound();
+            return View();
+        }
 
         [AccessPagePermission]
         public IActionResult All() => View();

@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
@@ -8,14 +10,21 @@ namespace ManageLife.Controllers.Client
     public class ShortUrlController : WebClientControllerBase
     {
         private readonly IShortUrlService _service;
+        private readonly ISettingContext _settingContext;
 
-        public ShortUrlController(IShortUrlService service)
+        public ShortUrlController(IShortUrlService service, ISettingContext settingContext)
         {
             _service = service;
+            _settingContext = settingContext;
         }
 
         [AccessPagePermission]
-        public IActionResult Index() => View();
+        public async Task<IActionResult> Index()
+        {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableShortUrl, true))
+                return NotFound();
+            return View();
+        }
 
         [HttpGet]
         [ViewPermission]

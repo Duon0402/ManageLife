@@ -45,6 +45,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IHabitRepository, HabitRepository>();
             services.AddScoped<IPomodoroSessionRepository, PomodoroSessionRepository>();
             services.AddScoped<IPomodoroSettingRepository, PomodoroSettingRepository>();
+            services.AddScoped<IAnkiCardRepository, AnkiCardRepository>();
 
             return services;
         }

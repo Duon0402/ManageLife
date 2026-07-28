@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "Thẻ Anki";
+    this.UseCss(new ResourceLink("~/css/anki-card.css"));
+}
+
+<div class="anki-card-page" id="anki-card-page">
+
+    <div class="anki-card-header">
+        <h1><i class="fa-solid fa-layer-group"></i> Thẻ Anki</h1>
+        <div class="anki-card-actions">
+            <button class="anki-btn-export" id="btn-export-anki-text" type="button"
+                    title=".txt nhẹ hơn nhưng cần Anki đích còn note type mặc định; .apkg luôn chắc ăn.">
+                <i class="fa-solid fa-file-lines"></i> Xuất .txt
+            </button>
+            <button class="anki-btn-export" id="btn-export-anki" type="button"
+                    title=".apkg luôn chắc ăn; .txt nhẹ hơn nhưng cần Anki đích còn note type mặc định.">
+                <i class="fa-solid fa-file-export"></i> Xuất .apkg
+            </button>
+            <button class="anki-btn-primary" id="btn-create-anki-card" type="button">
+                <i class="fa-solid fa-plus"></i> Thêm thẻ
+            </button>
+        </div>
+    </div>
+
+    <p class="anki-export-help">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        <strong>.txt</strong> nhẹ hơn nhưng cần Anki đích còn note type mặc định &nbsp;•&nbsp;
+        <strong>.apkg</strong> luôn chắc ăn.
+    </p>
+
+    <div class="anki-card-table-wrap">
+        <table class="anki-card-table">
+            <thead>
+                <tr>
+                    <th>Loại thẻ</th>
+                    <th>Mặt trước</th>
+                    <th>Mặt sau</th>
+                    <th>Ngày tạo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="anki-card-tbody">
+                <tr id="anki-card-loading-row">
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-spinner fa-spin me-2"></i>Đang tải...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Modal tạo / chỉnh sửa thẻ Anki -->
+<div class="modal fade" id="modal-anki-card" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-anki-card-title">
+                    <i class="fa-solid fa-layer-group me-2"></i>Thêm thẻ Anki
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="anki-id" />
+
+                <div class="mb-3">
+                    <label class="form-label">Loại thẻ</label>
+                    <select class="form-select" id="anki-card-type">
+                        <option value="0">Hỏi-Đáp</option>
+                        <option value="1">Hỏi-Đáp 2 chiều</option>
+                        <option value="2">Hỏi-Đáp 2 chiều tuỳ chọn</option>
+                        <option value="3">Gõ đáp án</option>
+                        <option value="4">Điền khuyết</option>
+                    </select>
+                </div>
+
+                <div class="row g-3 anki-field-pair">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" id="anki-field-front-label">Mặt trước</label>
+                        <textarea class="form-control" id="anki-field-front" rows="3"></textarea>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" id="anki-field-back-label">Mặt sau</label>
+                        <textarea class="form-control" id="anki-field-back" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="col-12" id="anki-extra-checkbox-wrap" style="display:none">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="anki-extra-checkbox" />
+                        <label class="form-check-label" for="anki-extra-checkbox">Tạo thêm thẻ đảo chiều</label>
+                    </div>
+                </div>
+
+                <div class="col-12" id="anki-extra-textarea-wrap" style="display:none">
+                    <label class="form-label">Nội dung phụ (hiện ở mặt sau)</label>
+                    <textarea class="form-control" id="anki-field-extra" rows="2"></textarea>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label">Ghi chú nguồn (tuỳ chọn)</label>
+                    <input type="text" class="form-control" id="anki-source-note" maxlength="500" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-save-anki-card">
+                    <i class="fa-solid fa-check me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        new App.AnkiCardPage('#anki-card-page');
+    });
+</script>

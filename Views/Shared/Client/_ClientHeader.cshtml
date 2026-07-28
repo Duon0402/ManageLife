@@ -9,6 +9,14 @@
     var enableChat = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableChat, true);
     var enableVocab = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableVocab, true);
     var enablePomodoro = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnablePomodoro, true);
+    var enableAnkiCard = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableAnkiCard, true);
+    var enableTodo = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableTodo, true);
+    var enableFolder = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableFolder, true);
+    var enableNote = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableNote, true);
+    var enableHabit = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableHabit, true);
+    var enableShortUrl = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableShortUrl, true);
+    var enableVideoDownloader = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableVideoDownloader, true);
+    var enableEmailDailyReport = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableEmailDailyReport, true);
 }
 
 <header class="header" id="client-header">
@@ -50,16 +58,22 @@
                         @T(TranslationKey.Client.Header.Menu.Utility.Title)
                     </a>
                     <ul class="dropdown-menu header__dropdown">
+                        @if (enableTodo)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Todo") ? "active" : "")" href="/Todo">
                                 <i class="fa-solid fa-list-check me-2"></i>Công việc
                             </a>
                         </li>
+                        }
+                        @if (enableFolder)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Folder") ? "active" : "")" href="/Folder">
                                 <i class="fa-solid fa-images me-2"></i>Photo Albums
                             </a>
                         </li>
+                        }
                         @if (enableVocab)
                         {
                         <li>
@@ -68,16 +82,22 @@
                             </a>
                         </li>
                         }
+                        @if (enableNote)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Note") ? "active" : "")" href="/Note">
                                 <i class="fa-solid fa-brain me-2"></i>Notes
                             </a>
                         </li>
+                        }
+                        @if (enableHabit)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Habit") ? "active" : "")" href="/Habit">
                                 <i class="fa-solid fa-repeat me-2"></i>Thói quen
                             </a>
                         </li>
+                        }
                         @if (enablePomodoro)
                         {
                         <li>
@@ -86,7 +106,17 @@
                             </a>
                         </li>
                         }
+                        @if (enableAnkiCard)
+                        {
+                        <li>
+                            <a class="dropdown-item @(currentPath.StartsWith("/AnkiCard") ? "active" : "")" href="/AnkiCard">
+                                <i class="fa-solid fa-clone me-2"></i>Thẻ Anki
+                            </a>
+                        </li>
+                        }
                         <li><hr class="dropdown-divider" /></li>
+                        @if (enableEmailDailyReport)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/Utility/EmailDailyReport") ? "active" : "")"
                                href="/Utility/EmailDailyReport">
@@ -94,6 +124,9 @@
                                 @T(TranslationKey.Client.Header.Menu.Utility.EmailDailyReport)
                             </a>
                         </li>
+                        }
+                        @if (enableVideoDownloader)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/VideoDownloader") ? "active" : "")"
                                href="/VideoDownloader">
@@ -101,6 +134,9 @@
                                 Video Downloader
                             </a>
                         </li>
+                        }
+                        @if (enableShortUrl)
+                        {
                         <li>
                             <a class="dropdown-item @(currentPath.StartsWith("/ShortUrl") ? "active" : "")"
                                href="/ShortUrl">
@@ -108,6 +144,7 @@
                                 URL Shortener
                             </a>
                         </li>
+                        }
                     </ul>
                 </li>
             </ul>

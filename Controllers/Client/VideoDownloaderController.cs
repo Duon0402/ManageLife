@@ -1,3 +1,5 @@
+using ManageLife.Commons;
+using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Core.Models;
 using ManageLife.Interfaces;
@@ -8,14 +10,18 @@ namespace ManageLife.Controllers.Client
     public class VideoDownloaderController : WebClientControllerBase
     {
         private readonly IVideoDownloaderService _videoDownloaderService;
+        private readonly ISettingContext _settingContext;
 
-        public VideoDownloaderController(IVideoDownloaderService videoDownloaderService)
+        public VideoDownloaderController(IVideoDownloaderService videoDownloaderService, ISettingContext settingContext)
         {
             _videoDownloaderService = videoDownloaderService;
+            _settingContext = settingContext;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableVideoDownloader, true))
+                return NotFound();
             return View();
         }
 

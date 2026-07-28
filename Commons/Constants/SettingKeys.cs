@@ -25,6 +25,14 @@ namespace ManageLife.Commons
             public const string EnableChat = "feature.enable_chat";
             public const string EnableVocab = "feature.enable_vocab";
             public const string EnablePomodoro = "feature.enable_pomodoro";
+            public const string EnableAnkiCard = "feature.enable_anki_card";
+            public const string EnableTodo = "feature.enable_todo";
+            public const string EnableFolder = "feature.enable_folder";
+            public const string EnableNote = "feature.enable_note";
+            public const string EnableHabit = "feature.enable_habit";
+            public const string EnableShortUrl = "feature.enable_short_url";
+            public const string EnableVideoDownloader = "feature.enable_video_downloader";
+            public const string EnableEmailDailyReport = "feature.enable_email_daily_report";
         }
 
         public static class Ui
