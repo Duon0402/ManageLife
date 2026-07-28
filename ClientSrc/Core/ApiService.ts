@@ -159,6 +159,7 @@ namespace App {
                         if (jqXHR.status === Constants.HttpStatus.UNAUTHORIZED) {
                             window.location.href = Constants.Urls.LOGIN + "?returnUrl=" +
                                 encodeURIComponent(window.location.pathname + window.location.search);
+                            reject(jqXHR);
                             return;
                         }
 

@@ -35,13 +35,21 @@ namespace App {
         }
 
         private async loadList(): Promise<void> {
-            const res = await ApiService.get('/Habit/GetList');
-            if (!res.isOk()) {
+            LoadingService.show();
+            try {
+                const res = await ApiService.get('/Habit/GetList');
+                if (!res.isOk()) {
+                    this.renderEmpty('Không thể tải danh sách');
+                    return;
+                }
+                this.habits = res.data || [];
+                this.renderTable();
+            } catch {
                 this.renderEmpty('Không thể tải danh sách');
-                return;
+                ToastService.error('Lỗi hệ thống');
+            } finally {
+                LoadingService.hide();
             }
-            this.habits = res.data || [];
-            this.renderTable();
         }
 
         private renderTable(): void {

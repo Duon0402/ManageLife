@@ -34,13 +34,21 @@ namespace App {
         }
 
         private async loadList(): Promise<void> {
-            const res = await AnkiCardService.getList();
-            if (!res.isOk()) {
+            LoadingService.show();
+            try {
+                const res = await AnkiCardService.getList();
+                if (!res.isOk()) {
+                    this.renderEmpty('Không thể tải danh sách thẻ');
+                    return;
+                }
+                this.cards = res.data || [];
+                this.renderTable();
+            } catch {
                 this.renderEmpty('Không thể tải danh sách thẻ');
-                return;
+                ToastService.error('Lỗi hệ thống');
+            } finally {
+                LoadingService.hide();
             }
-            this.cards = res.data || [];
-            this.renderTable();
         }
 
         private renderTable(): void {
@@ -94,13 +102,13 @@ namespace App {
             const $extraCheckboxWrap = $('#anki-extra-checkbox-wrap');
             const $extraTextareaWrap = $('#anki-extra-textarea-wrap');
 
-            if (cardType === 4) {
+            if (cardType === AnkiCardType.Cloze) {
                 // Cloze
                 $frontLabel.text('Câu có chỗ trống (dùng ___)');
                 $backLabel.text('Đáp án');
                 $extraCheckboxWrap.hide();
                 $extraTextareaWrap.show();
-            } else if (cardType === 2) {
+            } else if (cardType === AnkiCardType.BasicOptionalReversed) {
                 // Basic (optional reversed card)
                 $frontLabel.text('Mặt trước');
                 $backLabel.text('Mặt sau');
@@ -117,13 +125,13 @@ namespace App {
 
         private resetForm(): void {
             $('#anki-id').val('');
-            $('#anki-card-type').val('0');
+            $('#anki-card-type').val(String(AnkiCardType.Basic));
             $('#anki-field-front').val('');
             $('#anki-field-back').val('');
             $('#anki-field-extra').val('');
             $('#anki-source-note').val('');
             ($('#anki-extra-checkbox')[0] as HTMLInputElement).checked = false;
-            this.applyCardTypeLayout(0);
+            this.applyCardTypeLayout(AnkiCardType.Basic);
         }
 
         private openCreateModal(): void {
@@ -142,10 +150,10 @@ namespace App {
             $('#anki-field-back').val(card.fieldBack);
             $('#anki-source-note').val(card.sourceNote || '');
 
-            if (card.cardType === 2) {
+            if (card.cardType === AnkiCardType.BasicOptionalReversed) {
                 ($('#anki-extra-checkbox')[0] as HTMLInputElement).checked = card.fieldExtra === 'y';
                 $('#anki-field-extra').val('');
-            } else if (card.cardType === 4) {
+            } else if (card.cardType === AnkiCardType.Cloze) {
                 $('#anki-field-extra').val(card.fieldExtra || '');
                 ($('#anki-extra-checkbox')[0] as HTMLInputElement).checked = false;
             } else {
@@ -164,7 +172,7 @@ namespace App {
             const sourceNote = (($('#anki-source-note').val() as string) || '').trim() || null;
 
             if (!fieldFront) {
-                ToastService.warning(cardType === 4
+                ToastService.warning(cardType === AnkiCardType.Cloze
                     ? 'Vui lòng nhập nội dung có chỗ trống'
                     : 'Vui lòng nhập mặt trước');
                 return;
@@ -173,16 +181,16 @@ namespace App {
                 ToastService.warning('Vui lòng nhập mặt sau / đáp án');
                 return;
             }
-            if (cardType === 4 && !fieldFront.includes('___')) {
+            if (cardType === AnkiCardType.Cloze && !fieldFront.includes('___')) {
                 ToastService.warning('Nội dung phải chứa dấu chỗ trống "___"');
                 return;
             }
 
             let fieldExtra: string | null = null;
-            if (cardType === 2) {
+            if (cardType === AnkiCardType.BasicOptionalReversed) {
                 const checked = ($('#anki-extra-checkbox')[0] as HTMLInputElement).checked;
                 fieldExtra = checked ? 'y' : null;
-            } else if (cardType === 4) {
+            } else if (cardType === AnkiCardType.Cloze) {
                 fieldExtra = (($('#anki-field-extra').val() as string) || '').trim() || null;
             }
 

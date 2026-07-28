@@ -1,5 +1,4 @@
 using ManageLife.Core;
-using ManageLife.Entities;
 using ManageLife.Models;
 
 namespace ManageLife.Interfaces
@@ -10,6 +9,6 @@ namespace ManageLife.Interfaces
         Task<Result> CreateAsync(CreateAnkiCardRequest request, CancellationToken ct = default);
         Task<Result> UpdateAsync(UpdateAnkiCardRequest request, CancellationToken ct = default);
         Task<Result> DeleteAsync(string id, CancellationToken ct = default);
-        Task<Result<List<AnkiCardEntity>>> GetAllForExportAsync(CancellationToken ct = default);
+        Task<Result<List<AnkiCardModel>>> GetAllForExportAsync(CancellationToken ct = default);
     }
 }

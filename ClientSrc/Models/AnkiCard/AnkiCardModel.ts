@@ -6,7 +6,13 @@ namespace App {
      * 3 = BasicTypeAnswer ("Basic (type in the answer)")
      * 4 = Cloze ("Cloze")
      */
-    export type AnkiCardType = 0 | 1 | 2 | 3 | 4;
+    export const enum AnkiCardType {
+        Basic = 0,
+        BasicReversed = 1,
+        BasicOptionalReversed = 2,
+        BasicTypeAnswer = 3,
+        Cloze = 4
+    }
 
     export const AnkiCardTypeLabel: Record<number, string> = {
         0: 'Hỏi-Đáp',

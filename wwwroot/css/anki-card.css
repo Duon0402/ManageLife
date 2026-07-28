@@ -1,3 +1,12 @@
+/* ─── COLOR TOKENS ───────────────────────────────────── */
+:root {
+    --anki-primary: #4b49ac;
+    --anki-dark: #2c2c54;
+    --anki-light-bg: #e8eaf0;
+    --anki-muted: #9ea5b5;
+    --anki-border-light: #f0f1f7;
+}
+
 /* ─── PAGE / HEADER ─────────────────────────────────── */
 .anki-card-page { padding: 1.75rem 2rem; }
 
@@ -13,11 +22,11 @@
 .anki-card-header h1 {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #2c2c54;
+    color: var(--anki-dark);
     margin: 0;
 }
 
-.anki-card-header h1 i { color: #4b49ac; }
+.anki-card-header h1 i { color: var(--anki-primary); }
 
 .anki-card-actions {
     display: flex;
@@ -27,7 +36,7 @@
 }
 
 .anki-btn-primary {
-    background: #4b49ac;
+    background: var(--anki-primary);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -47,7 +56,7 @@
 /* Export buttons — kept easily tappable (>=44px) on every screen size */
 .anki-btn-export {
     background: #fff;
-    color: #4b49ac;
+    color: var(--anki-primary);
     border: 1.5px solid #d7d9f5;
     border-radius: 8px;
     padding: 0.6rem 1rem;
@@ -61,21 +70,21 @@
     transition: background 0.2s, border-color 0.2s;
 }
 .anki-btn-export:hover,
-.anki-btn-export:focus-visible { background: #f5f5ff; border-color: #4b49ac; }
-.anki-btn-export i { color: #4b49ac; }
+.anki-btn-export:focus-visible { background: #f5f5ff; border-color: var(--anki-primary); }
+.anki-btn-export i { color: var(--anki-primary); }
 
 /* ─── CARD / TABLE ───────────────────────────────────── */
 .anki-card-table-wrap {
     background: #fff;
     border-radius: 10px;
-    border: 1px solid #e8eaf0;
+    border: 1px solid var(--anki-light-bg);
     box-shadow: 0 2px 12px rgba(0,0,0,.06);
     overflow-x: auto;
 }
 
 .anki-card-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 560px; }
 
-.anki-card-table thead tr { background: #f5f7ff; border-bottom: 2px solid #e8eaf0; }
+.anki-card-table thead tr { background: #f5f7ff; border-bottom: 2px solid var(--anki-light-bg); }
 
 .anki-card-table th {
     padding: 0.75rem 1rem;
@@ -83,11 +92,11 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    color: #9ea5b5;
+    color: var(--anki-muted);
     white-space: nowrap;
 }
 
-.anki-card-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f0f1f7; vertical-align: middle; }
+.anki-card-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--anki-border-light); vertical-align: middle; }
 .anki-card-table tbody tr:last-child td { border-bottom: none; }
 .anki-card-table tbody tr:hover { background: #fafbff; }
 
@@ -131,7 +140,7 @@
     font-size: 0.85rem;
     transition: background 0.15s;
 }
-.anki-btn-icon.edit { color: #4b49ac; }
+.anki-btn-icon.edit { color: var(--anki-primary); }
 .anki-btn-icon.edit:hover { background: #eeeeff; }
 .anki-btn-icon.delete { color: #e74c3c; }
 .anki-btn-icon.delete:hover { background: #fff0f0; }
@@ -139,7 +148,7 @@
 /* ─── EXPORT HELP TEXT ───────────────────────────────── */
 .anki-export-help {
     font-size: 0.78rem;
-    color: #9ea5b5;
+    color: var(--anki-muted);
     margin: 0.5rem 0 1.25rem;
 }
 
@@ -188,7 +197,7 @@
     }
     .anki-card-table tr {
         margin-bottom: 12px;
-        border: 1px solid #e8eaf0;
+        border: 1px solid var(--anki-light-bg);
         border-radius: 10px;
         padding: 6px 0;
     }
@@ -199,14 +208,14 @@
         align-items: center;
         gap: 10px;
         padding: 8px 14px;
-        border-bottom: 1px dashed #f0f1f7;
+        border-bottom: 1px dashed var(--anki-border-light);
         text-align: right;
     }
     .anki-card-table tr td:last-child { border-bottom: none; }
     .anki-card-table td::before {
         content: attr(data-label);
         font-weight: 700;
-        color: #9ea5b5;
+        color: var(--anki-muted);
         font-size: 0.68rem;
         text-transform: uppercase;
         letter-spacing: 0.4px;

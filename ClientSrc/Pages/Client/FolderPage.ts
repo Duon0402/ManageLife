@@ -49,6 +49,8 @@ namespace App {
 
                 $empty.hide();
                 folders.forEach(f => $grid.append(this.createFolderCard(f)));
+            } catch {
+                ToastService.error('Lỗi hệ thống');
             } finally {
                 LoadingService.hide();
             }
@@ -219,6 +221,8 @@ namespace App {
                 }));
 
                 this.gallery.setItems(items);
+            } catch {
+                ToastService.error('Không thể tải ảnh');
             } finally {
                 this.isLoadingGallery = false;
             }

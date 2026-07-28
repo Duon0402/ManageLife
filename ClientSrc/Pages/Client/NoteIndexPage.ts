@@ -42,6 +42,8 @@ namespace App {
                 this.tags = tagsRes.isOk() ? tagsRes.data || [] : [];
                 this.renderNotes();
                 this.renderTagList();
+            } catch {
+                ToastService.error('Lỗi hệ thống');
             } finally {
                 LoadingService.hide();
             }

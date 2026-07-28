@@ -1,7 +1,9 @@
+using ManageLife.Commons;
 using ManageLife.Core;
 using ManageLife.Data;
 using ManageLife.Helpers;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 
 namespace ManageLife.Middleware
 {
@@ -17,13 +19,27 @@ namespace ManageLife.Middleware
             PendingMigrations = [];
     }
 
-    public class PendingMigrationMiddleware(RequestDelegate next)
+    public class PendingMigrationMiddleware(RequestDelegate next, ILogger<PendingMigrationMiddleware> logger)
     {
         private const string MigratePath = "/_migrate";
         private const string MigratePermission = "Admin.Database.Update";
 
-        private static readonly string[] _allowedPrefixes =
-            ["/admin", "/auth", "/api"];
+        // PendingMigrationMiddleware chạy trước UseRateLimiter() trong pipeline (đăng ký sớm
+        // để có thể chặn toàn app kể cả khi DB/DI chưa sẵn sàng), nên request tới /_migrate
+        // không đi qua policy "login" của UseRateLimiter. Tự khởi tạo một PartitionedRateLimiter
+        // riêng ngay tại đây, keyed theo IP, với cấu hình tương đương policy "login" (10 req/phút)
+        // để form đăng nhập khẩn cấp không bị brute-force không giới hạn.
+        private readonly PartitionedRateLimiter<HttpContext> _migrateRateLimiter =
+            PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    }));
 
         public async Task InvokeAsync(HttpContext context, DatabaseState dbState)
         {
@@ -35,7 +51,7 @@ namespace ManageLife.Middleware
 
             var path = context.Request.Path.Value ?? "";
 
-            if (_allowedPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+            if (MiddlewareConst.AllowedPathPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
             {
                 await next(context);
                 return;
@@ -44,6 +60,13 @@ namespace ManageLife.Middleware
             if (path.Equals(MigratePath, StringComparison.OrdinalIgnoreCase)
                 && context.Request.Method == HttpMethods.Post)
             {
+                using var lease = _migrateRateLimiter.AttemptAcquire(context);
+                if (!lease.IsAcquired)
+                {
+                    context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    return;
+                }
+
                 await HandleMigrateAsync(context, dbState);
                 return;
             }
@@ -56,7 +79,7 @@ namespace ManageLife.Middleware
         // vì nếu không cơ chế migrate khẩn cấp sẽ tự chết trên đúng cột nó đang cố sửa.
         private sealed record UserAuthRow(string Id, string UserName, string HashPassword);
 
-        private static async Task HandleMigrateAsync(HttpContext context, DatabaseState dbState)
+        private async Task HandleMigrateAsync(HttpContext context, DatabaseState dbState)
         {
             var form = await context.Request.ReadFormAsync();
             var username = form["username"].ToString().Trim();
@@ -124,7 +147,8 @@ namespace ManageLife.Middleware
             }
             catch (Exception ex)
             {
-                await WritePendingPageAsync(context, System.Net.WebUtility.HtmlEncode(ex.Message));
+                logger.LogError(ex, "Lỗi khi xử lý migrate khẩn cấp qua {MigratePath}", MigratePath);
+                await WritePendingPageAsync(context, "Đã xảy ra lỗi. Vui lòng thử lại hoặc liên hệ quản trị viên.");
             }
         }
 

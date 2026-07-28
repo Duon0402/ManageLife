@@ -122,6 +122,8 @@ namespace App {
                 } else {
                     ToastService.error(tasksRes.message || 'Không thể tải công việc');
                 }
+            } catch {
+                ToastService.error('Lỗi hệ thống');
             } finally {
                 LoadingService.hide();
             }
@@ -404,6 +406,8 @@ namespace App {
                     this.tasks = tasksRes.data || [];
                     this.applyFilters();
                 }
+            } catch {
+                ToastService.error('Lỗi hệ thống');
             } finally {
                 LoadingService.hide();
             }

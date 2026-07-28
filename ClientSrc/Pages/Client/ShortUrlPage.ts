@@ -47,13 +47,21 @@ namespace App {
         }
 
         private async loadList(): Promise<void> {
-            const res = await ApiService.get('/ShortUrl/GetList');
-            if (!res.isOk()) {
+            LoadingService.show();
+            try {
+                const res = await ApiService.get('/ShortUrl/GetList');
+                if (!res.isOk()) {
+                    this.renderEmpty('Không thể tải danh sách');
+                    return;
+                }
+                this.links = res.data || [];
+                this.renderTable();
+            } catch {
                 this.renderEmpty('Không thể tải danh sách');
-                return;
+                ToastService.error('Lỗi hệ thống');
+            } finally {
+                LoadingService.hide();
             }
-            this.links = res.data || [];
-            this.renderTable();
         }
 
         private renderTable(): void {

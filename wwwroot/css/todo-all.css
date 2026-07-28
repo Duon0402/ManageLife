@@ -69,7 +69,7 @@
     font-size: 0.72rem; line-height: 1;
     transition: all .15s;
 }
-.list-action-btn:hover     { background: #eef0fd; color: #4f46e5; }
+.list-action-btn:hover { background: #eef0fd; color: #4f46e5; }
 .list-action-btn.del:hover { background: #fef2f2; color: #ef4444; }
 
 .todo-sidebar__divider { height: 1px; background: #f1f5f9; margin: 8px 0; }
@@ -145,7 +145,7 @@
     transition: all .2s; cursor: pointer; font-size: .6rem;
 }
 .task-row .task-check:hover { border-color: #10b981; background: #ecfdf5; }
-.task-row.done .task-check  { background: #10b981; border-color: #10b981; color: #fff; }
+.task-row.done .task-check { background: #10b981; border-color: #10b981; color: #fff; }
 
 .tr__body { flex: 1; min-width: 0; }
 .tr__title {
@@ -157,13 +157,13 @@
 
 /* Status badges — each status has distinct color */
 .badge-status { font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
-.status-pending    { background: #eef0fd; color: #4338ca; border: 1px solid #c7ccf9; }
+.status-pending { background: #eef0fd; color: #4338ca; border: 1px solid #c7ccf9; }
 .status-inprogress { background: #fff8eb; color: #b45309; border: 1px solid #fcd34d; }
-.status-completed  { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
-.status-cancelled  { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.status-completed { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
+.status-cancelled { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
 .badge-list { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-size: 0.68rem; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
-.badge-due  { font-size: 0.7rem; color: #64748b; }
+.badge-due { font-size: 0.7rem; color: #64748b; }
 .badge-due.late { color: #ef4444; font-weight: 600; }
 
 .tr__actions { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; }
@@ -174,7 +174,7 @@
     padding: 4px 6px; border-radius: 6px;
     font-size: 0.8rem; line-height: 1; transition: all .15s;
 }
-.tr-btn:hover     { background: #eef0fd; color: #4f46e5; }
+.tr-btn:hover { background: #eef0fd; color: #4f46e5; }
 .tr-btn.del:hover { background: #fef2f2; color: #ef4444; }
 
 /* ─── EMPTY ──────────────────────────────────────────── */
@@ -185,7 +185,7 @@
 /* ─── DETAIL PANEL ───────────────────────────────────── */
 .detail-panel { width: 400px !important; }
 .detail-panel .offcanvas-header { border-bottom: 1px solid #f1f5f9; }
-.detail-panel .offcanvas-title  { font-weight: 700; color: #1e293b; font-size: 1rem; }
+.detail-panel .offcanvas-title { font-weight: 700; color: #1e293b; font-size: 1rem; }
 
 .detail-form label { font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 4px; }
 .detail-form .form-control,
@@ -221,7 +221,7 @@
 /* ─── RESPONSIVE ─────────────────────────────────────── */
 @@media (max-width: 640px) {
     .todo-all-page { flex-direction: column; height: auto; }
-    .todo-sidebar  { width: 100%; height: auto; max-height: 180px; border-radius: 12px; }
-    .todo-main     { margin-left: 0; margin-top: 12px; }
-    .detail-panel  { width: 100% !important; }
+    .todo-sidebar { width: 100%; height: auto; max-height: 180px; border-radius: 12px; }
+    .todo-main { margin-left: 0; margin-top: 12px; }
+    .detail-panel { width: 100% !important; }
 }

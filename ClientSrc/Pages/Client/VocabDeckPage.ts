@@ -38,10 +38,18 @@ namespace App {
         // ── Load ──────────────────────────────────────────────────────────────
 
         private async loadDeckWords(): Promise<void> {
-            const res = await ApiService.get('/Vocab/GetDeckWords', { deckId: this.deckId });
-            if (!res.isOk()) { this.renderEmpty(); return; }
-            this.deckWords = res.data || [];
-            this.renderTable(this.deckWords);
+            LoadingService.show();
+            try {
+                const res = await ApiService.get('/Vocab/GetDeckWords', { deckId: this.deckId });
+                if (!res.isOk()) { this.renderEmpty(); return; }
+                this.deckWords = res.data || [];
+                this.renderTable(this.deckWords);
+            } catch {
+                this.renderEmpty();
+                ToastService.error('Lỗi hệ thống');
+            } finally {
+                LoadingService.hide();
+            }
         }
 
         private async loadAllWords(): Promise<void> {

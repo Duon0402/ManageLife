@@ -32,28 +32,33 @@ namespace App {
         // ── Load ──────────────────────────────────────────────────────────────
 
         private async loadCards(): Promise<void> {
-            const res = await ApiService.get('/Vocab/GetDueCards', { deckId: this.deckId });
+            try {
+                const res = await ApiService.get('/Vocab/GetDueCards', { deckId: this.deckId });
 
-            this.root.find('#study-loading').hide();
+                if (!res.isOk()) {
+                    ToastService.error(res.message || 'Không thể tải thẻ học');
+                    this.root.find('#study-empty').show();
+                    return;
+                }
 
-            if (!res.isOk()) {
-                ToastService.error(res.message || 'Không thể tải thẻ học');
+                this.cards = res.data || [];
+                this.currentIndex = 0;
+                this.correctCount = 0;
+                this.againCount = 0;
+
+                if (!this.cards.length) {
+                    this.root.find('#study-empty').show();
+                    return;
+                }
+
+                this.root.find('#study-area').show();
+                this.showCard(0);
+            } catch {
+                ToastService.error('Lỗi hệ thống');
                 this.root.find('#study-empty').show();
-                return;
+            } finally {
+                this.root.find('#study-loading').hide();
             }
-
-            this.cards = res.data || [];
-            this.currentIndex = 0;
-            this.correctCount = 0;
-            this.againCount = 0;
-
-            if (!this.cards.length) {
-                this.root.find('#study-empty').show();
-                return;
-            }
-
-            this.root.find('#study-area').show();
-            this.showCard(0);
         }
 
         // ── Card display ──────────────────────────────────────────────────────

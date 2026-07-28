@@ -42,8 +42,7 @@ namespace ManageLife.Services
 
                 foreach (var s in entities)
                 {
-                    if (s.Type == SettingType.Password && s.Value.IsNotEmpty())
-                        s.Value = PasswordMask;
+                    s.Value = MaskPasswordValue(s.Type, s.Value);
                 }
 
                 return Result.Ok(entities);
@@ -169,11 +168,13 @@ namespace ManageLife.Services
 
             // Insert mới hoặc cập nhật metadata
             var dbByKey = allInDb.ToDictionary(e => e.Key);
+            var toInsert = new List<SettingEntity>();
+            var toUpdate = new List<SettingEntity>();
             foreach (var s in settings)
             {
                 if (!dbByKey.TryGetValue(s.Key, out var existing))
                 {
-                    var entity = new SettingEntity
+                    toInsert.Add(new SettingEntity
                     {
                         Id = IdHelper.NewId(),
                         Key = s.Key,
@@ -181,8 +182,7 @@ namespace ManageLife.Services
                         Type = s.Type,
                         Group = s.Group,
                         Description = s.Description
-                    };
-                    await _repo.InsertAsync(entity, ct);
+                    });
                 }
                 else
                 {
@@ -190,9 +190,15 @@ namespace ManageLife.Services
                     existing.Type = s.Type;
                     existing.Group = s.Group;
                     existing.Description = s.Description;
-                    await _repo.UpdateAsync(existing, ct);
+                    toUpdate.Add(existing);
                 }
             }
+
+            if (toInsert.Count > 0)
+                await _repo.BulkInsertAsync(toInsert, ct);
+
+            if (toUpdate.Count > 0)
+                await _repo.BulkUpdateAsync(toUpdate, ct);
 
             await _settingContext.InvalidateCacheAsync();
         }
@@ -201,10 +207,15 @@ namespace ManageLife.Services
         {
             Id = e.Id,
             Key = e.Key,
-            Value = e.Type == SettingType.Password && e.Value.IsNotEmpty() ? PasswordMask : e.Value,
+            Value = MaskPasswordValue(e.Type, e.Value),
             Type = e.Type,
             Group = e.Group,
             Description = e.Description
         };
+
+        // Che giá trị Password bằng placeholder khi trả ra ngoài — dùng chung cho mọi nơi
+        // map SettingEntity/SettingModel để tránh lộ mật khẩu thật.
+        private static string MaskPasswordValue(SettingType type, string value) =>
+            type == SettingType.Password && value.IsNotEmpty() ? PasswordMask : value;
     }
 }

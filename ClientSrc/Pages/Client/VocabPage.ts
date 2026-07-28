@@ -98,6 +98,8 @@ namespace App {
             LoadingService.show();
             try {
                 await Promise.all([this.loadTopicsAndDecks(), this.loadWords()]);
+            } catch {
+                ToastService.error('Lỗi hệ thống');
             } finally {
                 LoadingService.hide();
             }

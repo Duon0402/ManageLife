@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.IO.Compression;
 using ManageLife.Entities;
+using ManageLife.Models;
 
 namespace ManageLife.Helpers
 {
@@ -32,7 +33,7 @@ namespace ManageLife.Helpers
             [AnkiCardType.Cloze] = 5,
         };
 
-        public static byte[] Build(List<AnkiCardEntity> cards)
+        public static byte[] Build(List<AnkiCardModel> cards)
         {
             var tempDbPath = Path.Combine(Path.GetTempPath(), $"anki_{Guid.NewGuid():N}.anki2");
             try
@@ -59,7 +60,7 @@ namespace ManageLife.Helpers
             }
         }
 
-        private static void BuildSqliteFile(string dbPath, List<AnkiCardEntity> cards)
+        private static void BuildSqliteFile(string dbPath, List<AnkiCardModel> cards)
         {
             var nowSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -177,7 +178,7 @@ namespace ManageLife.Helpers
             InsertNotesAndCards(connection, cards, ModelId, deckId, nowSeconds);
         }
 
-        private static void InsertNotesAndCards(SqliteConnection connection, List<AnkiCardEntity> cards, Func<AnkiCardType, long> modelId, long deckId, long nowSeconds)
+        private static void InsertNotesAndCards(SqliteConnection connection, List<AnkiCardModel> cards, Func<AnkiCardType, long> modelId, long deckId, long nowSeconds)
         {
             long counter = 1;
             foreach (var card in cards)

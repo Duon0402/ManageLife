@@ -154,25 +154,35 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<List<AnkiCardEntity>>> GetAllForExportAsync(CancellationToken ct = default)
+        public async Task<Result<List<AnkiCardModel>>> GetAllForExportAsync(CancellationToken ct = default)
         {
             try
             {
                 var userId = _userContext.GetUserId();
                 if (userId.IsEmpty())
-                    return Result.Error<List<AnkiCardEntity>>(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+                    return Result.Error<List<AnkiCardModel>>(Result.DATA_INVALID.Code, "Không xác định được người dùng");
 
-                var entities = await _repo.Query(true)
+                var models = await _repo.Query(true)
                     .Where(x => x.OwnerId == userId && !x.IsDeleted)
                     .OrderBy(x => x.RecordedDate)
+                    .Select(x => new AnkiCardModel
+                    {
+                        Id = x.Id,
+                        CardType = x.CardType,
+                        FieldFront = x.FieldFront,
+                        FieldBack = x.FieldBack,
+                        FieldExtra = x.FieldExtra,
+                        SourceNote = x.SourceNote,
+                        RecordedDate = x.RecordedDate
+                    })
                     .ToListAsync(ct);
 
-                return Result.Ok(entities);
+                return Result.Ok(models);
             }
             catch (Exception ex)
             {
                 _logger.Error(ex, "Lỗi khi lấy toàn bộ thẻ Anki để xuất file");
-                return Result.Exception<List<AnkiCardEntity>>("Có lỗi xảy ra khi lấy dữ liệu xuất file", ex);
+                return Result.Exception<List<AnkiCardModel>>("Có lỗi xảy ra khi lấy dữ liệu xuất file", ex);
             }
         }
 

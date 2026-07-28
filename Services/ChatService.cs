@@ -37,6 +37,16 @@ namespace ManageLife.Services
         {
             try
             {
+                if (user1.IsEmpty())
+                {
+                    return Result.Error<string>(Result.DATA_INVALID.Code, "user1 là bắt buộc");
+                }
+
+                if (user2.IsEmpty())
+                {
+                    return Result.Error<string>(Result.DATA_INVALID.Code, "user2 là bắt buộc");
+                }
+
                 if (user1 == user2)
                 {
                     return Result.Error<string>(Result.DATA_INVALID.Code, "Không thể tạo room với chính mình.");
@@ -271,14 +281,9 @@ namespace ManageLife.Services
                    dbEx.InnerException?.Message.Contains("Duplicate entry") == true;
         }
 
+        // Precondition: user1/user2 đã được validate là non-empty ở caller (CreateOrGetPrivateRoomAsync).
         private static string GeneratePrivateKey(string user1, string user2)
         {
-            if (user1.IsEmpty())
-                throw new ArgumentException("user1 is required");
-
-            if (user2.IsEmpty())
-                throw new ArgumentException("user2 is required");
-
             return string.CompareOrdinal(user1, user2) < 0
                 ? $"{user1}:{user2}"
                 : $"{user2}:{user1}";

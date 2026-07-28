@@ -41,6 +41,9 @@ namespace App {
 
                 this.renderLegend();
                 this.initCytoscape(graph);
+            } catch {
+                ToastService.error('Lỗi hệ thống');
+                this.showEmpty();
             } finally {
                 LoadingService.hide();
             }

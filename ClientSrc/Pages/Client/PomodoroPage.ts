@@ -119,15 +119,19 @@ namespace App {
         // ── Settings load / apply ──────────────────────────────
 
         private async loadSettings(): Promise<void> {
-            const preloaded = (window as any).__pomodoroSettings as PomodoroSettings | undefined;
-            if (preloaded) {
-                this.settings = preloaded;
-            } else {
-                const res = await ApiService.get('/Pomodoro/GetSettings');
-                if (!res.isOk() || !res.data) return;
-                this.settings = res.data as PomodoroSettings;
+            try {
+                const preloaded = (window as any).__pomodoroSettings as PomodoroSettings | undefined;
+                if (preloaded) {
+                    this.settings = preloaded;
+                } else {
+                    const res = await ApiService.get('/Pomodoro/GetSettings');
+                    if (!res.isOk() || !res.data) return;
+                    this.settings = res.data as PomodoroSettings;
+                }
+                this.applySettings();
+            } catch (err) {
+                console.error('Không thể tải cài đặt Pomodoro', err);
             }
-            this.applySettings();
         }
 
         private applySettings(): void {
@@ -352,8 +356,12 @@ namespace App {
         // ── History + Chart ───────────────────────────────────
 
         private async loadHistory(): Promise<void> {
-            const res = await ApiService.get('/Pomodoro/GetHistory?days=7');
-            if (res.isOk()) this.renderHistory(res.data as PomodoroHistory);
+            try {
+                const res = await ApiService.get('/Pomodoro/GetHistory?days=7');
+                if (res.isOk()) this.renderHistory(res.data as PomodoroHistory);
+            } catch (err) {
+                console.error('Không thể tải lịch sử Pomodoro', err);
+            }
         }
 
         private renderHistory(data: PomodoroHistory): void {

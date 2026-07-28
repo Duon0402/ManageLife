@@ -240,10 +240,10 @@ namespace ManageLife.Services
             switch (request.TargetType)
             {
                 case PermissionTargetType.User:
-                    rs = await AssignPermissionsToUserAsync(request);
+                    rs = await AssignPermissionsToUserAsync(request, ct);
                     break;
                 case PermissionTargetType.Role:
-                    rs = await AssignPermissionsToRoleAsync(request);
+                    rs = await AssignPermissionsToRoleAsync(request, ct);
                     break;
                 default:
                     var msg = "Loại đối tượng không hợp lệ";
@@ -277,10 +277,10 @@ namespace ManageLife.Services
             switch (request.TargetType)
             {
                 case PermissionTargetType.User:
-                    rs = await UnassignPermissionsFromUserAsync(request);
+                    rs = await UnassignPermissionsFromUserAsync(request, ct);
                     break;
                 case PermissionTargetType.Role:
-                    rs = await UnassignPermissionsFromRoleAsync(request);
+                    rs = await UnassignPermissionsFromRoleAsync(request, ct);
                     break;
                 default:
                     var msg = "Loại đối tượng không hợp lệ";
@@ -362,11 +362,11 @@ namespace ManageLife.Services
             }
         }
 
-        private async Task<Result> AssignPermissionsToRoleAsync(AssignPermissionsRequest request)
+        private async Task<Result> AssignPermissionsToRoleAsync(AssignPermissionsRequest request, CancellationToken ct)
         {
             try
             {
-                var role = await _repoRole.FirstOrDefaultAsync(r => r.Id == request.ObjectId && !r.IsDeleted);
+                var role = await _repoRole.FirstOrDefaultAsync(r => r.Id == request.ObjectId && !r.IsDeleted, ct);
                 if (role == null)
                 {
                     var msg = "Không tìm thấy role";
@@ -378,7 +378,7 @@ namespace ManageLife.Services
                     .Query()
                     .Where(rp => rp.RoleId == role.Id)
                     .Select(rp => rp.PermissionId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
                 var existedSet = existedPermissionIds.ToHashSet();
 
                 // chỉ insert những permission chưa tồn tại
@@ -393,7 +393,7 @@ namespace ManageLife.Services
 
                 if (toInsert.IsNotEmpty())
                 {
-                    var inserted = await _repoRolePermission.BulkInsertAsync(toInsert);
+                    var inserted = await _repoRolePermission.BulkInsertAsync(toInsert, ct);
                     if (!inserted)
                     {
                         var msg = "Gán quyền cho role không thành công";
@@ -407,7 +407,7 @@ namespace ManageLife.Services
                 var affectedUserIds = await _repoUserRole.Query(true)
                     .Where(ur => ur.RoleId == role.Id)
                     .Select(ur => ur.UserId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var roleCacheItems = new List<CacheItem>
                 {
@@ -432,11 +432,11 @@ namespace ManageLife.Services
             }
         }
 
-        private async Task<Result> AssignPermissionsToUserAsync(AssignPermissionsRequest request)
+        private async Task<Result> AssignPermissionsToUserAsync(AssignPermissionsRequest request, CancellationToken ct)
         {
             try
             {
-                var userExists = await _repoUser.FirstOrDefaultAsync(x => x.Id == request.ObjectId && x.IsDeleted == false);
+                var userExists = await _repoUser.FirstOrDefaultAsync(x => x.Id == request.ObjectId && x.IsDeleted == false, ct);
                 if (userExists == null)
                 {
                     var msg = "Không tìm thấy người dùng cần gán quyền";
@@ -456,13 +456,13 @@ namespace ManageLife.Services
                         (ur, rp) => rp.PermissionId
                     )
                     .Distinct()
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var rolePermissionSet = rolePermissionIds.ToHashSet();
 
                 var userPermissions = await _repoUserPermission.Query()
                     .Where(up => up.UserId == request.ObjectId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var userPermissionDict = userPermissions
                     .ToDictionary(x => x.PermissionId);
@@ -493,7 +493,7 @@ namespace ManageLife.Services
 
                 if (toInsert.IsNotEmpty())
                 {
-                    if (!await _repoUserPermission.BulkInsertAsync(toInsert))
+                    if (!await _repoUserPermission.BulkInsertAsync(toInsert, ct))
                     {
                         var msg = "Thêm quyền cho người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
@@ -502,7 +502,7 @@ namespace ManageLife.Services
 
                 if (toUpdate.IsNotEmpty())
                 {
-                    if (!await _repoUserPermission.BulkUpdateAsync(toUpdate))
+                    if (!await _repoUserPermission.BulkUpdateAsync(toUpdate, ct))
                     {
                         var msg = "Cập nhật quyền cho người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);
@@ -521,11 +521,11 @@ namespace ManageLife.Services
             }
         }
 
-        private async Task<Result> UnassignPermissionsFromRoleAsync(UnassignPermissionsRequest request)
+        private async Task<Result> UnassignPermissionsFromRoleAsync(UnassignPermissionsRequest request, CancellationToken ct)
         {
             try
             {
-                var role = await _repoRole.FirstOrDefaultAsync(r => r.Id == request.ObjectId && !r.IsDeleted);
+                var role = await _repoRole.FirstOrDefaultAsync(r => r.Id == request.ObjectId && !r.IsDeleted, ct);
                 if (role == null)
                 {
                     var msg = "Không tìm thấy role";
@@ -538,14 +538,14 @@ namespace ManageLife.Services
                         rp.RoleId == request.ObjectId &&
                         request.PermissionIds.Contains(rp.PermissionId)
                     )
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 if (rolePermissions.IsEmpty())
                 {
                     return Result.Ok();
                 }
 
-                var deleted = await _repoRolePermission.BulkDeleteAsync(rolePermissions);
+                var deleted = await _repoRolePermission.BulkDeleteAsync(rolePermissions, ct);
                 if (!deleted)
                 {
                     var msg = "Gỡ quyền khỏi role thất bại";
@@ -556,7 +556,7 @@ namespace ManageLife.Services
                 var userIds = await _repoUserRole.Query(true)
                     .Where(ur => ur.RoleId == request.ObjectId)
                     .Select(ur => ur.UserId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var roleCacheItems = new List<CacheItem>
                 {
@@ -581,11 +581,11 @@ namespace ManageLife.Services
             }
         }
 
-        private async Task<Result> UnassignPermissionsFromUserAsync(UnassignPermissionsRequest request)
+        private async Task<Result> UnassignPermissionsFromUserAsync(UnassignPermissionsRequest request, CancellationToken ct)
         {
             try
             {
-                var userExists = await _repoUser.FirstOrDefaultAsync(x => x.Id == request.ObjectId && x.IsDeleted == false);
+                var userExists = await _repoUser.FirstOrDefaultAsync(x => x.Id == request.ObjectId && x.IsDeleted == false, ct);
                 if (userExists == null)
                 {
                     var msg = "Không tìm thấy người dùng cần gỡ quyền";
@@ -603,13 +603,13 @@ namespace ManageLife.Services
                         (ur, rp) => rp.PermissionId
                     )
                     .Distinct()
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var rolePermissionSet = rolePermissionIds.ToHashSet();
 
                 var userPermissions = await _repoUserPermission.Query()
                     .Where(up => up.UserId == request.ObjectId && inputPermissionSet.Contains(up.PermissionId))
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 var userPermissionDict = userPermissions.ToDictionary(x => x.PermissionId);
 
@@ -652,7 +652,7 @@ namespace ManageLife.Services
 
                 if (toDelete.IsNotEmpty())
                 {
-                    if (!await _repoUserPermission.BulkDeleteAsync(toDelete))
+                    if (!await _repoUserPermission.BulkDeleteAsync(toDelete, ct))
                     {
                         var msg = "Gỡ quyền khỏi người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_DELETE.Code, msg);
@@ -661,7 +661,7 @@ namespace ManageLife.Services
 
                 if (toInsert.IsNotEmpty())
                 {
-                    if (!await _repoUserPermission.BulkInsertAsync(toInsert))
+                    if (!await _repoUserPermission.BulkInsertAsync(toInsert, ct))
                     {
                         var msg = "Ghi đè quyền của người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
@@ -670,7 +670,7 @@ namespace ManageLife.Services
 
                 if (toUpdate.IsNotEmpty())
                 {
-                    if (!await _repoUserPermission.BulkUpdateAsync(toUpdate))
+                    if (!await _repoUserPermission.BulkUpdateAsync(toUpdate, ct))
                     {
                         var msg = "Cập nhật quyền của người dùng thất bại";
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, msg);

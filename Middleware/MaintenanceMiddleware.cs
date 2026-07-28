@@ -5,17 +5,10 @@ namespace ManageLife.Middleware
 {
     public class MaintenanceMiddleware(RequestDelegate next)
     {
-        private static readonly string[] _allowedPrefixes =
-        [
-            "/admin",
-            "/auth",
-            "/api",
-        ];
-
         public async Task InvokeAsync(HttpContext context, ISettingContext settings)
         {
             var path = context.Request.Path.Value ?? "";
-            var isAllowed = _allowedPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+            var isAllowed = MiddlewareConst.AllowedPathPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
 
             if (!isAllowed)
             {

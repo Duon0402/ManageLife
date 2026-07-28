@@ -73,7 +73,14 @@ namespace ManageLife.Services
                     var input = new Telegram.Bot.Types.InputFileStream(ms, file.FileName);
                     var message = await _botClient.SendDocument(chatId: _chatId!, document: input, caption: caption);
                     var telegramFileId = message.Document?.FileId;
-                    if (telegramFileId.IsEmpty()) throw new Exception("Telegram FileId null directly");
+                    if (telegramFileId.IsEmpty())
+                    {
+                        entity.Status = UploadStatus.Failed;
+                        await _repo.UpdateAsync(entity);
+                        msg = $"Telegram không trả về FileId: {file.FileName}";
+                        _logger.Warning(msg);
+                        return Result.Error<FileModel>(Result.DATA_NOT_CREATE.Code, msg);
+                    }
 
                     entity.FileId = telegramFileId;
                     entity.Status = UploadStatus.Completed;
@@ -200,7 +207,14 @@ namespace ManageLife.Services
                 var input = new Telegram.Bot.Types.InputFileStream(stream, entity.FileName);
                 Telegram.Bot.Types.Message message = await _botClient.SendDocument(chatId: _chatId!, document: input);
                 var telegramFileId = message.Document?.FileId;
-                if (telegramFileId.IsEmpty()) throw new Exception("Telegram FileId null");
+                if (telegramFileId.IsEmpty())
+                {
+                    entity.Status = UploadStatus.Failed;
+                    await _repo.UpdateAsync(entity);
+                    msg = $"Telegram không trả về FileId: {fileId}";
+                    _logger.Warning(msg);
+                    return Result.Error(Result.DATA_NOT_CREATE.Code, msg);
+                }
 
                 entity.FileId = telegramFileId;
                 entity.Status = UploadStatus.Completed;

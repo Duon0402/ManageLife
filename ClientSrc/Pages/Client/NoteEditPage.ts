@@ -66,6 +66,8 @@ namespace App {
                 this.renderAssignedTags();
                 this.renderLinkedNotes();
                 this.renderBacklinks();
+            } catch {
+                ToastService.error('Lỗi hệ thống');
             } finally {
                 LoadingService.hide();
             }

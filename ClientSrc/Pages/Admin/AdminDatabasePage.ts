@@ -81,9 +81,9 @@ namespace App {
                         font-weight: 600;
                         margin-bottom: 20px;
                     }
-                    .db-status.ok   { background: #eafaf1; color: #1e8449; }
+                    .db-status.ok { background: #eafaf1; color: #1e8449; }
                     .db-status.warn { background: #fef9e7; color: #b7950b; }
-                    .db-status i    { font-size: 1.1rem; }
+                    .db-status i { font-size: 1.1rem; }
 
                     .db-section { margin-bottom: 20px; }
                     .db-section-title {
@@ -103,7 +103,7 @@ namespace App {
                         font-weight: 700;
                         margin-left: 6px;
                     }
-                    .db-badge.ok   { background: #eafaf1; color: #1e8449; }
+                    .db-badge.ok { background: #eafaf1; color: #1e8449; }
                     .db-badge.warn { background: #fef9e7; color: #b7950b; }
 
                     .db-migration-row {

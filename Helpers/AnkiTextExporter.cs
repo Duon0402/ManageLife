@@ -1,5 +1,6 @@
 using System.Text;
 using ManageLife.Entities;
+using ManageLife.Models;
 
 namespace ManageLife.Helpers
 {
@@ -14,7 +15,7 @@ namespace ManageLife.Helpers
             [AnkiCardType.Cloze] = "Cloze",
         };
 
-        public static byte[] Build(List<AnkiCardEntity> cards)
+        public static byte[] Build(List<AnkiCardModel> cards)
         {
             var sb = new StringBuilder();
             // Header — cột 1 = tên note type (cho phép trộn nhiều loại/1 file), cột 2 = GUID ổn định,
