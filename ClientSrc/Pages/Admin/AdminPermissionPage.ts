@@ -42,7 +42,7 @@ namespace App {
         private initGrids(): void {
             const commonOptions = {
                 rowId: 'id',
-                dom: 't',
+                searching: true,
                 scrollX: true,
                 columnDefs: [
                     {
