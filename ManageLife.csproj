@@ -56,9 +56,9 @@
 
 	<ItemGroup>
 		<Folder Include="ClientSrc\Commons\" />
+		<Folder Include="ClientSrc\Components\" />
 		<Folder Include="ClientSrc\Core\Gallary\" />
 		<Folder Include="ClientSrc\Core\Popup\" />
-		<Folder Include="ClientSrc\Services\" />
 		<Folder Include="Middleware\" />
 		<Folder Include="Data\Migrations\" />
 	</ItemGroup>
