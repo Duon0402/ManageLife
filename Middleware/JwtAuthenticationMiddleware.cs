@@ -29,6 +29,13 @@ namespace ManageLife.Middleware
             bool stampRejected = false;
 
             var accessToken = context.Request.Cookies["accessToken"];
+            if (accessToken.IsEmpty())
+            {
+                var authHeader = context.Request.Headers.Authorization.ToString();
+                if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    accessToken = authHeader["Bearer ".Length..];
+            }
+
             if (accessToken.IsNotEmpty())
             {
                 var principal = tokenService.ValidateAccessToken(accessToken);
@@ -68,7 +75,8 @@ namespace ManageLife.Middleware
 
             tokenService.ClearTokensCookie();
 
-            var isAjax = context.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+            var isAjax = context.Request.Headers["X-Requested-With"] == "XMLHttpRequest"
+                || context.Request.Path.StartsWithSegments("/api");
             var returnUrl = context.Request.Path + context.Request.QueryString;
 
             if (isAjax)

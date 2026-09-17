@@ -49,7 +49,8 @@ namespace ManageLife.Controllers.Client
         [EnableRateLimiting("login")]
         public async Task<Result> Login([FromBody] LoginAccountRequest model, CancellationToken ct)
         {
-            return await _userService.LoginAsync(model, ct);
+            var result = await _userService.LoginAsync(model, ct);
+            return result.IsOk() ? Result.Ok() : Result.Error(result.Code, result.Message, result.ErrorContent);
         }
 
         [Authorize]

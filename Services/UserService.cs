@@ -124,24 +124,24 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> LoginAsync(LoginAccountRequest request, CancellationToken ct = default)
+        public async Task<Result<AuthTokenModel>> LoginAsync(LoginAccountRequest request, CancellationToken ct = default)
         {
             try
             {
                 var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+                if (err.IsNotEmpty()) return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, err);
 
                 var userEntity = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName && !x.IsDeleted, ct);
                 if (userEntity == null)
                 {
                     _logger.Debug("Tên đăng nhập hoặc mật khẩu không đúng");
-                    return Result.Error(Result.DATA_INVALID.Code, "Tên đăng nhập hoặc mật khẩu không đúng");
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Tên đăng nhập hoặc mật khẩu không đúng");
                 }
 
                 if (!userEntity.IsActive)
                 {
                     _logger.Debug("Tài khoản bị khóa");
-                    return Result.Error(Result.DATA_INVALID.Code, "Tài khoản của bạn đã bị khóa");
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Tài khoản của bạn đã bị khóa");
                 }
 
                 if (userEntity.LockoutEnd.HasValue)
@@ -149,7 +149,7 @@ namespace ManageLife.Services
                     if (userEntity.LockoutEnd.Value > DateTimeHelper.UtcNow())
                     {
                         _logger.Debug("Tài khoản đang bị khóa tạm thời do đăng nhập sai nhiều lần");
-                        return Result.Error(Result.DATA_INVALID.Code, "Tài khoản tạm thời bị khoá do đăng nhập sai quá nhiều lần, vui lòng thử lại sau");
+                        return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Tài khoản tạm thời bị khoá do đăng nhập sai quá nhiều lần, vui lòng thử lại sau");
                     }
 
                     // Lockout đã hết hạn — cấp lại lượt thử mới, tránh khoá vô thời hạn chỉ vì gõ sai 1 lần sau đó
@@ -172,7 +172,7 @@ namespace ManageLife.Services
 
                     await _userRepo.UpdateAsync(userEntity, ct);
 
-                    return Result.Error(Result.DATA_INVALID.Code, "Tên đăng nhập hoặc mật khẩu không đúng");
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Tên đăng nhập hoặc mật khẩu không đúng");
                 }
 
                 await _uow.BeginTransactionAsync(ct);
@@ -205,7 +205,7 @@ namespace ManageLife.Services
                 if (!cleanupResult.IsOk())
                 {
                     _logger.Debug("Không thể dọn dẹp token cũ");
-                    return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể dọn dẹp token cũ");
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_DELETE.Code, "Không thể dọn dẹp token cũ");
                 }
 
                 var refreshToken = _tokenService.GenerateRefreshToken();
@@ -221,7 +221,7 @@ namespace ManageLife.Services
                 if (!tokenSaved)
                 {
                     _logger.Debug("Không thể tạo refresh token");
-                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể tạo phiên đăng nhập");
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, "Không thể tạo phiên đăng nhập");
                 }
 
                 await _uow.CommitAsync(ct);
@@ -237,14 +237,14 @@ namespace ManageLife.Services
                 var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, userEntity.SecurityStamp!, roles);
                 await _tokenService.SetTokensCookieAsync(accessToken, refreshToken);
 
-                return Result.Ok();
+                return Result.Ok(new AuthTokenModel { AccessToken = accessToken, RefreshToken = refreshToken });
             }
             catch (Exception ex)
             {
                 await _uow.RollbackAsync(ct);
                 var msg = "Đã có lỗi xảy ra khi đăng nhập tài khoản";
                 _logger.Error(ex, msg);
-                return Result.Exception(msg, ex);
+                return Result.Exception<AuthTokenModel>(msg, ex);
             }
         }
 

@@ -7,7 +7,7 @@ namespace ManageLife.Interfaces
     {
         Task<Result> RegisterAsync(RegisterAccountRequest model, CancellationToken ct = default);
 
-        Task<Result> LoginAsync(LoginAccountRequest model, CancellationToken ct = default);
+        Task<Result<AuthTokenModel>> LoginAsync(LoginAccountRequest model, CancellationToken ct = default);
 
         Task<Result> LogoutAsync(string? refreshToken, CancellationToken ct = default);
 
