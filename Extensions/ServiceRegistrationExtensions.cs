@@ -19,6 +19,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IUtilityService, UtilityService>();
             services.AddScoped<IQrService, QrService>();
             services.AddScoped<ISettingService, SettingService>();
+            services.AddScoped<IAppConfigService, AppConfigService>();
             services.AddScoped<ITodoTaskService, TodoTaskService>();
             services.AddScoped<ITodoListService, TodoListService>();
             services.AddScoped<ITodoReminderService, TodoReminderService>();
