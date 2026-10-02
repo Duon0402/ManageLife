@@ -35,7 +35,7 @@ namespace App {
                 if (response.isOk()) {
                     ToastService.success("Đổi mật khẩu thành công");
                     setTimeout(() => {
-                        window.location.href = '/Auth/Login';
+                        window.location.href = '/';
                     }, 1200);
                 } else {
                     ToastService.error(response.message || 'Đổi mật khẩu thất bại');

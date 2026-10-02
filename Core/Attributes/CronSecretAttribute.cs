@@ -28,7 +28,7 @@ namespace ManageLife.Core
         private static bool IsValidSecret(string secret, string? expected)
         {
             //NOTE: Chưa cấu hình secret thì chặn hết, tránh mở endpoint khi thiếu config
-            if (string.IsNullOrWhiteSpace(expected) || string.IsNullOrEmpty(secret))
+            if (expected.IsEmpty() || secret.IsEmpty())
                 return false;
 
             //NOTE: So sánh constant-time để không lộ secret qua thời gian phản hồi

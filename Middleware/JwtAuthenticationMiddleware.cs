@@ -28,13 +28,14 @@ namespace ManageLife.Middleware
             var ct = context.RequestAborted;
             bool stampRejected = false;
 
-            var accessToken = context.Request.Cookies["accessToken"];
-            if (accessToken.IsEmpty())
-            {
-                var authHeader = context.Request.Headers.Authorization.ToString();
-                if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                    accessToken = authHeader["Bearer ".Length..];
-            }
+            // Mobile gửi Bearer header: ưu tiên header để cookie cũ (của tài khoản/phiên khác) không đè lên
+            string? accessToken = null;
+            var authHeader = context.Request.Headers.Authorization.ToString();
+            var isBearerClient = authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);
+            if (isBearerClient)
+                accessToken = authHeader["Bearer ".Length..];
+            else
+                accessToken = context.Request.Cookies["accessToken"];
 
             if (accessToken.IsNotEmpty())
             {
@@ -53,7 +54,8 @@ namespace ManageLife.Middleware
                 }
             }
 
-            if (!stampRejected)
+            // Client Bearer tự refresh qua /api/auth/refresh; chỉ web (cookie) mới được auto-refresh ở đây
+            if (!stampRejected && !isBearerClient)
             {
                 var refreshToken = context.Request.Cookies["refreshToken"];
                 if (refreshToken.IsNotEmpty())

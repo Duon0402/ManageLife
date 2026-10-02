@@ -25,6 +25,19 @@ namespace ManageLife.Controllers.API
             return await _userService.LoginAsync(model, ct);
         }
 
+        [HttpPost("register")]
+        [EnableRateLimiting("login")]
+        public async Task<Result<AuthTokenModel>> Register([FromBody] RegisterAccountRequest model, CancellationToken ct)
+        {
+            return await _userService.RegisterAsync(model, ct);
+        }
+
+        [HttpPost("logout")]
+        public async Task<Result> Logout([FromBody] RefreshTokenRequest model, CancellationToken ct)
+        {
+            return await _userService.LogoutAsync(model.RefreshToken, ct);
+        }
+
         [HttpPost("refresh")]
         public async Task<Result<AuthTokenModel>> Refresh([FromBody] RefreshTokenRequest model, CancellationToken ct)
         {

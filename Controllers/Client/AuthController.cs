@@ -13,13 +13,11 @@ namespace ManageLife.Controllers.Client
     {
         private readonly IUserService _userService;
         private readonly ITokenService _tokenService;
-        private readonly ISettingContext _settingContext;
 
-        public AuthController(IUserService userService, ITokenService tokenService, ISettingContext settingContext)
+        public AuthController(IUserService userService, ITokenService tokenService)
         {
             _userService = userService;
             _tokenService = tokenService;
-            _settingContext = settingContext;
         }
 
         public IActionResult Login()
@@ -38,35 +36,36 @@ namespace ManageLife.Controllers.Client
         }
 
         [HttpPost]
+        [EnableRateLimiting("login")]
         public async Task<Result> Register([FromBody] RegisterAccountRequest model, CancellationToken ct)
         {
-            if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableRegistration, true))
-                return Result.Error("FEATURE_DISABLED", "Đăng ký tài khoản hiện đang tạm ngưng");
-            return await _userService.RegisterAsync(model, ct);
+            return await SignInWithCookieAsync(await _userService.RegisterAsync(model, ct));
         }
 
         [HttpPost]
         [EnableRateLimiting("login")]
         public async Task<Result> Login([FromBody] LoginAccountRequest model, CancellationToken ct)
         {
-            var result = await _userService.LoginAsync(model, ct);
-            return result.IsOk() ? Result.Ok() : Result.Error(result.Code, result.Message, result.ErrorContent);
+            return await SignInWithCookieAsync(await _userService.LoginAsync(model, ct));
         }
 
         [Authorize]
         [HttpPost]
         public async Task<Result> RefreshToken(CancellationToken ct)
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-            return await _tokenService.RefreshTokenAsync(refreshToken, ct);
+            var result = await _tokenService.RefreshTokenAsync(Request.Cookies["refreshToken"], ct);
+            if (!result.IsOk())
+                _tokenService.ClearTokensCookie();
+            return await SignInWithCookieAsync(result);
         }
 
         [Authorize]
         [HttpPost]
         public async Task<Result> Logout(CancellationToken ct)
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-            return await _userService.LogoutAsync(refreshToken, ct);
+            var result = await _userService.LogoutAsync(Request.Cookies["refreshToken"], ct);
+            _tokenService.ClearTokensCookie();
+            return result;
         }
 
         [Authorize]
@@ -80,8 +79,17 @@ namespace ManageLife.Controllers.Client
         [HttpPost]
         public async Task<Result> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-            return await _userService.ChangePasswordAsync(request, refreshToken, ct);
+            return await SignInWithCookieAsync(await _userService.ChangePasswordAsync(request, ct));
+        }
+
+        /// <summary>Set cookie phiên cho web khi thành công; không trả token ra JS.</summary>
+        private async Task<Result> SignInWithCookieAsync(Result<AuthTokenModel> result)
+        {
+            if (!result.IsOk())
+                return Result.Error(result.Code, result.Message, result.ErrorContent);
+
+            await _tokenService.SetTokensCookieAsync(result.Data.AccessToken, result.Data.RefreshToken);
+            return Result.Ok();
         }
     }
 }

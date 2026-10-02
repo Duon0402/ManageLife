@@ -70,8 +70,12 @@ namespace ManageLife.Extensions
                     {
                         OnMessageReceived = context =>
                         {
+                            // Có Bearer header (mobile) thì để handler tự đọc header; chỉ fallback cookie cho web
+                            if (context.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                                return Task.CompletedTask;
+
                             var token = context.Request.Cookies["accessToken"];
-                            if (!string.IsNullOrEmpty(token))
+                            if (token.IsNotEmpty())
                             {
                                 context.Token = token;
                             }

@@ -11,12 +11,11 @@ namespace ManageLife.Services
 {
     public class UserService : ServiceBase<UserService>, IUserService
     {
-        private const int RefreshTokenExpiryDays = 7;
-
         private readonly IUserRepository _userRepo;
         private readonly IRoleRepository _roleRepo;
         private readonly IUserRoleRepository _userRoleRepo;
         private readonly IUserRefreshTokenRepository _refreshRepo;
+        private readonly IUserTelegramConnectionRepository _telegramRepo;
         private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _uow;
         private readonly ISettingContext _settingContext;
@@ -26,6 +25,7 @@ namespace ManageLife.Services
             IRoleRepository roleRepo,
             IUserRoleRepository userRoleRepo,
             IUserRefreshTokenRepository refreshRepo,
+            IUserTelegramConnectionRepository telegramRepo,
             ITokenService tokenService,
             IUnitOfWork uow,
             ISettingContext settingContext,
@@ -36,30 +36,34 @@ namespace ManageLife.Services
             _roleRepo = roleRepo;
             _userRoleRepo = userRoleRepo;
             _refreshRepo = refreshRepo;
+            _telegramRepo = telegramRepo;
             _tokenService = tokenService;
             _uow = uow;
             _settingContext = settingContext;
         }
 
-        public async Task<Result> RegisterAsync(RegisterAccountRequest request, CancellationToken ct = default)
+        public async Task<Result<AuthTokenModel>> RegisterAsync(RegisterAccountRequest request, CancellationToken ct = default)
         {
             try
             {
+                if (!await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableRegistration, true))
+                    return Result.Error<AuthTokenModel>("FEATURE_DISABLED", "Đăng ký tài khoản hiện đang tạm ngưng");
+
                 var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+                if (err.IsNotEmpty()) return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, err);
 
                 var existedUser = await _userRepo.FirstOrDefaultAsync(x => x.UserName == request.UserName, ct);
                 if (existedUser != null)
                 {
                     _logger.Debug("Tên đăng nhập đã tồn tại");
-                    return Result.Error(Result.DATA_EXISTED.Code, "Tên đăng nhập đã tồn tại");
+                    return Result.Error<AuthTokenModel>(Result.DATA_EXISTED.Code, "Tên đăng nhập đã tồn tại");
                 }
 
                 var roleEntity = await _roleRepo.FirstOrDefaultAsync(x => x.Name == "User" && x.IsDeleted == false, ct);
                 if (roleEntity == null)
                 {
                     _logger.Debug("Không thể đăng ký tài khoản: không tìm thấy role User");
-                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể đăng ký tài khoản");
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, "Không thể đăng ký tài khoản");
                 }
 
                 await _uow.BeginTransactionAsync(ct);
@@ -73,54 +77,34 @@ namespace ManageLife.Services
                     CreatedUser = SystemUsers.System
                 };
                 var userCreated = await _userRepo.InsertAsync(userEntity, ct);
-                if (!userCreated)
-                {
-                    _logger.Debug("Không thể tạo user entity");
-                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể đăng ký tài khoản");
-                }
-
-                var userRoleEntity = new UserRoleEntity
+                var roleAssigned = userCreated && await _userRoleRepo.InsertAsync(new UserRoleEntity
                 {
                     UserId = userEntity.Id,
                     RoleId = roleEntity.Id
-                };
-                var roleAssigned = await _userRoleRepo.InsertAsync(userRoleEntity, ct);
+                }, ct);
                 if (!roleAssigned)
                 {
-                    _logger.Debug("Không thể gán role cho user");
-                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể đăng ký tài khoản");
+                    await _uow.RollbackAsync(ct);
+                    _logger.Debug("Không thể tạo user hoặc gán role");
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, "Không thể đăng ký tài khoản");
                 }
 
-                var refreshToken = _tokenService.GenerateRefreshToken();
-                var refreshEntity = new UserRefreshTokenEntity
+                var issued = await _tokenService.IssueTokensAsync(userEntity, ct);
+                if (!issued.IsOk())
                 {
-                    Id = IdHelper.NewId(),
-                    UserId = userEntity.Id,
-                    RefreshToken = refreshToken,
-                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(RefreshTokenExpiryDays)
-                };
-
-                var tokenSaved = await _refreshRepo.InsertAsync(refreshEntity, ct);
-                if (!tokenSaved)
-                {
-                    _logger.Debug("Không thể tạo refresh token");
-                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể tạo phiên đăng nhập");
+                    await _uow.RollbackAsync(ct);
+                    return issued;
                 }
 
                 await _uow.CommitAsync(ct);
-
-                var roles = new List<string> { roleEntity.Name };
-                var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, userEntity.SecurityStamp!, roles);
-                await _tokenService.SetTokensCookieAsync(accessToken, refreshToken);
-
-                return Result.Ok();
+                return issued;
             }
             catch (Exception ex)
             {
                 await _uow.RollbackAsync(ct);
                 var msg = "Đã có lỗi xảy ra khi đăng ký tài khoản";
                 _logger.Error(ex, msg);
-                return Result.Exception(msg, ex);
+                return Result.Exception<AuthTokenModel>(msg, ex);
             }
         }
 
@@ -201,43 +185,15 @@ namespace ManageLife.Services
                 if (needsUpdate)
                     await _userRepo.UpdateAsync(userEntity, ct);
 
-                var cleanupResult = await _tokenService.CleanupRefreshTokensAsync(userEntity.Id, _uow, ct);
-                if (!cleanupResult.IsOk())
+                var issued = await _tokenService.IssueTokensAsync(userEntity, ct);
+                if (!issued.IsOk())
                 {
-                    _logger.Debug("Không thể dọn dẹp token cũ");
-                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_DELETE.Code, "Không thể dọn dẹp token cũ");
-                }
-
-                var refreshToken = _tokenService.GenerateRefreshToken();
-                var refreshEntity = new UserRefreshTokenEntity
-                {
-                    Id = IdHelper.NewId(),
-                    UserId = userEntity.Id,
-                    RefreshToken = refreshToken,
-                    ExpiryTime = DateTimeHelper.UtcNow().AddDays(RefreshTokenExpiryDays),
-                };
-
-                var tokenSaved = await _refreshRepo.InsertAsync(refreshEntity, ct);
-                if (!tokenSaved)
-                {
-                    _logger.Debug("Không thể tạo refresh token");
-                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_CREATE.Code, "Không thể tạo phiên đăng nhập");
+                    await _uow.RollbackAsync(ct);
+                    return issued;
                 }
 
                 await _uow.CommitAsync(ct);
-
-                var roles = await _userRoleRepo.Query(true)
-                    .Where(ur => ur.UserId == userEntity.Id)
-                    .Join(_roleRepo.Query(true),
-                        ur => ur.RoleId,
-                        r => r.Id,
-                        (ur, r) => r.Name)
-                    .ToListAsync(ct);
-
-                var accessToken = _tokenService.GenerateAccessToken(userEntity.Id, userEntity.UserName, userEntity.SecurityStamp!, roles);
-                await _tokenService.SetTokensCookieAsync(accessToken, refreshToken);
-
-                return Result.Ok(new AuthTokenModel { AccessToken = accessToken, RefreshToken = refreshToken });
+                return issued;
             }
             catch (Exception ex)
             {
@@ -273,8 +229,6 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể đăng xuất");
                 }
 
-                _tokenService.ClearTokensCookie();
-
                 return Result.Ok();
             }
             catch (Exception ex)
@@ -284,40 +238,25 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> ChangePasswordAsync(ChangePasswordRequest request, string? refreshToken, CancellationToken ct = default)
+        public async Task<Result<AuthTokenModel>> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default)
         {
             try
             {
                 var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
-
-                if (refreshToken == null)
-                {
-                    _logger.Debug("Refresh token null khi đổi mật khẩu");
-                    return Result.Error(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
-                }
+                if (err.IsNotEmpty()) return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
                 var user = await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive && !x.IsDeleted, ct);
                 if (user == null)
                 {
                     _logger.Debug("Không tìm thấy user khi đổi mật khẩu");
-                    return Result.Error(Result.DATA_INVALID.Code, TranslationKey.Common.Message.DataInvalid);
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, TranslationKey.Common.Message.DataInvalid);
                 }
 
-                var tokenEntity = await _refreshRepo.FirstOrDefaultAsync(x => x.RefreshToken == refreshToken && x.UserId == user.Id && x.IsRevoked == false, ct);
-                if (tokenEntity == null)
-                {
-                    _logger.Debug("Token không hợp lệ khi đổi mật khẩu");
-                    return Result.Error(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
-                }
-
-                var oldPasswordValid = PasswordHelper.VerifyPassword(request.OldPassword, user.HashPassword);
-
-                if (!oldPasswordValid)
+                if (!PasswordHelper.VerifyPassword(request.OldPassword, user.HashPassword))
                 {
                     _logger.Debug("Mật khẩu cũ không đúng");
-                    return Result.Error(Result.DATA_INVALID.Code, "Mật khẩu cũ không đúng");
+                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, "Mật khẩu cũ không đúng");
                 }
 
                 await _uow.BeginTransactionAsync(ct);
@@ -327,26 +266,108 @@ namespace ManageLife.Services
                 var updated = await _userRepo.UpdateAsync(user, ct);
                 if (!updated)
                 {
+                    await _uow.RollbackAsync(ct);
                     _logger.Debug("Không thể cập nhật mật khẩu");
-                    return Result.Error(Result.DATA_NOT_UPDATE.Code, TranslationKey.Common.Message.UpdateError);
+                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, TranslationKey.Common.Message.UpdateError);
                 }
 
+                // Đăng xuất mọi thiết bị khác, cấp phiên mới cho thiết bị đang đổi mật khẩu
                 await _refreshRepo.Query()
                     .Where(x => x.UserId == user.Id)
                     .ExecuteDeleteAsync(ct);
+
+                var issued = await _tokenService.IssueTokensAsync(user, ct);
+                if (!issued.IsOk())
+                {
+                    await _uow.RollbackAsync(ct);
+                    return issued;
+                }
 
                 await _uow.CommitAsync(ct);
 
                 await _tokenService.InvalidateSecurityStampCacheAsync(user.Id, ct);
 
-                return Result.Ok();
+                return issued;
             }
             catch (Exception ex)
             {
                 await _uow.RollbackAsync(ct);
                 _logger.Error(ex, TranslationKey.Common.Message.SystemError);
-                return Result.Exception(TranslationKey.Common.Message.SystemError, ex);
+                return Result.Exception<AuthTokenModel>(TranslationKey.Common.Message.SystemError, ex);
             }
+        }
+
+        public async Task<Result<AccountModel>> GetMyAccountAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                var user = await GetCurrentUserAsync(ct);
+                if (user == null)
+                    return Result.Error<AccountModel>(Result.DATA_NOT_EXISTED.Code, "Không tìm thấy tài khoản");
+
+                return Result.Ok(await BuildAccountModelAsync(user, ct));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, TranslationKey.Common.Message.SystemError);
+                return Result.Exception<AccountModel>(TranslationKey.Common.Message.SystemError, ex);
+            }
+        }
+
+        public async Task<Result<AccountModel>> UpdateMyAccountAsync(UpdateAccountRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<AccountModel>(Result.DATA_INVALID.Code, err);
+
+                var user = await GetCurrentUserAsync(ct);
+                if (user == null)
+                    return Result.Error<AccountModel>(Result.DATA_NOT_EXISTED.Code, "Không tìm thấy tài khoản");
+
+                user.FullName = request.FullName.IsEmpty() ? null : request.FullName!.Trim();
+                user.Email = request.Email.IsEmpty() ? null : request.Email!.Trim();
+
+                var updated = await _userRepo.UpdateAsync(user, ct);
+                if (!updated)
+                    return Result.Error<AccountModel>(Result.DATA_NOT_UPDATE.Code, TranslationKey.Common.Message.UpdateError);
+
+                return Result.Ok(await BuildAccountModelAsync(user, ct));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, TranslationKey.Common.Message.SystemError);
+                return Result.Exception<AccountModel>(TranslationKey.Common.Message.SystemError, ex);
+            }
+        }
+
+        private async Task<UserEntity?> GetCurrentUserAsync(CancellationToken ct)
+        {
+            var userId = _userContext.GetUserId();
+            if (userId.IsEmpty()) return null;
+            return await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive && !x.IsDeleted, ct);
+        }
+
+        private async Task<AccountModel> BuildAccountModelAsync(UserEntity user, CancellationToken ct)
+        {
+            var roles = await _userRoleRepo.Query(true)
+                .Where(ur => ur.UserId == user.Id)
+                .Join(_roleRepo.Query(true), ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
+                .ToListAsync(ct);
+
+            var telegramLinked = await _telegramRepo.Query(true)
+                .AnyAsync(x => x.UserId == user.Id && !x.IsDeleted, ct);
+
+            return new AccountModel
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                Email = user.Email,
+                Roles = roles,
+                TelegramLinked = telegramLinked,
+                CreatedTime = DateTime.SpecifyKind(user.CreatedTime, DateTimeKind.Utc)
+            };
         }
 
         #region Admin

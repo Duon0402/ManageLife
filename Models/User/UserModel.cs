@@ -5,10 +5,12 @@
         public string Id { get; set; } = null!;
         public string UserName { get; set; } = null!;
         public string? Email { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public string HashPassword { get; set; } = null!;
         public string? FullName { get; set; }
         public bool IsActive { get; set; }
 
+        [System.Text.Json.Serialization.JsonIgnore]
         public string SecurityStamp { get; set; } = null!;
 
         public string CreatedUser { get; set; } = null!;
