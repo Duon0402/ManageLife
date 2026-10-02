@@ -75,6 +75,20 @@ namespace ManageLife.Helpers
             CreateMap<NoteTagEntity, NoteTagModel>();
             CreateMap<CreateNoteRequest, NoteEntity>();
             CreateMap<UpdateNoteRequest, NoteEntity>();
+
+            // Todo — OpenCount, ListName/ListColor, ChecklistTotal/Done do service tính riêng.
+            // Thời gian lưu UTC nhưng MySQL trả Kind Unspecified: đánh dấu UTC để JSON có hậu tố Z.
+            CreateMap<TodoListEntity, TodoListModel>();
+            CreateMap<TodoTaskEntity, TodoTaskModel>()
+                .ForMember(d => d.ReminderAt, o => o.MapFrom(s => AsUtc(s.ReminderAt)))
+                .ForMember(d => d.CompletedAt, o => o.MapFrom(s => AsUtc(s.CompletedAt)))
+                .ForMember(d => d.CreatedTime, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedTime, DateTimeKind.Utc)));
+            CreateMap<TodoTaskEntity, TodoTaskDetailModel>()
+                .IncludeBase<TodoTaskEntity, TodoTaskModel>();
+            CreateMap<TodoChecklistItemEntity, TodoChecklistItemModel>();
         }
+
+        private static DateTime? AsUtc(DateTime? value) =>
+            value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
     }
 }

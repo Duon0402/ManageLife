@@ -23,5 +23,12 @@ namespace ManageLife.Core
 
             return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, VnTimeZone);
         }
+
+        /// <summary>Đổi giờ VN (treo tường, Kind Unspecified) sang UTC.</summary>
+        public static DateTime ToUtcFromVnTime(this DateTime vnDateTime)
+        {
+            var unspecified = DateTime.SpecifyKind(vnDateTime, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTimeToUtc(unspecified, VnTimeZone);
+        }
     }
 }

@@ -19,6 +19,14 @@
 			Items = list.Skip(pageIndex * pageSize).Take(pageSize).ToList();
 		}
 
+		/// <summary>Dựng từ trang đã lấy sẵn (vd sau khi map entity sang model).</summary>
+		public PageList(List<T> items, int totalItems, int pageIndex, int pageSize)
+		{
+			Items = items;
+			TotalItems = totalItems;
+			PageIndex = pageIndex;
+			PageSize = pageSize;
+		}
 		public List<T> Items { get; private set; } = new List<T>();
 		public int PageIndex { get; private set; }
 		public int PageSize { get; private set; }
