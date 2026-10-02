@@ -49,6 +49,9 @@ namespace ManageLife.Data
         public DbSet<NoteTagRelationEntity> NoteTagRelations { get; set; } = default!;
         public DbSet<NoteLinkEntity> NoteLinks { get; set; } = default!;
         public DbSet<HabitEntity> Habits { get; set; } = default!;
+        public DbSet<TodoListEntity> TodoLists { get; set; } = default!;
+        public DbSet<TodoTaskEntity> TodoTasks { get; set; } = default!;
+        public DbSet<TodoChecklistItemEntity> TodoChecklistItems { get; set; } = default!;
         public DbSet<AnkiCardEntity> AnkiCards { get; set; } = default!;
 
         #endregion
@@ -103,6 +106,8 @@ namespace ManageLife.Data
 
             builder.Entity<HabitEntity>()
                 .HasIndex(x => new { x.OwnerId, x.IsDeleted });
+
+            ConfigureTodo(builder);
 
             builder.Entity<VocabDeckEntity>()
                 .HasIndex(x => x.TopicId);
@@ -160,7 +165,38 @@ namespace ManageLife.Data
 
             builder.Entity<AnkiCardEntity>()
                 .HasIndex(x => new { x.OwnerId, x.IsDeleted });
+        }
 
+        private static void ConfigureTodo(ModelBuilder builder)
+        {
+            // Cột id dùng varchar(255) cho khớp EntityBase.Id (FK cần cùng kiểu) và index được trên MySQL
+            builder.Entity<TodoListEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.Name).HasMaxLength(100);
+                e.Property(x => x.Color).HasMaxLength(9);
+                e.Property(x => x.Icon).HasMaxLength(50);
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted, x.SortOrder });
+            });
+
+            builder.Entity<TodoTaskEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.ListId).HasMaxLength(255);
+                e.Property(x => x.Title).HasMaxLength(500);
+                e.Property(x => x.Note).HasColumnType("text");
+                e.HasOne<TodoListEntity>().WithMany().HasForeignKey(x => x.ListId).OnDelete(DeleteBehavior.Cascade);
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted, x.CompletedAt, x.DueDate });
+                e.HasIndex(x => new { x.OwnerId, x.ListId, x.IsDeleted, x.SortOrder });
+            });
+
+            builder.Entity<TodoChecklistItemEntity>(e =>
+            {
+                e.Property(x => x.TaskId).HasMaxLength(255);
+                e.Property(x => x.Title).HasMaxLength(500);
+                e.HasOne<TodoTaskEntity>().WithMany().HasForeignKey(x => x.TaskId).OnDelete(DeleteBehavior.Cascade);
+                e.HasIndex(x => new { x.TaskId, x.SortOrder });
+            });
         }
     }
 }

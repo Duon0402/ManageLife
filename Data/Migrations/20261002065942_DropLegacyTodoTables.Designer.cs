@@ -4,6 +4,7 @@ using ManageLife.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManageLife.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261002065942_DropLegacyTodoTables")]
+    partial class DropLegacyTodoTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -917,175 +920,6 @@ namespace ManageLife.Migrations
                     b.ToTable("TelegramBotCommands");
                 });
 
-            modelBuilder.Entity("ManageLife.Entities.TodoChecklistItemEntity", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<bool>("IsDone")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TaskId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TaskId", "SortOrder");
-
-                    b.ToTable("TodoChecklistItems");
-                });
-
-            modelBuilder.Entity("ManageLife.Entities.TodoListEntity", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasMaxLength(9)
-                        .HasColumnType("varchar(9)");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("DeletedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("DeletedUser")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Icon")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("OwnerId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UpdatedUser")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId", "IsDeleted", "SortOrder");
-
-                    b.ToTable("TodoLists");
-                });
-
-            modelBuilder.Entity("ManageLife.Entities.TodoTaskEntity", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedUser")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("DeletedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("DeletedUser")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateOnly?>("DueDate")
-                        .HasColumnType("date");
-
-                    b.Property<TimeOnly?>("DueTime")
-                        .HasColumnType("time(6)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ListId")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text");
-
-                    b.Property<string>("OwnerId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<byte>("Priority")
-                        .HasColumnType("tinyint unsigned");
-
-                    b.Property<DateTime?>("ReminderAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<byte?>("RepeatFrequency")
-                        .HasColumnType("tinyint unsigned");
-
-                    b.Property<int?>("RepeatInterval")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly?>("RepeatUntil")
-                        .HasColumnType("date");
-
-                    b.Property<byte?>("RepeatWeekdays")
-                        .HasColumnType("tinyint unsigned");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<DateTime?>("UpdatedTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UpdatedUser")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ListId");
-
-                    b.HasIndex("OwnerId", "IsDeleted", "CompletedAt", "DueDate");
-
-                    b.HasIndex("OwnerId", "ListId", "IsDeleted", "SortOrder");
-
-                    b.ToTable("TodoTasks");
-                });
-
             modelBuilder.Entity("ManageLife.Entities.TranslationEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -1604,23 +1438,6 @@ namespace ManageLife.Migrations
                     b.HasIndex("OwnerId", "Word", "IsDeleted");
 
                     b.ToTable("VocabWords");
-                });
-
-            modelBuilder.Entity("ManageLife.Entities.TodoChecklistItemEntity", b =>
-                {
-                    b.HasOne("ManageLife.Entities.TodoTaskEntity", null)
-                        .WithMany()
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ManageLife.Entities.TodoTaskEntity", b =>
-                {
-                    b.HasOne("ManageLife.Entities.TodoListEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ListId")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }
