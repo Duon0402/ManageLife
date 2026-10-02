@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ManageLife.Controllers.API
 {
     [Route("api/token")]
+    [CronSecret]
     public class TokenApiController : ApiControllerBase
     {
         private readonly ITokenService _tokenService;
