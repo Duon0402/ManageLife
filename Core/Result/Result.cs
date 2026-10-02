@@ -4,7 +4,7 @@
     {
         public string Code { get; }
         public string Message { get; }
-        public string? ErrorContent { get; }
+        public string? ErrorContent { get; private set; }
 
         public Result()
         {
@@ -18,6 +18,9 @@
             Message = message;
             ErrorContent = errorContent;
         }
+
+        //NOTE: Chỉ HideErrorContentFilter dùng — bỏ chi tiết exception trước khi trả ra client
+        internal void HideErrorContent() => ErrorContent = null;
 
         public bool IsOk() => Code == "00";
 

@@ -26,7 +26,12 @@ builder.Host.UseSerilog((context, services, loggerConfig) =>
 // =============================================
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    //NOTE: Production không trả stack trace (ErrorContent) ra client, lỗi đã được log ở service
+    if (!builder.Environment.IsDevelopment())
+        options.Filters.Add<ManageLife.Core.HideErrorContentFilter>();
+});
 builder.Services.AddSignalR();
 
 // Add application services
