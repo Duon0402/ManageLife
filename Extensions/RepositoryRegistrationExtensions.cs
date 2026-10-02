@@ -21,8 +21,6 @@ namespace ManageLife.Extensions
             services.AddScoped<IUserRefreshTokenRepository, UserRefreshTokenRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-            services.AddScoped<ITodoListRepository, TodoListRepository>();
-            services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
             services.AddScoped<IFolderRepository, FolderRepository>();
             services.AddScoped<IFolderFileRepository, FolderFileRepository>();
             services.AddScoped<IChatRoomRepository, ChatRoomRepository>();

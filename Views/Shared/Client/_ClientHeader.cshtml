@@ -10,7 +10,6 @@
     var enableVocab = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableVocab, true);
     var enablePomodoro = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnablePomodoro, true);
     var enableAnkiCard = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableAnkiCard, true);
-    var enableTodo = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableTodo, true);
     var enableFolder = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableFolder, true);
     var enableNote = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableNote, true);
     var enableHabit = await SettingContext.GetBoolAsync(SettingKeys.Feature.EnableHabit, true);
@@ -58,14 +57,6 @@
                         @T(TranslationKey.Client.Header.Menu.Utility.Title)
                     </a>
                     <ul class="dropdown-menu header__dropdown">
-                        @if (enableTodo)
-                        {
-                        <li>
-                            <a class="dropdown-item @(currentPath.StartsWith("/Todo") ? "active" : "")" href="/Todo">
-                                <i class="fa-solid fa-list-check me-2"></i>Công việc
-                            </a>
-                        </li>
-                        }
                         @if (enableFolder)
                         {
                         <li>

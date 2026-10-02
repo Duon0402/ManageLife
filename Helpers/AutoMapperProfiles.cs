@@ -28,16 +28,6 @@ namespace ManageLife.Helpers
             // Exception
             CreateMap<ExceptionItemEntity, ExceptionItemModel>().ReverseMap();
 
-            // TodoList
-            CreateMap<TodoListEntity, TodoListModel>().ReverseMap();
-            CreateMap<TodoListEntity, CreateToDoListRequest>().ReverseMap();
-            CreateMap<TodoListEntity, UpdateToDoListRequest>().ReverseMap();
-
-            // TodoTask
-            CreateMap<TodoTaskEntity, TodoTaskModel>().ReverseMap();
-            CreateMap<TodoTaskEntity, CreateTodoTaskRequest>().ReverseMap();
-            CreateMap<TodoTaskEntity, UpdateTodoTaskRequest>().ReverseMap();
-
             // Permission
             CreateMap<PermissionEntity, PermissionModel>().ReverseMap();
 
