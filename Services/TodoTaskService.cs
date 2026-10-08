@@ -15,6 +15,7 @@ namespace ManageLife.Services
         private const string ListNotFoundMessage = "Không tìm thấy danh sách";
         private const string NoUserMessage = "Không xác định được người dùng";
         private const int UpcomingDays = 7;
+        private const int ReminderSyncDays = 30;
 
         private readonly ITodoTaskRepository _taskRepo;
         private readonly ITodoListRepository _listRepo;
@@ -59,6 +60,8 @@ namespace ManageLife.Services
 
                 var today = TodayVn();
                 var upcomingEnd = today.AddDays(UpcomingDays);
+                var nowUtc = DateTimeHelper.UtcNow();
+                var reminderEnd = nowUtc.AddDays(ReminderSyncDays);
                 var query = _taskRepo.Query(true).Where(x => x.OwnerId == userId && !x.IsDeleted);
 
                 IQueryable<TodoTaskEntity> view = request.View switch
@@ -79,6 +82,10 @@ namespace ManageLife.Services
                     "list" => query
                         .Where(x => x.CompletedAt == null && x.ListId == listId)
                         .OrderBy(x => x.SortOrder).ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
+                    // Nhắc sắp tới: app dùng để đặt lại thông báo trên máy
+                    "reminders" => query
+                        .Where(x => x.CompletedAt == null && x.ReminderAt != null && x.ReminderAt > nowUtc && x.ReminderAt <= reminderEnd)
+                        .OrderBy(x => x.ReminderAt).ThenBy(x => x.Id),
                     _ => query
                         .Where(x => x.CompletedAt != null && (listId == null || x.ListId == listId))
                         .OrderByDescending(x => x.CompletedAt).ThenByDescending(x => x.Id)

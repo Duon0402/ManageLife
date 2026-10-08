@@ -5,9 +5,9 @@ namespace ManageLife.Models
 {
     public class GetTodoTasksRequest : IValidatableRequest
     {
-        /// <summary>today | upcoming | inbox | list | completed.</summary>
+        /// <summary>today | upcoming | inbox | list | completed | reminders (việc chưa xong có nhắc trong 30 ngày tới, để app đặt thông báo).</summary>
         [Required(ErrorMessage = "Chế độ xem không được để trống")]
-        [RegularExpression("^(today|upcoming|inbox|list|completed)$", ErrorMessage = "Chế độ xem không hợp lệ")]
+        [RegularExpression("^(today|upcoming|inbox|list|completed|reminders)$", ErrorMessage = "Chế độ xem không hợp lệ")]
         public string View { get; set; } = null!;
 
         /// <summary>Bắt buộc khi View = list; tuỳ chọn khi View = completed.</summary>
