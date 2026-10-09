@@ -60,6 +60,10 @@ namespace ManageLife.Services
                     return Result.Error<PageList<TodoTaskModel>>(Result.DATA_INVALID.Code, "Cần chọn danh sách");
                 }
 
+                var keyword = request.Query?.Trim();
+                if (request.View == "search" && keyword.IsEmpty())
+                    return Result.Ok(new PageList<TodoTaskModel>(new List<TodoTaskModel>(), 0, request.PageIndex, request.PageSize));
+
                 var today = TodayVn();
                 var upcomingEnd = today.AddDays(UpcomingDays);
                 var nowUtc = DateTimeHelper.UtcNow();
@@ -84,6 +88,11 @@ namespace ManageLife.Services
                     "list" => query
                         .Where(x => x.CompletedAt == null && x.ListId == listId)
                         .OrderBy(x => x.SortOrder).ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
+                    // Tìm theo tiêu đề/ghi chú (so khớp theo collation của DB: không phân biệt hoa thường); việc chưa xong lên trước
+                    "search" => query
+                        .Where(x => x.Title.Contains(keyword!) || (x.Note != null && x.Note.Contains(keyword!)))
+                        .OrderBy(x => x.CompletedAt != null).ThenBy(x => x.DueDate == null).ThenBy(x => x.DueDate)
+                        .ThenByDescending(x => x.CreatedTime).ThenBy(x => x.Id),
                     // Nhắc sắp tới: app dùng để đặt lại thông báo trên máy
                     "reminders" => query
                         .Where(x => x.CompletedAt == null && x.ReminderAt != null && x.ReminderAt > nowUtc && x.ReminderAt <= reminderEnd)
