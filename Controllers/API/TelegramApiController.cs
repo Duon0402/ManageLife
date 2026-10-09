@@ -24,7 +24,10 @@ namespace ManageLife.Controllers.API
             _logger = logger;
         }
 
+        /// <summary>Gửi tin tới ChatId cấu hình sẵn; cron job gọi kèm X-Cron-Secret (không dùng token Admin).</summary>
         [HttpPost("send-message")]
+        [AllowAnonymous]
+        [CronSecret]
         public async Task<IActionResult> SendMessage([FromBody] SendTelegramMessageRequest request, CancellationToken ct)
         {
             var rs = await _service.SendMessageAsync(request, ct);

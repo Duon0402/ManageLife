@@ -38,7 +38,7 @@ namespace App {
         visible?: boolean | ((mode: 'create' | 'edit') => boolean);
         /** Field help text */
         helpText?: string;
-        /** Column span (for grid layout) */
+        /** Column span theo lưới Bootstrap 12 cột (vd 12 = cả hàng); mặc định 12 / columns */
         colSpan?: number;
     }
 

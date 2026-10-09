@@ -136,8 +136,8 @@ namespace App {
                     showDeleteButton: false,
                     fields: [
                         { name: 'jobId', label: 'ID', type: 'hidden' },
-                        { name: 'title', label: 'Tiêu đề', type: 'text', required: true, colSpan: 2 },
-                        { name: 'url', label: 'URL', type: 'text', required: true, colSpan: 2, placeholder: 'https://...' },
+                        { name: 'title', label: 'Tiêu đề', type: 'text', required: true, colSpan: 12 },
+                        { name: 'url', label: 'URL', type: 'text', required: true, colSpan: 12, placeholder: 'https://...' },
                         {
                             name: 'requestMethod',
                             label: 'Phương thức',
@@ -170,10 +170,17 @@ namespace App {
                             name: 'attachCronSecret',
                             label: 'Gắn X-Cron-Secret',
                             type: 'checkbox',
+                            colSpan: 12,
                             defaultValue: true,
                             helpText: 'Bắt buộc với endpoint /api/cron và /api/token của app; chỉ gắn được cho URL của app, server tự lấy secret từ cấu hình'
                         },
-                        { name: 'body', label: 'Body (tuỳ chọn)', type: 'textarea', colSpan: 2 }
+                        {
+                            name: 'body',
+                            label: 'Body (tuỳ chọn)',
+                            type: 'textarea',
+                            colSpan: 12,
+                            placeholder: '{ "message": "..." }'
+                        }
                     ]
                 });
 

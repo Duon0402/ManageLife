@@ -99,6 +99,12 @@ namespace App {
             let html = `<div class="${rowClass}">`;
 
             this.config.fields.forEach(field => {
+                // Ô ẩn không chiếm ô lưới (tránh để trống một cột ở form nhiều cột)
+                if (field.type === 'hidden') {
+                    html += this.generateFieldHtml(field);
+                    return;
+                }
+
                 const colClass = columns > 1
                     ? `col-md-${field.colSpan || (12 / columns)}`
                     : '';
@@ -150,7 +156,8 @@ namespace App {
                         class="form-select ${field.className || ''}"
                         ${required} ${disabled}
                     >`;
-                    if (!field.required) {
+                    // Đã có lựa chọn rỗng riêng thì không chèn thêm "-- Select --"
+                    if (!field.required && !(field.options || []).some(opt => opt.value === '')) {
                         html += '<option value="">-- Select --</option>';
                     }
                     (field.options || []).forEach(opt => {
