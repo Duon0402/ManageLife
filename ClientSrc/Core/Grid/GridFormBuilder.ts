@@ -66,10 +66,12 @@ namespace App {
          */
         private generateModalHtml(): string {
             const sizeClass = this.config.size !== 'md' ? ` modal-${this.config.size}` : '';
+            // Popup cố định trong màn hình, header/footer đứng yên, chỉ phần form cuộn bên trong
+            const scrollClass = this.config.scrollable === false ? '' : ' modal-dialog-scrollable';
 
             return `
                 <div class="modal fade" id="${this.modalId}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog${sizeClass}">
+                    <div class="modal-dialog${sizeClass}${scrollClass}">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title">${this.config.createTitle}</h5>

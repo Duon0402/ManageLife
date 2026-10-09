@@ -88,6 +88,8 @@ namespace App {
         editTitle?: string;
         /** Modal size */
         size?: 'sm' | 'md' | 'lg' | 'xl';
+        /** Cuộn bên trong popup (header/footer cố định); mặc định true */
+        scrollable?: boolean;
         /** Form fields */
         fields: IFormField<T>[];
         /** Save button text */
