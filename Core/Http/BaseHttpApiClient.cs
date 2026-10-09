@@ -1,5 +1,6 @@
 using ManageLife.Core;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace ManageLife.Core.Http
@@ -30,9 +31,7 @@ namespace ManageLife.Core.Http
         {
             try
             {
-                var res = body is null
-                    ? await _http.PostAsync(path, null, ct)
-                    : await _http.PostAsJsonAsync(path, body, ct);
+                var res = await _http.PostAsync(path, body is null ? null : JsonBody(body), ct);
                 return await ProcessResponseAsync<T>(res);
             }
             catch (Exception ex)
@@ -45,9 +44,7 @@ namespace ManageLife.Core.Http
         {
             try
             {
-                var res = body is null
-                    ? await _http.PutAsync(path, null, ct)
-                    : await _http.PutAsJsonAsync(path, body, ct);
+                var res = await _http.PutAsync(path, body is null ? null : JsonBody(body), ct);
                 return await ProcessResponseAsync<T>(res);
             }
             catch (Exception ex)
@@ -61,7 +58,7 @@ namespace ManageLife.Core.Http
         {
             try
             {
-                var res = await _http.PatchAsJsonAsync(path, body, ct);
+                var res = await _http.PatchAsync(path, JsonBody(body), ct);
                 if (!res.IsSuccessStatusCode)
                 {
                     var errorContent = await res.Content.ReadAsStringAsync();
@@ -102,6 +99,15 @@ namespace ManageLife.Core.Http
             }
             var data = await res.Content.ReadFromJsonAsync<T>();
             return Result.Ok(data!);
+        }
+
+        //NOTE: Content-Type đúng "application/json" (không kèm "; charset=utf-8" như mặc định của .NET):
+        // một số API (vd cron-job.org) so khớp tuyệt đối, khác là bỏ qua body và trả 400. JSON mặc định đã là UTF-8
+        private static HttpContent JsonBody(object body)
+        {
+            var content = JsonContent.Create(body);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            return content;
         }
 
         //NOTE: Dữ liệu gửi lên sai (400/409/422) → DATA_INVALID; còn lại (404, 5xx...) giữ DATA_NOT_EXISTED như trước
