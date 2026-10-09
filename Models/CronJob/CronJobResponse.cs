@@ -1,4 +1,7 @@
-﻿namespace ManageLife.Models.CronJob
+﻿using ManageLife.Core;
+using System.Text.Json.Serialization;
+
+namespace ManageLife.Models.CronJob
 {
     // DTO theo REST API của cron-job.org (https://docs.cron-job.org/rest-api.html)
 
@@ -52,6 +55,8 @@
 
     public class CronJobExtendedData
     {
+        //NOTE: cron-job.org trả "headers": [] khi job không có header
+        [JsonConverter(typeof(FlexibleStringDictionaryConverter))]
         public Dictionary<string, string> Headers { get; set; } = new();
         //NOTE: Gửi "" (không bỏ trường) để PATCH xoá được body cũ
         public string? Body { get; set; }

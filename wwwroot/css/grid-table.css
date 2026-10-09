@@ -269,6 +269,13 @@
 
 
 /* ===== ACTION BUTTONS (trong cell) ===== */
+.grid-actions {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+    white-space: nowrap;
+}
+
 .grid-action-btn {
     padding: 0.22rem 0.48rem;
     font-size: 0.75rem;

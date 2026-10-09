@@ -68,7 +68,11 @@ namespace ManageLife.Services
             try
             {
                 var rs = await _apiClient.GetJobAsync(jobId, ct);
-                if (!rs.IsOk() || rs.Data?.JobDetails == null) return ApiError<CronJobViewModel>(rs, "Không tìm thấy cron job");
+                if (!rs.IsOk() || rs.Data?.JobDetails == null)
+                {
+                    if (rs.IsException()) _logger.Warning("Lấy chi tiết cron job {jobId} lỗi: {error}", jobId, rs.ErrorContent ?? rs.Message);
+                    return ApiError<CronJobViewModel>(rs, rs.IsException() ? "Không đọc được dữ liệu cron job" : "Không tìm thấy cron job");
+                }
 
                 var detail = rs.Data.JobDetails;
                 return Result.Ok(ToViewModel(detail, detail.ExtendedData, SystemUrls()));

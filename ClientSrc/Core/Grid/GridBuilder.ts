@@ -212,7 +212,8 @@ namespace App {
                 className: this.actionColumnConfig.className,
                 width: this.actionColumnConfig.width,
                 render: (data, type, row) => {
-                    return this.actionButtons
+                    // Bọc trong khung không xuống dòng: các nút luôn nằm trên 1 hàng
+                    return '<div class="grid-actions">' + this.actionButtons
                         .filter(btn => {
                             if (typeof btn.visible === 'function') {
                                 return btn.visible(row);
@@ -232,7 +233,7 @@ namespace App {
                                 </button>
                             `;
                         })
-                        .join(' ');
+                        .join('') + '</div>';
                 }
             };
         }
