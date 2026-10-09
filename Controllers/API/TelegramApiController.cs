@@ -8,10 +8,13 @@ using Telegram.Bot.Types;
 
 namespace ManageLife.Controllers.API
 {
+    /// <summary>Quản trị bot (chỉ Admin) + webhook nhận update từ Telegram (xác thực bằng secret token).</summary>
     [Route("api/telegram")]
-    [AllowAnonymous]
+    [Authorize(Roles = RoleConst.Admin)]
     public class TelegramApiController : ApiControllerBase
     {
+        private const string SecretTokenHeader = "X-Telegram-Bot-Api-Secret-Token";
+
         private readonly ITelegramService _service;
         private readonly IAppLogger<TelegramApiController> _logger;
 
@@ -32,8 +35,15 @@ namespace ManageLife.Controllers.API
         }
 
         [HttpPost("webhook")]
+        [AllowAnonymous]
         public async Task<IActionResult> Webhook([FromBody] JsonElement json, CancellationToken ct)
         {
+            if (!_service.IsValidWebhookSecret(Request.Headers[SecretTokenHeader].ToString()))
+            {
+                _logger.Warning("Từ chối webhook Telegram: secret token không hợp lệ");
+                return Unauthorized();
+            }
+
             try
             {
                 var jsonString = json.GetRawText();
@@ -57,8 +67,8 @@ namespace ManageLife.Controllers.API
             }
         }
 
-        [HttpGet("set-webhook")]
-        public async Task<IActionResult> SetWebhook(string url, CancellationToken ct)
+        [HttpPost("set-webhook")]
+        public async Task<IActionResult> SetWebhook([FromQuery] string url, CancellationToken ct)
         {
             var rs = await _service.RegisterWebhookAsync(url, ct);
             if (rs.IsOk())
@@ -74,7 +84,7 @@ namespace ManageLife.Controllers.API
             return Ok(rs);
         }
 
-        [HttpGet("register-commands")]
+        [HttpPost("register-commands")]
         public async Task<IActionResult> RegisterCommands(CancellationToken ct)
         {
             var rs = await _service.SetDefaultCommandsAsync(ct);

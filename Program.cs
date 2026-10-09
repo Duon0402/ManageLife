@@ -51,6 +51,16 @@ builder.Services.AddRateLimiter(options =>
             QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
             QueueLimit = 0
         }));
+    // Tạo mã liên kết Telegram: mỗi mã giữ 5 phút trong Redis, chặn spam tạo mã (theo IP vì chạy trước xác thực)
+    options.AddPolicy("telegram-link", context => RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0
+        }));
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 

@@ -188,7 +188,13 @@ dotnet run
   },
   "TelegramSettings": {
     "BotToken": "your_bot_token",
-    "ChatId": "your_chat_id"
+    "ChatId": "your_chat_id",
+    "WebhookSecret": "random_1_to_256_chars_A-Za-z0-9_-"
+  },
+  "CronJob": {
+    "ApiKey": "cron_job_org_api_key",
+    "WebhookSecret": "secret_for_X-Cron-Secret",
+    "AppBaseUrl": "https://your-app-domain"
   },
   "MailSettings": {
     "Host": "smtp.gmail.com",
@@ -198,6 +204,12 @@ dotnet run
   }
 }
 ```
+
+> **Telegram webhook**: webhook chỉ nhận request có header `X-Telegram-Bot-Api-Secret-Token` khớp `TelegramSettings:WebhookSecret`
+> (chưa cấu hình thì từ chối tất cả). Sau khi đặt/đổi secret, đăng ký lại webhook (cần token Admin):
+> `POST /api/telegram/set-webhook?url=https://your-app-domain/api/telegram/webhook`.
+>
+> **Cron**: `CronJob:AppBaseUrl` bắt buộc để gắn `X-Cron-Secret` và dùng "Đồng bộ job hệ thống" ở Admin → Cron Job.
 
 </details>
 

@@ -6,7 +6,11 @@ using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Settings;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -23,6 +27,13 @@ namespace ManageLife.Services
         private readonly IUserRepository _userRepo;
         private readonly IUserTelegramConnectionRepository _connectionRepo;
         private readonly ICacheService _cache;
+        private readonly string? _webhookSecret;
+
+        private static readonly TimeSpan LinkCodeLifetime = TimeSpan.FromMinutes(5);
+        //NOTE: Mã do CreateLinkAsync sinh: 24 ký tự base64url
+        private static readonly Regex LinkCodePattern = new("^[A-Za-z0-9_-]{24}$", RegexOptions.Compiled);
+        //NOTE: Telegram chỉ nhận secret_token 1–256 ký tự A-Z a-z 0-9 _ -
+        private static readonly Regex WebhookSecretPattern = new("^[A-Za-z0-9_-]{1,256}$", RegexOptions.Compiled);
 
         public TelegramService(
             IOptions<TelegramOptions> options,
@@ -42,6 +53,7 @@ namespace ManageLife.Services
             _connectionRepo = connectionRepo;
             _cache = cache;
             _chatId = options.Value.ChatId;
+            _webhookSecret = options.Value.WebhookSecret;
         }
 
         public async Task<Result> SendMessageAsync(SendTelegramMessageRequest request, CancellationToken ct = default)
@@ -91,20 +103,13 @@ namespace ManageLife.Services
                 if (message.Text is not { } messageText) return;
 
                 var chatId = message.Chat.Id;
-                var messageId = message.MessageId;
                 var isPrivate = message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
 
-                _logger.Info("Received '{messageText}' in chat {chatId}", messageText, chatId);
+                //NOTE: Không log nội dung tin nhắn (có thể chứa thông tin nhạy cảm), chỉ log chat
+                _logger.Debug("Telegram: nhận tin nhắn trong chat {chatId}", chatId);
 
                 if (messageText.StartsWith("/"))
-                {
                     await HandleCommandAsync(chatId, messageText, isPrivate, ct);
-                }
-                else if (isPrivate)
-                {
-                    // Conversation flow chỉ hoạt động trong private chat
-                    await HandleConversationAsync(chatId, messageId, messageText, ct);
-                }
             }
             catch (Exception ex)
             {
@@ -114,19 +119,27 @@ namespace ManageLife.Services
 
         // ──────────────────── Commands ────────────────────
 
+        private const string LinkGuide = "Để liên kết, mở app ManageLife → Cài đặt → Tài khoản → Telegram → Liên kết.";
+
         private async Task HandleCommandAsync(long chatId, string messageText, bool isPrivate, CancellationToken ct)
         {
-            var rawCommand = messageText.Split(' ')[0].ToLower();
-            // Trong group chat, command có dạng /link@botname — cần strip phần @botname
+            var parts = messageText.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var rawCommand = parts[0].ToLowerInvariant();
+            // Trong group chat, command có dạng /start@botname — cần strip phần @botname
             var atIndex = rawCommand.IndexOf('@');
             var command = atIndex > 0 ? rawCommand[..atIndex] : rawCommand;
 
             switch (command)
             {
+                case "/start" when parts.Length >= 2:
+                    // Mở từ deep link t.me/<bot>?start=<mã> trong app
+                    await LinkByCodeAsync(chatId, isPrivate, parts[1], ct);
+                    break;
+
                 case "/start":
                     await _botClient.SendMessage(chatId,
-                        "Chào mừng bạn đến với *ManageLife Bot*\\!\nGửi /help để xem các lệnh hỗ trợ\\.",
-                        parseMode: ParseMode.MarkdownV2, cancellationToken: ct);
+                        "Chào mừng bạn đến với ManageLife Bot!\n" + LinkGuide + "\nGửi /help để xem các lệnh hỗ trợ.",
+                        cancellationToken: ct);
                     break;
 
                 case "/info":
@@ -137,32 +150,22 @@ namespace ManageLife.Services
 
                 case "/help":
                     await _botClient.SendMessage(chatId,
-                        "📋 *Các lệnh hỗ trợ:*\n\n" +
-                        "/start \\- Bắt đầu\n" +
-                        "/info \\- Lấy Chat ID của bạn\n" +
-                        "/link \\- Liên kết tài khoản ManageLife\n" +
-                        "/help \\- Hướng dẫn",
-                        parseMode: ParseMode.MarkdownV2, cancellationToken: ct);
+                        "📋 Các lệnh hỗ trợ:\n\n" +
+                        "/start - Bắt đầu\n" +
+                        "/info - Lấy Chat ID của bạn\n" +
+                        "/link - Hướng dẫn liên kết tài khoản ManageLife\n" +
+                        "/unlink - Gỡ liên kết Telegram này khỏi tài khoản\n" +
+                        "/help - Hướng dẫn",
+                        cancellationToken: ct);
                     break;
 
                 case "/link":
-                    if (isPrivate)
-                    {
-                        await StartLinkFlowAsync(chatId, ct);
-                    }
-                    else
-                    {
-                        // Group chat: bot không nhận tin nhắn thường (privacy mode)
-                        // → dùng format 1 lần hoặc nhắn riêng với bot
-                        var parts = messageText.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length >= 3)
-                            await HandleLinkWithCredentialsAsync(chatId, parts[1], parts[2], ct);
-                        else
-                            await _botClient.SendMessage(chatId,
-                                "Trong nhóm, hãy dùng lệnh: `/link username password`\n" +
-                                "Hoặc nhắn riêng với bot để bảo mật hơn.",
-                                parseMode: ParseMode.Markdown, cancellationToken: ct);
-                    }
+                    //NOTE: Không còn liên kết bằng username/mật khẩu qua chat; chỉ liên kết bằng mã từ app
+                    await _botClient.SendMessage(chatId, LinkGuide, cancellationToken: ct);
+                    break;
+
+                case "/unlink":
+                    await UnlinkChatAsync(chatId, isPrivate, ct);
                     break;
 
                 default:
@@ -173,66 +176,132 @@ namespace ManageLife.Services
             }
         }
 
-        // ──────────────────── Conversational flow ────────────────────
+        // ──────────────────── Liên kết bằng mã ────────────────────
 
-        private async Task StartLinkFlowAsync(long chatId, CancellationToken ct)
+        public async Task<Result<TelegramLinkModel>> CreateLinkAsync(CancellationToken ct = default)
         {
-            var state = new TelegramLinkState { Step = TelegramLinkStep.WaitingUsername };
-            await _cache.SetAsync(state, CacheSettings.TelegramLinkState(chatId));
-
-            await _botClient.SendMessage(chatId,
-                "🔗 *Liên kết tài khoản ManageLife*\n\nNhập *username* của bạn:",
-                parseMode: ParseMode.Markdown,
-                replyMarkup: new ForceReplyMarkup(),
-                cancellationToken: ct);
-        }
-
-        private async Task HandleConversationAsync(long chatId, int messageId, string text, CancellationToken ct)
-        {
-            var cacheItem = CacheSettings.TelegramLinkState(chatId);
-            var state = await _cache.TryGetValueAsync<TelegramLinkState>(cacheItem);
-
-            if (state == null) return;
-
-            switch (state.Step)
+            try
             {
-                case TelegramLinkStep.WaitingUsername:
-                    state.Step = TelegramLinkStep.WaitingPassword;
-                    state.Username = text.Trim();
-                    await _cache.SetAsync(state, cacheItem);
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error<TelegramLinkModel>(Result.DATA_INVALID.Code, "Không xác định được người dùng");
 
-                    await _botClient.SendMessage(chatId,
-                        $"Username: *{state.Username}*\n\nNhập *password* của bạn:",
-                        parseMode: ParseMode.Markdown,
-                        replyMarkup: new ForceReplyMarkup(),
-                        cancellationToken: ct);
-                    break;
+                var botUsername = await GetBotUsernameAsync(ct);
+                if (botUsername.IsEmpty()) return Result.Error<TelegramLinkModel>(Result.DATA_NOT_EXISTED.Code, "Không lấy được thông tin bot Telegram");
 
-                case TelegramLinkStep.WaitingPassword:
-                    await _cache.RemoveAsync(cacheItem);
+                //NOTE: 18 byte ngẫu nhiên → 24 ký tự base64url, hợp lệ cho tham số start của Telegram (A-Z a-z 0-9 _ -)
+                var code = Convert.ToBase64String(RandomNumberGenerator.GetBytes(18)).Replace('+', '-').Replace('/', '_');
+                var cacheItem = CacheSettings.TelegramLinkCode(code);
+                await _cache.SetAsync(userId, cacheItem);
+                //NOTE: CacheService nuốt lỗi khi ghi: đọc lại để không trả về liên kết chết khi Redis lỗi
+                if (await _cache.TryGetValueAsync<string>(cacheItem) != userId)
+                    return Result.Error<TelegramLinkModel>(Result.DATA_NOT_CREATE.Code, "Không tạo được mã liên kết, thử lại sau");
 
-                    // Xóa tin nhắn chứa password để bảo mật
-                    try { await _botClient.DeleteMessage(chatId, messageId, ct); } catch (Exception ex) { _logger.Warning("Không thể xóa tin nhắn Telegram {MessageId}: {Error}", messageId, ex.Message); }
-
-                    await HandleLinkWithCredentialsAsync(chatId, state.Username!, text.Trim(), ct);
-                    break;
+                return Result.Ok(new TelegramLinkModel
+                {
+                    DeepLink = $"https://t.me/{botUsername}?start={code}",
+                    ExpiresAt = DateTime.SpecifyKind(DateTimeHelper.UtcNow().Add(LinkCodeLifetime), DateTimeKind.Utc)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi tạo mã liên kết Telegram");
+                return Result.Exception<TelegramLinkModel>("Có lỗi xảy ra khi tạo liên kết Telegram", ex);
             }
         }
 
-        private async Task HandleLinkWithCredentialsAsync(long chatId, string username, string password, CancellationToken ct)
+        public async Task<Result> UnlinkAsync(CancellationToken ct = default)
         {
-            var user = await _userRepo.FirstOrDefaultAsync(x => x.UserName == username && !x.IsDeleted && x.IsActive, ct);
-            if (user == null)
+            try
             {
-                await _botClient.SendMessage(chatId, "❌ Tên đăng nhập hoặc mật khẩu không đúng.", cancellationToken: ct);
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
+                var connections = await _connectionRepo.Query().Where(x => x.UserId == userId && !x.IsDeleted).ToListAsync(ct);
+                foreach (var connection in connections)
+                    await _connectionRepo.DeleteAsync(connection, ct);
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi gỡ liên kết Telegram");
+                return Result.Exception("Có lỗi xảy ra khi gỡ liên kết Telegram", ex);
+            }
+        }
+
+        public bool IsValidWebhookSecret(string? secretToken)
+        {
+            //NOTE: Chưa cấu hình secret thì chặn hết, tránh mở webhook cho bất kỳ ai giả mạo update
+            if (_webhookSecret.IsEmpty() || secretToken.IsEmpty()) return false;
+            return CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(secretToken!), Encoding.UTF8.GetBytes(_webhookSecret!));
+        }
+
+        /// <summary>Chủ chat luôn tự gỡ được chat của mình (vd lỡ bấm liên kết của người khác).</summary>
+        private async Task UnlinkChatAsync(long chatId, bool isPrivate, CancellationToken ct)
+        {
+            if (!isPrivate)
+            {
+                await _botClient.SendMessage(chatId, "Hãy dùng /unlink trong cuộc trò chuyện riêng với bot.", cancellationToken: ct);
                 return;
             }
 
-            bool passwordValid = PasswordHelper.VerifyPassword(password, user.HashPassword);
-
-            if (!passwordValid)
+            var connections = await _connectionRepo.Query().Where(x => x.ChatId == chatId && !x.IsDeleted).ToListAsync(ct);
+            foreach (var connection in connections)
             {
-                await _botClient.SendMessage(chatId, "❌ Tên đăng nhập hoặc mật khẩu không đúng.", cancellationToken: ct);
+                connection.DeletedUser = $"telegram:{chatId}";
+                await _connectionRepo.DeleteAsync(connection, ct);
+            }
+
+            await _botClient.SendMessage(chatId,
+                connections.Count > 0 ? "✅ Đã gỡ liên kết Telegram này khỏi tài khoản ManageLife." : "Telegram này chưa liên kết với tài khoản nào.",
+                cancellationToken: ct);
+        }
+
+        private async Task<string?> GetBotUsernameAsync(CancellationToken ct)
+        {
+            var cached = await _cache.TryGetValueAsync<string>(CacheSettings.TelegramBotUsername());
+            if (cached.IsNotEmpty()) return cached;
+
+            var me = await _botClient.GetMe(ct);
+            if (me.Username.IsNotEmpty()) await _cache.SetAsync(me.Username!, CacheSettings.TelegramBotUsername());
+            return me.Username;
+        }
+
+        private async Task LinkByCodeAsync(long chatId, bool isPrivate, string code, CancellationToken ct)
+        {
+            if (!isPrivate)
+            {
+                await _botClient.SendMessage(chatId, "Hãy mở liên kết trong cuộc trò chuyện riêng với bot.", cancellationToken: ct);
+                return;
+            }
+
+            //NOTE: Kiểm tra định dạng trước khi tra cache (mã lấy từ nội dung tin nhắn)
+            var userId = LinkCodePattern.IsMatch(code) ? await _cache.TryGetValueAsync<string>(CacheSettings.TelegramLinkCode(code)) : null;
+            if (userId.IsEmpty())
+            {
+                await _botClient.SendMessage(chatId,
+                    "❌ Mã liên kết không hợp lệ hoặc đã hết hạn. " + LinkGuide, cancellationToken: ct);
+                return;
+            }
+            //NOTE: Mã dùng 1 lần
+            await _cache.RemoveAsync(CacheSettings.TelegramLinkCode(code));
+
+            var user = await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && !x.IsDeleted && x.IsActive, ct);
+            if (user == null)
+            {
+                await _botClient.SendMessage(chatId, "❌ Tài khoản không còn hoạt động.", cancellationToken: ct);
+                return;
+            }
+
+            //NOTE: Một chat Telegram chỉ thuộc một tài khoản. Chat đang gắn với tài khoản khác thì từ chối
+            // (không âm thầm gỡ: tránh người khác gửi liên kết của họ để chiếm chat của mình)
+            var linkedToOther = await _connectionRepo.Query(true)
+                .AnyAsync(x => x.ChatId == chatId && x.UserId != user.Id && !x.IsDeleted, ct);
+            if (linkedToOther)
+            {
+                await _botClient.SendMessage(chatId,
+                    "❌ Telegram này đang liên kết với một tài khoản ManageLife khác. Gửi /unlink để gỡ rồi mở lại liên kết từ app.",
+                    cancellationToken: ct);
                 return;
             }
 
@@ -240,25 +309,25 @@ namespace ManageLife.Services
             if (existing != null)
             {
                 existing.ChatId = chatId;
+                existing.UpdatedUser = user.UserName;
                 await _connectionRepo.UpdateAsync(existing, ct);
-                await _botClient.SendMessage(chatId,
-                    $"✅ Đã cập nhật liên kết tài khoản *{username}* với Telegram này.",
-                    parseMode: ParseMode.Markdown, cancellationToken: ct);
             }
             else
             {
-                var entity = new UserTelegramConnectionEntity
+                await _connectionRepo.InsertAsync(new UserTelegramConnectionEntity
                 {
                     Id = IdHelper.NewId(),
                     UserId = user.Id,
                     ChatId = chatId,
-                    CreatedUser = username
-                };
-                await _connectionRepo.InsertAsync(entity, ct);
-                await _botClient.SendMessage(chatId,
-                    $"✅ Đã liên kết tài khoản *{username}* thành công!",
-                    parseMode: ParseMode.Markdown, cancellationToken: ct);
+                    CreatedUser = user.UserName
+                }, ct);
             }
+
+            _logger.Info("Đã liên kết Telegram chat {chatId} với user {userId}", chatId, user.Id);
+            //NOTE: Gửi text thường (không Markdown) để tên tài khoản có ký tự đặc biệt không làm lỗi tin nhắn
+            await _botClient.SendMessage(chatId,
+                $"✅ Đã liên kết Telegram với tài khoản {user.UserName}. Bạn sẽ nhận tóm tắt công việc mỗi sáng.",
+                cancellationToken: ct);
         }
 
         // ──────────────────── Webhook & Commands ────────────────────
@@ -274,7 +343,14 @@ namespace ManageLife.Services
                     return Result.Error<string>(Result.DATA_INVALID.Code, msg);
                 }
 
-                await _botClient.SetWebhook(url);
+                if (_webhookSecret.IsEmpty() || !WebhookSecretPattern.IsMatch(_webhookSecret!))
+                {
+                    msg = "TelegramSettings:WebhookSecret chưa cấu hình hoặc không hợp lệ (1–256 ký tự A-Z a-z 0-9 _ -)";
+                    return Result.Error<string>(Result.DATA_INVALID.Code, msg);
+                }
+
+                //NOTE: Telegram gửi lại secret qua header X-Telegram-Bot-Api-Secret-Token để webhook xác thực
+                await _botClient.SetWebhook(url, secretToken: _webhookSecret, allowedUpdates: [UpdateType.Message], cancellationToken: ct);
                 _logger.Info("Telegram Webhook registered successfully to {url}", url);
                 return Result.Ok("Webhook registered successfully");
             }

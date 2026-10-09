@@ -28,8 +28,12 @@ namespace ManageLife.Commons
         public static CacheItem RoleUnassignedPermissions(string roleId)
             => new($"{_prefix}role_permissions:unassigned:{roleId}");
 
-        public static CacheItem TelegramLinkState(long chatId)
-            => new($"{_prefix}tele_link_state:{chatId}", expiry: TimeSpan.FromMinutes(5));
+        // Mã liên kết Telegram dùng 1 lần → userId
+        public static CacheItem TelegramLinkCode(string code)
+            => new($"{_prefix}tele_link_code:{code}", expiry: TimeSpan.FromMinutes(5));
+
+        public static CacheItem TelegramBotUsername()
+            => new($"{_prefix}tele_bot_username", CacheMode.Memory, TimeSpan.FromHours(24));
 
         // cron-job.org giới hạn số request/ngày: cache danh sách job ngắn, xoá khi ghi
         public static CacheItem CronJobs()

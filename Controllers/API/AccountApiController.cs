@@ -3,6 +3,7 @@ using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ManageLife.Controllers.API
 {
@@ -11,10 +12,12 @@ namespace ManageLife.Controllers.API
     public class AccountApiController : ApiControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ITelegramService _telegramService;
 
-        public AccountApiController(IUserService userService)
+        public AccountApiController(IUserService userService, ITelegramService telegramService)
         {
             _userService = userService;
+            _telegramService = telegramService;
         }
 
         [HttpGet("me")]
@@ -35,6 +38,20 @@ namespace ManageLife.Controllers.API
         public async Task<Result<AuthTokenModel>> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
         {
             return await _userService.ChangePasswordAsync(request, ct);
+        }
+
+        /// <summary>Tạo deep link mở bot Telegram kèm mã dùng 1 lần (5 phút); bot nhận /start &lt;mã&gt; thì liên kết.</summary>
+        [HttpPost("telegram/link")]
+        [EnableRateLimiting("telegram-link")]
+        public async Task<Result<TelegramLinkModel>> CreateTelegramLink(CancellationToken ct)
+        {
+            return await _telegramService.CreateLinkAsync(ct);
+        }
+
+        [HttpDelete("telegram")]
+        public async Task<Result> UnlinkTelegram(CancellationToken ct)
+        {
+            return await _telegramService.UnlinkAsync(ct);
         }
     }
 }
