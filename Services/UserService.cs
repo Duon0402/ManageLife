@@ -214,20 +214,18 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_INVALID.Code, "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
                 }
 
-                var tokenEntity = await _refreshRepo.FirstOrDefaultAsync(r => r.RefreshToken == refreshToken && !r.IsRevoked);
+                // Tra cả token đã bị thay (vừa làm mới song song): đăng xuất theo cả phiên, không theo 1 token
+                var tokenHash = _tokenService.HashRefreshToken(refreshToken);
+                var tokenEntity = await _refreshRepo.FirstOrDefaultAsync(r => r.RefreshToken == tokenHash);
 
-                if (tokenEntity == null)
+                if (tokenEntity == null || tokenEntity.SessionId.IsEmpty())
                 {
                     return Result.Ok();
                 }
 
-                tokenEntity.IsRevoked = true;
-                var updated = await _refreshRepo.UpdateAsync(tokenEntity);
-                if (!updated)
-                {
-                    _logger.Debug("Không thể đăng xuất");
-                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể đăng xuất");
-                }
+                await _tokenService.RevokeSessionsAsync(tokenEntity.UserId, new[] { tokenEntity.SessionId }, ct);
+                // Kể cả khi phiên đã thu hồi hết từ trước: vẫn chặn access token còn hạn của phiên này
+                await _tokenService.MarkSessionsRevokedAsync(new[] { tokenEntity.SessionId });
 
                 return Result.Ok();
             }

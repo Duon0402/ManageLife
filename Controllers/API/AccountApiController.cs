@@ -13,11 +13,33 @@ namespace ManageLife.Controllers.API
     {
         private readonly IUserService _userService;
         private readonly ITelegramService _telegramService;
+        private readonly ITokenService _tokenService;
 
-        public AccountApiController(IUserService userService, ITelegramService telegramService)
+        public AccountApiController(IUserService userService, ITelegramService telegramService, ITokenService tokenService)
         {
             _userService = userService;
             _telegramService = telegramService;
+            _tokenService = tokenService;
+        }
+
+        /// <summary>Các thiết bị đang đăng nhập (phiên còn hiệu lực), phiên hiện tại đứng đầu.</summary>
+        [HttpGet("sessions")]
+        public async Task<Result<List<AccountSessionModel>>> GetSessions(CancellationToken ct)
+        {
+            return await _tokenService.GetSessionsAsync(ct);
+        }
+
+        /// <summary>Đăng xuất mọi thiết bị khác thiết bị đang dùng.</summary>
+        [HttpDelete("sessions")]
+        public async Task<Result> RevokeOtherSessions(CancellationToken ct)
+        {
+            return await _tokenService.RevokeOtherSessionsAsync(ct);
+        }
+
+        [HttpDelete("sessions/{sessionId}")]
+        public async Task<Result> RevokeSession(string sessionId, CancellationToken ct)
+        {
+            return await _tokenService.RevokeSessionAsync(sessionId, ct);
         }
 
         [HttpGet("me")]

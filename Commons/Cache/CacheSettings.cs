@@ -19,6 +19,10 @@ namespace ManageLife.Commons
         public static CacheItem MenuItems()
             => new($"{_prefix}menu_items", CacheMode.Memory);
 
+        // Phiên vừa bị đăng xuất: chặn access token còn hạn của phiên đó (giữ lâu hơn thời hạn access token 60 phút)
+        public static CacheItem RevokedSession(string sessionId)
+            => new($"{_prefix}revoked_session:{sessionId}", expiry: TimeSpan.FromMinutes(65));
+
         public static CacheItem SecurityStamp(string userId)
             => new($"{_prefix}security_stamp:{userId}", expiry: TimeSpan.FromDays(7));
 

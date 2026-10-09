@@ -95,6 +95,12 @@ namespace ManageLife.Data
             builder.Entity<UserRefreshTokenEntity>()
                 .HasIndex(x => new { x.UserId, x.IsRevoked, x.ExpiryTime });
 
+            builder.Entity<UserRefreshTokenEntity>()
+                .HasIndex(x => new { x.UserId, x.SessionId });
+
+            builder.Entity<UserRefreshTokenEntity>()
+                .Property(x => x.DeviceName).HasMaxLength(100);
+
             builder.Entity<TranslationEntity>()
                 .HasIndex(x => x.LanguageId);
 
