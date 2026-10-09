@@ -82,7 +82,8 @@ namespace ManageLife.Helpers
             CreateMap<TodoTaskEntity, TodoTaskModel>()
                 .ForMember(d => d.ReminderAt, o => o.MapFrom(s => AsUtc(s.ReminderAt)))
                 .ForMember(d => d.CompletedAt, o => o.MapFrom(s => AsUtc(s.CompletedAt)))
-                .ForMember(d => d.CreatedTime, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedTime, DateTimeKind.Utc)));
+                .ForMember(d => d.CreatedTime, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedTime, DateTimeKind.Utc)))
+                .ForMember(d => d.NextOccurrenceDueDate, o => o.Ignore());
             CreateMap<TodoTaskEntity, TodoTaskDetailModel>()
                 .IncludeBase<TodoTaskEntity, TodoTaskModel>();
             CreateMap<TodoChecklistItemEntity, TodoChecklistItemModel>();

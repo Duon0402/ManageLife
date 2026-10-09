@@ -2,6 +2,7 @@
 using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Entities;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ namespace ManageLife.Services
         private const string NoUserMessage = "Không xác định được người dùng";
         private const int UpcomingDays = 7;
         private const int ReminderSyncDays = 30;
+        private static readonly DateOnly MaxDate = new(2100, 12, 31);
 
         private readonly ITodoTaskRepository _taskRepo;
         private readonly ITodoListRepository _listRepo;
@@ -193,14 +195,30 @@ namespace ManageLife.Services
                 if (task.ListId != listId)
                     task.SortOrder = await NextTaskSortOrderAsync(userId, listId, ct);
                 ApplyRequest(task, request, listId);
+                // Việc đã xong không lặp (chuỗi lặp đã chuyển sang lần kế tiếp)
+                if (task.CompletedAt != null) ClearRepeat(task);
 
-                if (!await _taskRepo.UpdateAsync(task, ct))
-                    return Result.Error<TodoTaskDetailModel>(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật công việc");
+                await _uow.BeginTransactionAsync(ct);
+                //NOTE: Khoá dòng và kiểm tra trạng thái xong chưa đổi từ lúc đọc: lưu trùng lúc tick xong ở nơi khác
+                // thì không ghi đè (tránh mở lại việc đã xong + khôi phục chuỗi lặp → tạo trùng lần kế tiếp)
+                var readCompletedAt = task.CompletedAt;
+                var unchanged = await _taskRepo.Query()
+                    .Where(x => x.Id == task.Id && x.CompletedAt == readCompletedAt)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.UpdatedTime, DateTimeHelper.UtcNow()), ct);
+                if (unchanged != 1)
+                {
+                    await _uow.RollbackAsync(ct);
+                    return Result.Error<TodoTaskDetailModel>(Result.DATA_NOT_UPDATE.Code, "Công việc vừa thay đổi ở nơi khác, hãy mở lại rồi sửa");
+                }
+
+                await _taskRepo.UpdateAsync(task, ct);
+                await _uow.CommitAsync(ct);
 
                 return Result.Ok(await ToDetailModelAsync(task, ct));
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Lỗi khi cập nhật công việc");
                 return Result.Exception<TodoTaskDetailModel>("Có lỗi xảy ra khi cập nhật công việc", ex);
             }
@@ -238,16 +256,48 @@ namespace ManageLife.Services
                 var task = await FindOwnedTaskAsync(id, userId, ct);
                 if (task == null) return Result.Error<TodoTaskModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
 
+                DateOnly? nextDue = null;
                 // Gọi lại complete trên task đã xong thì giữ nguyên thời điểm hoàn thành cũ
-                task.CompletedAt = completed ? task.CompletedAt ?? DateTimeHelper.UtcNow() : null;
+                var completedAt = completed ? task.CompletedAt ?? DateTimeHelper.UtcNow() : (DateTime?)null;
 
-                if (!await _taskRepo.UpdateAsync(task, ct))
-                    return Result.Error<TodoTaskModel>(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật công việc");
+                if (completed && task.CompletedAt == null && task.RepeatFrequency != null)
+                {
+                    await _uow.BeginTransactionAsync(ct);
+                    //NOTE: "Giành" task bằng UPDATE có điều kiện: bấm 2 lần / 2 máy cùng tick thì chỉ 1 request tạo lần kế tiếp
+                    var claimed = await _taskRepo.Query()
+                        .Where(x => x.Id == task.Id && x.CompletedAt == null)
+                        .ExecuteUpdateAsync(s => s.SetProperty(x => x.CompletedAt, completedAt), ct);
+                    if (claimed == 1)
+                    {
+                        //NOTE: Đọc lại bản mới nhất (dòng đang bị khoá bởi lệnh trên) — có thể vừa có lần lưu khác commit trước
+                        task = await FindOwnedTaskAsync(id, userId, ct) ?? task;
+                        nextDue = await SpawnNextOccurrenceAsync(task, ct);
+                        task.CompletedAt = completedAt;
+                        await _taskRepo.UpdateAsync(task, ct);
+                        await _uow.CommitAsync(ct);
+                    }
+                    else
+                    {
+                        // Request khác đã hoàn thành (và tạo lần kế tiếp) trước: không ghi đè, trả trạng thái hiện tại
+                        await _uow.RollbackAsync(ct);
+                        task = await FindOwnedTaskAsync(id, userId, ct);
+                        if (task == null) return Result.Error<TodoTaskModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
+                    }
+                }
+                else
+                {
+                    task.CompletedAt = completedAt;
+                    if (!await _taskRepo.UpdateAsync(task, ct))
+                        return Result.Error<TodoTaskModel>(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật công việc");
+                }
 
-                return Result.Ok((await ToModelsAsync(new List<TodoTaskEntity> { task }, ct))[0]);
+                var model = (await ToModelsAsync(new List<TodoTaskEntity> { task }, ct))[0];
+                model.NextOccurrenceDueDate = nextDue;
+                return Result.Ok(model);
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Lỗi khi đổi trạng thái công việc");
                 return Result.Exception<TodoTaskModel>("Có lỗi xảy ra khi đổi trạng thái công việc", ex);
             }
@@ -423,6 +473,16 @@ namespace ManageLife.Services
             if (request.DueTime.HasValue && !request.DueDate.HasValue)
                 return (Result.Error(Result.DATA_INVALID.Code, "Cần chọn ngày trước khi chọn giờ"), null);
 
+            if (request.RepeatFrequency.HasValue && !request.DueDate.HasValue)
+                return (Result.Error(Result.DATA_INVALID.Code, "Việc lặp lại cần có ngày hạn"), null);
+
+            //NOTE: Giới hạn khoảng ngày hợp lý (tránh tràn DateOnly khi tính lần lặp kế tiếp)
+            if (request.DueDate > MaxDate || request.RepeatUntil > MaxDate)
+                return (Result.Error(Result.DATA_INVALID.Code, "Ngày không được sau năm 2100"), null);
+
+            if (request.RepeatFrequency.HasValue && request.RepeatUntil < request.DueDate)
+                return (Result.Error(Result.DATA_INVALID.Code, "Ngày kết thúc lặp phải từ ngày hạn trở đi"), null);
+
             if (request.Checklist != null && request.Checklist.Any(x => x.IsNotEmpty() && x.Trim().Length > 500))
                 return (Result.Error(Result.DATA_INVALID.Code, "Mỗi mục checklist tối đa 500 ký tự"), null);
 
@@ -451,6 +511,76 @@ namespace ManageLife.Services
             task.DueDate = request.DueDate;
             task.DueTime = request.DueTime;
             task.ReminderAt = ToUtc(request.ReminderAt);
+
+            var frequency = (TodoRepeatFrequency?)request.RepeatFrequency;
+            task.RepeatFrequency = frequency;
+            task.RepeatInterval = frequency.HasValue ? request.RepeatInterval ?? 1 : null;
+            // Hằng tuần mà không chọn thứ thì lặp đúng thứ của ngày hạn
+            task.RepeatWeekdays = frequency == TodoRepeatFrequency.Weekly
+                ? (byte?)request.RepeatWeekdays ?? TodoRepeatHelper.WeekdayBit(request.DueDate!.Value.DayOfWeek)
+                : null;
+            task.RepeatUntil = frequency.HasValue ? request.RepeatUntil : null;
+        }
+
+        /// <summary>
+        /// Việc lặp vừa hoàn thành: tạo lần kế tiếp (bản sao, hạn mới, lời nhắc dời theo, checklist chưa tick)
+        /// và chuyển chuỗi lặp sang lần mới — bỏ tick rồi tick lại việc cũ không sinh trùng.
+        /// </summary>
+        /// <returns>Ngày hạn lần kế tiếp đã tạo; null nếu hết chuỗi.</returns>
+        private async Task<DateOnly?> SpawnNextOccurrenceAsync(TodoTaskEntity task, CancellationToken ct)
+        {
+            if (task.RepeatFrequency is not { } frequency || task.DueDate is not { } due) return null;
+
+            var nextDue = TodoRepeatHelper.NextDueDate(
+                due, frequency, task.RepeatInterval ?? 1, task.RepeatWeekdays, task.RepeatUntil, TodayVn());
+
+            if (nextDue.HasValue)
+            {
+                var next = new TodoTaskEntity
+                {
+                    Id = IdHelper.NewId(),
+                    OwnerId = task.OwnerId,
+                    ListId = task.ListId,
+                    Title = task.Title,
+                    Note = task.Note,
+                    Priority = task.Priority,
+                    DueDate = nextDue,
+                    DueTime = task.DueTime,
+                    ReminderAt = task.ReminderAt?.AddDays(nextDue.Value.DayNumber - due.DayNumber),
+                    RepeatFrequency = task.RepeatFrequency,
+                    RepeatInterval = task.RepeatInterval,
+                    RepeatWeekdays = task.RepeatWeekdays,
+                    RepeatUntil = task.RepeatUntil,
+                    SortOrder = await NextTaskSortOrderAsync(task.OwnerId, task.ListId, ct)
+                };
+                await _taskRepo.InsertAsync(next, ct);
+
+                var checklist = await _checklistRepo.Query(true)
+                    .Where(x => x.TaskId == task.Id)
+                    .OrderBy(x => x.SortOrder)
+                    .ToListAsync(ct);
+                if (checklist.Count != 0)
+                {
+                    await _checklistRepo.BulkInsertAsync(checklist.Select(x => new TodoChecklistItemEntity
+                    {
+                        Id = IdHelper.NewId(),
+                        TaskId = next.Id,
+                        Title = x.Title,
+                        SortOrder = x.SortOrder
+                    }), ct);
+                }
+            }
+
+            ClearRepeat(task);
+            return nextDue;
+        }
+
+        private static void ClearRepeat(TodoTaskEntity task)
+        {
+            task.RepeatFrequency = null;
+            task.RepeatInterval = null;
+            task.RepeatWeekdays = null;
+            task.RepeatUntil = null;
         }
 
         private async Task<int> NextTaskSortOrderAsync(string userId, string? listId, CancellationToken ct)

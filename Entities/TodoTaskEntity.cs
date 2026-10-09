@@ -28,7 +28,7 @@ namespace ManageLife.Entities
 
         public int SortOrder { get; set; }
 
-        // Dự phòng cho tính năng lặp lại (chưa dùng ở MVP)
+        // Lặp lại: tick xong sẽ tạo lần kế tiếp (TodoTaskService.SpawnNextOccurrenceAsync)
         public TodoRepeatFrequency? RepeatFrequency { get; set; }
         public int? RepeatInterval { get; set; }
         /// <summary>Bitmask thứ trong tuần: T2=1, T3=2, ... CN=64.</summary>
