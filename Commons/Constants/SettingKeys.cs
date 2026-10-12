@@ -35,6 +35,18 @@ namespace ManageLife.Commons
             public const string EnableEmailDailyReport = "feature.enable_email_daily_report";
         }
 
+        /// <summary>Từ khoá của ô thêm nhanh việc trên app (mỗi setting: các từ cách nhau bằng dấu phẩy).</summary>
+        public static class TodoQuickAdd
+        {
+            public const string Today = "todo.quick_add.today";
+            public const string Tomorrow = "todo.quick_add.tomorrow";
+            public const string DayAfter = "todo.quick_add.day_after";
+            public const string NextWeek = "todo.quick_add.next_week";
+            public const string PriorityHigh = "todo.quick_add.priority_high";
+            public const string PriorityMedium = "todo.quick_add.priority_medium";
+            public const string PriorityLow = "todo.quick_add.priority_low";
+        }
+
         public static class Ui
         {
             public const string PrimaryColor = "ui.primary_color";

@@ -46,6 +46,15 @@ namespace ManageLife.Extensions
                 new() { Key = SettingKeys.Feature.EnableVideoDownloader, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Video Downloader" },
                 new() { Key = SettingKeys.Feature.EnableEmailDailyReport, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng gửi báo cáo Email hàng ngày" },
 
+                // --- Todo: từ khoá thêm nhanh (app ghép thành mẫu nhận dạng; để trống = dùng mặc định của app) ---
+                new() { Key = SettingKeys.TodoQuickAdd.Today, Value = "hôm nay", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ chỉ hôm nay, cách nhau bằng dấu phẩy" },
+                new() { Key = SettingKeys.TodoQuickAdd.Tomorrow, Value = "ngày mai, mai", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ chỉ ngày mai. Từ đơn (vd \"mai\") chỉ nhận khi gõ chữ thường để không nhầm tên riêng" },
+                new() { Key = SettingKeys.TodoQuickAdd.DayAfter, Value = "ngày kia, ngày mốt, mốt", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ chỉ ngày kia (sau 2 ngày)" },
+                new() { Key = SettingKeys.TodoQuickAdd.NextWeek, Value = "tuần sau, tuần tới", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ chỉ tuần sau (đứng riêng = sau 7 ngày; kèm thứ = thứ đó tuần sau)" },
+                new() { Key = SettingKeys.TodoQuickAdd.PriorityHigh, Value = "!cao", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ đặt ưu tiên cao (vd !cao, !gấp)" },
+                new() { Key = SettingKeys.TodoQuickAdd.PriorityMedium, Value = "!vừa, !vua", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ đặt ưu tiên vừa" },
+                new() { Key = SettingKeys.TodoQuickAdd.PriorityLow, Value = "!thấp, !thap", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ đặt ưu tiên thấp" },
+
                 // --- UI ---
                 new() { Key = SettingKeys.Ui.PrimaryColor, Value = "#4b49ac", Type = SettingType.Color, Group = "UI", Description = "Màu chủ đạo của giao diện" },
                 new() { Key = SettingKeys.Ui.MaxUploadSizeMb, Value = "10", Type = SettingType.Number, Group = "UI", Description = "Dung lượng tối đa cho phép upload (MB)" },
