@@ -12,12 +12,14 @@ namespace ManageLife.Helpers
         /// Ngày hạn lần kế tiếp: sau <paramref name="due"/> và không sớm hơn <paramref name="today"/>
         /// (hoàn thành trễ thì lần sau không rơi vào quá khứ). null = hết chuỗi (vượt RepeatUntil).
         /// </summary>
+        /// <param name="monthDay">Lặp hằng tháng/năm: ngày gốc (1–31); null = ngày của <paramref name="due"/>.</param>
         public static DateOnly? NextDueDate(
-            DateOnly due, TodoRepeatFrequency frequency, int interval, byte? weekdays, DateOnly? until, DateOnly today)
+            DateOnly due, TodoRepeatFrequency frequency, int interval, byte? weekdays, DateOnly? until, DateOnly today,
+            byte? monthDay = null)
         {
             try
             {
-                return Compute(due, frequency, interval, weekdays, until, today);
+                return Compute(due, frequency, interval, weekdays, until, today, monthDay ?? (byte)due.Day);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -27,7 +29,8 @@ namespace ManageLife.Helpers
         }
 
         private static DateOnly? Compute(
-            DateOnly due, TodoRepeatFrequency frequency, int interval, byte? weekdays, DateOnly? until, DateOnly today)
+            DateOnly due, TodoRepeatFrequency frequency, int interval, byte? weekdays, DateOnly? until, DateOnly today,
+            byte monthDay)
         {
             interval = Math.Max(1, interval);
             var earliest = today > due ? today : due.AddDays(1);
@@ -57,20 +60,27 @@ namespace ManageLife.Helpers
                 }
                 case TodoRepeatFrequency.Monthly:
                 {
-                    //NOTE: Tính từ chính ngày hạn hiện tại; ngày 31 sang tháng ngắn bị kẹp về cuối tháng (31/1 → 28/2 → 28/3)
+                    // Theo ngày gốc: tháng ngắn lấy ngày cuối tháng nhưng tháng sau trở lại ngày gốc (31/1 → 28/2 → 31/3)
                     var n = 1;
-                    do next = due.AddMonths(n++ * interval); while (next < earliest);
+                    do next = MonthAhead(due, n++ * interval, monthDay); while (next < earliest);
                     break;
                 }
                 default:
                 {
                     var n = 1;
-                    do next = due.AddYears(n++ * interval); while (next < earliest);
+                    do next = MonthAhead(due, n++ * interval * 12, monthDay); while (next < earliest);
                     break;
                 }
             }
 
             return until.HasValue && next > until.Value ? null : next;
+        }
+
+        /// <summary>Cùng ngày gốc của tháng cách <paramref name="due"/> <paramref name="months"/> tháng (kẹp về cuối tháng).</summary>
+        private static DateOnly MonthAhead(DateOnly due, int months, byte monthDay)
+        {
+            var first = new DateOnly(due.Year, due.Month, 1).AddMonths(months);
+            return new DateOnly(first.Year, first.Month, Math.Min(monthDay, DateTime.DaysInMonth(first.Year, first.Month)));
         }
 
         private static DateOnly WeekStart(DateOnly date) => date.AddDays(-(((int)date.DayOfWeek + 6) % 7));

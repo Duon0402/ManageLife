@@ -34,6 +34,8 @@ namespace ManageLife.Entities
         /// <summary>Bitmask thứ trong tuần: T2=1, T3=2, ... CN=64.</summary>
         public byte? RepeatWeekdays { get; set; }
         public DateOnly? RepeatUntil { get; set; }
+        /// <summary>Lặp hằng tháng/năm: ngày gốc (1–31) để 31/1 → 28/2 → 31/3 thay vì trôi về 28.</summary>
+        public byte? RepeatMonthDay { get; set; }
 
         public string CreatedUser { get; set; } = default!;
         public DateTime CreatedTime { get; set; }

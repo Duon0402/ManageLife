@@ -15,6 +15,7 @@ namespace ManageLife.Services
         private const string ChecklistNotFoundMessage = "Không tìm thấy mục checklist";
         private const string ListNotFoundMessage = "Không tìm thấy danh sách";
         private const string NoUserMessage = "Không xác định được người dùng";
+        private const string CompletedLockedMessage = "Việc đã xong nên không sửa được, hãy bỏ đánh dấu xong trước";
         private const int UpcomingDays = 7;
         private const int ReminderSyncDays = 30;
         private static readonly DateOnly MaxDate = new(2100, 12, 31);
@@ -196,6 +197,7 @@ namespace ManageLife.Services
 
                 var task = await FindOwnedTaskAsync(id, userId, ct);
                 if (task == null) return Result.Error<TodoTaskDetailModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
+                if (task.CompletedAt != null) return Result.Error<TodoTaskDetailModel>(Result.DATA_INVALID.Code, CompletedLockedMessage);
 
                 var (error, listId) = await ValidateTaskRequestAsync(request, userId, ct);
                 if (error != null) return Result.Error<TodoTaskDetailModel>(error.Code, error.Message);
@@ -204,8 +206,6 @@ namespace ManageLife.Services
                 if (task.ListId != listId)
                     task.SortOrder = await NextTaskSortOrderAsync(userId, listId, ct);
                 ApplyRequest(task, request, listId);
-                // Việc đã xong không lặp (chuỗi lặp đã chuyển sang lần kế tiếp)
-                if (task.CompletedAt != null) ClearRepeat(task);
 
                 await _uow.BeginTransactionAsync(ct);
                 //NOTE: Khoá dòng và kiểm tra trạng thái xong chưa đổi từ lúc đọc: lưu trùng lúc tick xong ở nơi khác
@@ -355,6 +355,7 @@ namespace ManageLife.Services
 
                 var task = await FindOwnedTaskAsync(taskId, userId, ct);
                 if (task == null) return Result.Error<TodoChecklistItemModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
+                if (task.CompletedAt != null) return Result.Error<TodoChecklistItemModel>(Result.DATA_INVALID.Code, CompletedLockedMessage);
 
                 var maxSort = await _checklistRepo.Query(true)
                     .Where(x => x.TaskId == taskId)
@@ -392,6 +393,7 @@ namespace ManageLife.Services
 
                 var item = await FindOwnedChecklistItemAsync(itemId, userId, ct);
                 if (item == null) return Result.Error<TodoChecklistItemModel>(Result.DATA_NOT_EXISTED.Code, ChecklistNotFoundMessage);
+                if (await IsTaskCompletedAsync(item.TaskId, ct)) return Result.Error<TodoChecklistItemModel>(Result.DATA_INVALID.Code, CompletedLockedMessage);
 
                 item.Title = request.Title.Trim();
                 item.IsDone = request.IsDone;
@@ -417,6 +419,7 @@ namespace ManageLife.Services
 
                 var item = await FindOwnedChecklistItemAsync(itemId, userId, ct);
                 if (item == null) return Result.Error(Result.DATA_NOT_EXISTED.Code, ChecklistNotFoundMessage);
+                if (await IsTaskCompletedAsync(item.TaskId, ct)) return Result.Error(Result.DATA_INVALID.Code, CompletedLockedMessage);
 
                 if (!await _checklistRepo.DeleteAsync(item, ct))
                     return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá mục checklist");
@@ -464,6 +467,10 @@ namespace ManageLife.Services
             _taskRepo.FirstOrDefaultAsync(x => x.Id == id && x.OwnerId == userId && !x.IsDeleted, ct);
 
         // Checklist không có OwnerId: quyền sở hữu suy ra qua task cha
+        //NOTE: Việc đã xong bị khoá sửa (cả checklist); bỏ đánh dấu xong để sửa
+        private Task<bool> IsTaskCompletedAsync(string taskId, CancellationToken ct) =>
+            _taskRepo.Query(true).AnyAsync(x => x.Id == taskId && x.CompletedAt != null, ct);
+
         private async Task<TodoChecklistItemEntity?> FindOwnedChecklistItemAsync(string itemId, string userId, CancellationToken ct)
         {
             var item = await _checklistRepo.FirstOrDefaultAsync(x => x.Id == itemId, ct);
@@ -513,6 +520,7 @@ namespace ManageLife.Services
 
         private static void ApplyRequest(TodoTaskEntity task, SaveTodoTaskRequest request, string? listId)
         {
+            var previousDueDate = task.DueDate;
             task.Title = request.Title.Trim();
             task.Note = request.Note.IsEmpty() ? null : request.Note!.Trim();
             task.ListId = listId;
@@ -522,6 +530,11 @@ namespace ManageLife.Services
             task.ReminderAt = ToUtc(request.ReminderAt);
 
             var frequency = (TodoRepeatFrequency?)request.RepeatFrequency;
+            // Ngày gốc (lặp tháng/năm): giữ nguyên nếu không đổi ngày hạn (hạn hiện tại có thể đã bị kẹp, vd 28/2 của chuỗi ngày 31)
+            var keepMonthDay = task.RepeatMonthDay != null && previousDueDate == request.DueDate;
+            task.RepeatMonthDay = frequency is TodoRepeatFrequency.Monthly or TodoRepeatFrequency.Yearly
+                ? keepMonthDay ? task.RepeatMonthDay : (byte?)request.DueDate!.Value.Day
+                : null;
             task.RepeatFrequency = frequency;
             task.RepeatInterval = frequency.HasValue ? request.RepeatInterval ?? 1 : null;
             // Hằng tuần mà không chọn thứ thì lặp đúng thứ của ngày hạn
@@ -541,7 +554,7 @@ namespace ManageLife.Services
             if (task.RepeatFrequency is not { } frequency || task.DueDate is not { } due) return null;
 
             var nextDue = TodoRepeatHelper.NextDueDate(
-                due, frequency, task.RepeatInterval ?? 1, task.RepeatWeekdays, task.RepeatUntil, TodayVn());
+                due, frequency, task.RepeatInterval ?? 1, task.RepeatWeekdays, task.RepeatUntil, TodayVn(), task.RepeatMonthDay);
 
             if (nextDue.HasValue)
             {
@@ -560,6 +573,7 @@ namespace ManageLife.Services
                     RepeatInterval = task.RepeatInterval,
                     RepeatWeekdays = task.RepeatWeekdays,
                     RepeatUntil = task.RepeatUntil,
+                    RepeatMonthDay = task.RepeatMonthDay,
                     SortOrder = await NextTaskSortOrderAsync(task.OwnerId, task.ListId, ct)
                 };
                 await _taskRepo.InsertAsync(next, ct);
@@ -590,6 +604,7 @@ namespace ManageLife.Services
             task.RepeatInterval = null;
             task.RepeatWeekdays = null;
             task.RepeatUntil = null;
+            task.RepeatMonthDay = null;
         }
 
         private async Task<int> NextTaskSortOrderAsync(string userId, string? listId, CancellationToken ct)

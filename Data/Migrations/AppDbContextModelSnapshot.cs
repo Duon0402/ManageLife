@@ -1055,6 +1055,9 @@ namespace ManageLife.Migrations
                     b.Property<int?>("RepeatInterval")
                         .HasColumnType("int");
 
+                    b.Property<byte?>("RepeatMonthDay")
+                        .HasColumnType("tinyint unsigned");
+
                     b.Property<DateOnly?>("RepeatUntil")
                         .HasColumnType("date");
 

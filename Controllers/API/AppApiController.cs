@@ -17,6 +17,11 @@ namespace ManageLife.Controllers.API
             _appConfigService = appConfigService;
         }
 
+        /// <summary>Kiểm tra sống, không cần đăng nhập: job cron gọi định kỳ để host (runasp) không cho app ngủ.</summary>
+        [HttpGet("ping")]
+        [AllowAnonymous]
+        public IActionResult Ping() => Ok("ok");
+
         [HttpGet("config")]
         public async Task<Result<AppConfigModel>> GetConfig(CancellationToken ct)
         {

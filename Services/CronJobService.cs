@@ -13,13 +13,19 @@ namespace ManageLife.Services
 {
     public class CronJobService : ServiceBase<CronJobService>, ICronJobService
     {
+        private const int MethodGet = 0;
         private const int MethodPost = 1;
+        private static readonly List<int> EveryHour = new() { -1 };
 
-        /// <summary>Job hệ thống: endpoint cron của chính app, gọi bằng POST kèm X-Cron-Secret, giờ VN.</summary>
+        /// <summary>
+        /// Job hệ thống (giờ VN). Endpoint cron/token: POST kèm X-Cron-Secret. Ping: GET, không cần secret —
+        /// gọi mỗi 10 phút để host không cho app ngủ (request đầu sau khi ngủ mất ~6 giây).
+        /// </summary>
         private static readonly SystemCronJob[] SystemJobs =
         {
-            new("ManageLife · Tóm tắt công việc buổi sáng", "/api/cron/todo-daily-summary", Hour: 7, Minute: 0),
-            new("ManageLife · Dọn refresh token hết hạn", "/api/token/cleanup-refresh-tokens", Hour: 3, Minute: 0),
+            new("ManageLife · Tóm tắt công việc buổi sáng", "/api/cron/todo-daily-summary", new() { 7 }, new() { 0 }, true),
+            new("ManageLife · Dọn refresh token hết hạn", "/api/token/cleanup-refresh-tokens", new() { 3 }, new() { 0 }, true),
+            new("ManageLife · Giữ server thức", "/api/app/ping", EveryHour, new() { 0, 10, 20, 30, 40, 50 }, false),
         };
 
         private static readonly string[] WeekdayNames = { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
@@ -205,15 +211,17 @@ namespace ManageLife.Services
                         Url = url,
                         //NOTE: Giữ trạng thái tạm dừng nếu admin đã tắt job; job mới thì bật
                         Enabled = existing?.Enabled ?? true,
-                        RequestMethod = MethodPost,
+                        RequestMethod = system.UseCronSecret ? MethodPost : MethodGet,
                         Schedule = new CronJobSchedule
                         {
-                            Hours = new() { system.Hour },
-                            Minutes = new() { system.Minute },
+                            Hours = system.Hours,
+                            Minutes = system.Minutes,
                         },
                         ExtendedData = new CronJobExtendedData
                         {
-                            Headers = new() { [CronSecretAttribute.HeaderName] = _options.WebhookSecret },
+                            Headers = system.UseCronSecret
+                                ? new() { [CronSecretAttribute.HeaderName] = _options.WebhookSecret }
+                                : new(),
                             Body = ""
                         }
                     };
@@ -443,7 +451,7 @@ namespace ManageLife.Services
             return $"{message}: {content}";
         }
 
-        private sealed record SystemCronJob(string Title, string Path, int Hour, int Minute);
+        private sealed record SystemCronJob(string Title, string Path, List<int> Hours, List<int> Minutes, bool UseCronSecret);
 
         #endregion
     }

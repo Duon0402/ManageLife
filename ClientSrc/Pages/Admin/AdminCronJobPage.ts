@@ -319,7 +319,7 @@ namespace App {
 
         private async syncSystemJobs(): Promise<void> {
             await MessageService.confirm(
-                'Tạo/cập nhật các job hệ thống (tóm tắt công việc 07:00, dọn refresh token 03:00) trên cron-job.org? '
+                'Tạo/cập nhật các job hệ thống (tóm tắt công việc 07:00, dọn refresh token 03:00, giữ server thức mỗi 10 phút) trên cron-job.org? '
                 + 'Tiêu đề, lịch và header của các job này sẽ được đặt lại theo mặc định (job đang tạm dừng vẫn giữ tạm dừng).',
                 'Đồng bộ',
                 async () => {
