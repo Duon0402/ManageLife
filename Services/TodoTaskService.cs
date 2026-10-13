@@ -79,6 +79,12 @@ namespace ManageLife.Services
                         .OrderBy(x => x.DueDate).ThenBy(x => x.DueTime == null).ThenBy(x => x.DueTime)
                         .ThenByDescending(x => x.Priority).ThenBy(x => x.SortOrder)
                         .ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
+                    // Chỉ việc quá hạn (hạn trước hôm nay): hạn cũ nhất trước
+                    "overdue" => query
+                        .Where(x => x.CompletedAt == null && x.DueDate != null && x.DueDate < today)
+                        .OrderBy(x => x.DueDate).ThenBy(x => x.DueTime == null).ThenBy(x => x.DueTime)
+                        .ThenByDescending(x => x.Priority).ThenBy(x => x.SortOrder)
+                        .ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
                     "upcoming" => query
                         .Where(x => x.CompletedAt == null && x.DueDate > today && x.DueDate <= upcomingEnd)
                         .OrderBy(x => x.DueDate).ThenBy(x => x.DueTime == null).ThenBy(x => x.DueTime)

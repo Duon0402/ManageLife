@@ -7,7 +7,7 @@ namespace ManageLife.Models
     {
         /// <summary>today | upcoming | inbox | list | completed | reminders (việc chưa xong có nhắc trong 30 ngày tới, để app đặt thông báo) | search (theo Query).</summary>
         [Required(ErrorMessage = "Chế độ xem không được để trống")]
-        [RegularExpression("^(today|upcoming|inbox|list|completed|reminders|search)$", ErrorMessage = "Chế độ xem không hợp lệ")]
+        [RegularExpression("^(today|overdue|upcoming|inbox|list|completed|reminders|search)$", ErrorMessage = "Chế độ xem không hợp lệ")]
         public string View { get; set; } = null!;
 
         /// <summary>Từ khoá khi View = search: tìm trong tiêu đề và ghi chú (gồm cả việc đã xong).</summary>
