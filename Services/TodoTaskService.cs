@@ -15,9 +15,9 @@ namespace ManageLife.Services
         private const string ChecklistNotFoundMessage = "Không tìm thấy mục checklist";
         private const string ListNotFoundMessage = "Không tìm thấy danh sách";
         private const string NoUserMessage = "Không xác định được người dùng";
+        // Đồng bộ lấy chồng thêm trước mốc (giây): bù lệch thời điểm ghi giữa các request
+        private const int SyncOverlapSeconds = 10;
         private const string CompletedLockedMessage = "Việc đã xong nên không sửa được, hãy bỏ đánh dấu xong trước";
-        private const int UpcomingDays = 7;
-        private const int ReminderSyncDays = 30;
         private static readonly DateOnly MaxDate = new(2100, 12, 31);
 
         private readonly ITodoTaskRepository _taskRepo;
@@ -39,120 +39,31 @@ namespace ManageLife.Services
             _uow = uow;
         }
 
-        public async Task<Result<PageList<TodoTaskModel>>> GetListAsync(GetTodoTasksRequest request, CancellationToken ct = default)
+        public async Task<Result> CreateAsync(SaveTodoTaskRequest request, CancellationToken ct = default)
         {
             try
             {
-                var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error<PageList<TodoTaskModel>>(Result.DATA_INVALID.Code, err);
-
                 var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<PageList<TodoTaskModel>>(Result.DATA_INVALID.Code, NoUserMessage);
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
 
-                string? listId = null;
-                if (request.ListId.IsNotEmpty())
+                // App tạo khi mất mạng rồi gửi lại (cùng id): đã tạo rồi thì trả bản đã có, không tạo trùng
+                if (ClientId(request.Id) is { } clientId)
                 {
-                    if (!await IsOwnedListAsync(request.ListId, userId, ct))
-                        return Result.Error<PageList<TodoTaskModel>>(Result.DATA_NOT_EXISTED.Code, ListNotFoundMessage);
-                    listId = request.ListId;
+                    var existing = await _taskRepo.Query(true).FirstOrDefaultAsync(x => x.Id == clientId, ct);
+                    if (existing != null)
+                    {
+                        return existing.OwnerId == userId && !existing.IsDeleted
+                            ? Result.Ok()
+                            : Result.Error(Result.DATA_EXISTED.Code, "Công việc đã bị xoá");
+                    }
                 }
-                else if (request.View == "list")
-                {
-                    return Result.Error<PageList<TodoTaskModel>>(Result.DATA_INVALID.Code, "Cần chọn danh sách");
-                }
-
-                var keyword = request.Query?.Trim();
-                if (request.View == "search" && keyword.IsEmpty())
-                    return Result.Ok(new PageList<TodoTaskModel>(new List<TodoTaskModel>(), 0, request.PageIndex, request.PageSize));
-
-                var today = TodayVn();
-                var upcomingEnd = today.AddDays(UpcomingDays);
-                var nowUtc = DateTimeHelper.UtcNow();
-                var reminderEnd = nowUtc.AddDays(ReminderSyncDays);
-                var query = _taskRepo.Query(true).Where(x => x.OwnerId == userId && !x.IsDeleted);
-
-                IQueryable<TodoTaskEntity> view = request.View switch
-                {
-                    // Gồm cả việc quá hạn
-                    "today" => query
-                        .Where(x => x.CompletedAt == null && x.DueDate != null && x.DueDate <= today)
-                        .OrderBy(x => x.DueDate).ThenBy(x => x.DueTime == null).ThenBy(x => x.DueTime)
-                        .ThenByDescending(x => x.Priority).ThenBy(x => x.SortOrder)
-                        .ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
-                    // Chỉ việc quá hạn (hạn trước hôm nay): hạn cũ nhất trước
-                    "overdue" => query
-                        .Where(x => x.CompletedAt == null && x.DueDate != null && x.DueDate < today)
-                        .OrderBy(x => x.DueDate).ThenBy(x => x.DueTime == null).ThenBy(x => x.DueTime)
-                        .ThenByDescending(x => x.Priority).ThenBy(x => x.SortOrder)
-                        .ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
-                    "upcoming" => query
-                        .Where(x => x.CompletedAt == null && x.DueDate > today && x.DueDate <= upcomingEnd)
-                        .OrderBy(x => x.DueDate).ThenBy(x => x.DueTime == null).ThenBy(x => x.DueTime)
-                        .ThenBy(x => x.SortOrder).ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
-                    "inbox" => query
-                        .Where(x => x.CompletedAt == null && x.ListId == null)
-                        .OrderBy(x => x.SortOrder).ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
-                    "list" => query
-                        .Where(x => x.CompletedAt == null && x.ListId == listId)
-                        .OrderBy(x => x.SortOrder).ThenBy(x => x.CreatedTime).ThenBy(x => x.Id),
-                    // Tìm theo tiêu đề/ghi chú (so khớp theo collation của DB: không phân biệt hoa thường); việc chưa xong lên trước
-                    "search" => query
-                        .Where(x => x.Title.Contains(keyword!) || (x.Note != null && x.Note.Contains(keyword!)))
-                        .OrderBy(x => x.CompletedAt != null).ThenBy(x => x.DueDate == null).ThenBy(x => x.DueDate)
-                        .ThenByDescending(x => x.CreatedTime).ThenBy(x => x.Id),
-                    // Nhắc sắp tới: app dùng để đặt lại thông báo trên máy
-                    "reminders" => query
-                        .Where(x => x.CompletedAt == null && x.ReminderAt != null && x.ReminderAt > nowUtc && x.ReminderAt <= reminderEnd)
-                        .OrderBy(x => x.ReminderAt).ThenBy(x => x.Id),
-                    _ => query
-                        .Where(x => x.CompletedAt != null && (listId == null || x.ListId == listId))
-                        .OrderByDescending(x => x.CompletedAt).ThenByDescending(x => x.Id)
-                };
-
-                var page = await view.ToPageListAsync(request.PageIndex, request.PageSize, ct);
-                var models = await ToModelsAsync(page.Items, ct);
-
-                return Result.Ok(new PageList<TodoTaskModel>(models, page.TotalItems, page.PageIndex, page.PageSize));
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Lỗi khi lấy danh sách công việc");
-                return Result.Exception<PageList<TodoTaskModel>>("Có lỗi xảy ra khi lấy danh sách công việc", ex);
-            }
-        }
-
-        public async Task<Result<TodoTaskDetailModel>> GetByIdAsync(string id, CancellationToken ct = default)
-        {
-            try
-            {
-                var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoTaskDetailModel>(Result.DATA_INVALID.Code, NoUserMessage);
-
-                var task = await FindOwnedTaskAsync(id, userId, ct);
-                if (task == null) return Result.Error<TodoTaskDetailModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
-
-                return Result.Ok(await ToDetailModelAsync(task, ct));
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Lỗi khi lấy chi tiết công việc");
-                return Result.Exception<TodoTaskDetailModel>("Có lỗi xảy ra khi lấy chi tiết công việc", ex);
-            }
-        }
-
-        public async Task<Result<TodoTaskDetailModel>> CreateAsync(SaveTodoTaskRequest request, CancellationToken ct = default)
-        {
-            try
-            {
-                var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoTaskDetailModel>(Result.DATA_INVALID.Code, NoUserMessage);
 
                 var (error, listId) = await ValidateTaskRequestAsync(request, userId, ct);
-                if (error != null) return Result.Error<TodoTaskDetailModel>(error.Code, error.Message);
+                if (error != null) return Result.Error(error.Code, error.Message);
 
                 var task = new TodoTaskEntity
                 {
-                    Id = IdHelper.NewId(),
+                    Id = ClientId(request.Id) ?? IdHelper.NewId(),
                     OwnerId = userId,
                     SortOrder = await NextTaskSortOrderAsync(userId, listId, ct)
                 };
@@ -180,33 +91,33 @@ namespace ManageLife.Services
                 if (!created)
                 {
                     await _uow.RollbackAsync(ct);
-                    return Result.Error<TodoTaskDetailModel>(Result.DATA_NOT_CREATE.Code, "Không thể tạo công việc");
+                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể tạo công việc");
                 }
 
                 await _uow.CommitAsync(ct);
-                return Result.Ok(await ToDetailModelAsync(task, ct));
+                return Result.Ok();
             }
             catch (Exception ex)
             {
                 await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Lỗi khi tạo công việc");
-                return Result.Exception<TodoTaskDetailModel>("Có lỗi xảy ra khi tạo công việc", ex);
+                return Result.Exception("Có lỗi xảy ra khi tạo công việc", ex);
             }
         }
 
-        public async Task<Result<TodoTaskDetailModel>> UpdateAsync(string id, SaveTodoTaskRequest request, CancellationToken ct = default)
+        public async Task<Result> UpdateAsync(string id, SaveTodoTaskRequest request, CancellationToken ct = default)
         {
             try
             {
                 var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoTaskDetailModel>(Result.DATA_INVALID.Code, NoUserMessage);
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
 
                 var task = await FindOwnedTaskAsync(id, userId, ct);
-                if (task == null) return Result.Error<TodoTaskDetailModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
-                if (task.CompletedAt != null) return Result.Error<TodoTaskDetailModel>(Result.DATA_INVALID.Code, CompletedLockedMessage);
+                if (task == null) return Result.Error(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
+                if (task.CompletedAt != null) return Result.Error(Result.DATA_INVALID.Code, CompletedLockedMessage);
 
                 var (error, listId) = await ValidateTaskRequestAsync(request, userId, ct);
-                if (error != null) return Result.Error<TodoTaskDetailModel>(error.Code, error.Message);
+                if (error != null) return Result.Error(error.Code, error.Message);
 
                 // Chuyển sang list khác thì đặt task xuống cuối list mới
                 if (task.ListId != listId)
@@ -223,19 +134,19 @@ namespace ManageLife.Services
                 if (unchanged != 1)
                 {
                     await _uow.RollbackAsync(ct);
-                    return Result.Error<TodoTaskDetailModel>(Result.DATA_NOT_UPDATE.Code, "Công việc vừa thay đổi ở nơi khác, hãy mở lại rồi sửa");
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Công việc vừa thay đổi ở nơi khác, hãy mở lại rồi sửa");
                 }
 
                 await _taskRepo.UpdateAsync(task, ct);
                 await _uow.CommitAsync(ct);
 
-                return Result.Ok(await ToDetailModelAsync(task, ct));
+                return Result.Ok();
             }
             catch (Exception ex)
             {
                 await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Lỗi khi cập nhật công việc");
-                return Result.Exception<TodoTaskDetailModel>("Có lỗi xảy ra khi cập nhật công việc", ex);
+                return Result.Exception("Có lỗi xảy ra khi cập nhật công việc", ex);
             }
         }
 
@@ -261,17 +172,16 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<TodoTaskModel>> SetCompletedAsync(string id, bool completed, CancellationToken ct = default)
+        public async Task<Result> SetCompletedAsync(string id, bool completed, CancellationToken ct = default)
         {
             try
             {
                 var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoTaskModel>(Result.DATA_INVALID.Code, NoUserMessage);
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
 
                 var task = await FindOwnedTaskAsync(id, userId, ct);
-                if (task == null) return Result.Error<TodoTaskModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
+                if (task == null) return Result.Error(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
 
-                DateOnly? nextDue = null;
                 // Gọi lại complete trên task đã xong thì giữ nguyên thời điểm hoàn thành cũ
                 var completedAt = completed ? task.CompletedAt ?? DateTimeHelper.UtcNow() : (DateTime?)null;
 
@@ -280,41 +190,44 @@ namespace ManageLife.Services
                     await _uow.BeginTransactionAsync(ct);
                     //NOTE: "Giành" task bằng UPDATE có điều kiện: bấm 2 lần / 2 máy cùng tick thì chỉ 1 request tạo lần kế tiếp
                     var claimed = await _taskRepo.Query()
-                        .Where(x => x.Id == task.Id && x.CompletedAt == null)
+                        .Where(x => x.Id == task.Id && x.CompletedAt == null && !x.IsDeleted)
                         .ExecuteUpdateAsync(s => s.SetProperty(x => x.CompletedAt, completedAt), ct);
                     if (claimed == 1)
                     {
-                        //NOTE: Đọc lại bản mới nhất (dòng đang bị khoá bởi lệnh trên) — có thể vừa có lần lưu khác commit trước
-                        task = await FindOwnedTaskAsync(id, userId, ct) ?? task;
-                        nextDue = await SpawnNextOccurrenceAsync(task, ct);
+                        //NOTE: Đọc lại bản mới nhất (dòng đang bị khoá bởi lệnh trên) — có thể vừa có lần lưu khác commit trước.
+                        // Không dùng lại bản cũ: ghi bản cũ (IsDeleted = false) sẽ khôi phục việc vừa bị xoá ở nơi khác
+                        var latest = await FindOwnedTaskAsync(id, userId, ct);
+                        if (latest == null)
+                        {
+                            await _uow.RollbackAsync(ct);
+                            return Result.Error(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
+                        }
+                        task = latest;
+                        await SpawnNextOccurrenceAsync(task, ct);
                         task.CompletedAt = completedAt;
                         await _taskRepo.UpdateAsync(task, ct);
                         await _uow.CommitAsync(ct);
                     }
                     else
                     {
-                        // Request khác đã hoàn thành (và tạo lần kế tiếp) trước: không ghi đè, trả trạng thái hiện tại
+                        // Request khác đã hoàn thành (và tạo lần kế tiếp) trước: không ghi đè
                         await _uow.RollbackAsync(ct);
-                        task = await FindOwnedTaskAsync(id, userId, ct);
-                        if (task == null) return Result.Error<TodoTaskModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
                     }
                 }
                 else
                 {
                     task.CompletedAt = completedAt;
                     if (!await _taskRepo.UpdateAsync(task, ct))
-                        return Result.Error<TodoTaskModel>(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật công việc");
+                        return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật công việc");
                 }
 
-                var model = (await ToModelsAsync(new List<TodoTaskEntity> { task }, ct))[0];
-                model.NextOccurrenceDueDate = nextDue;
-                return Result.Ok(model);
+                return Result.Ok();
             }
             catch (Exception ex)
             {
                 await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Lỗi khi đổi trạng thái công việc");
-                return Result.Exception<TodoTaskModel>("Có lỗi xảy ra khi đổi trạng thái công việc", ex);
+                return Result.Exception("Có lỗi xảy ra khi đổi trạng thái công việc", ex);
             }
         }
 
@@ -349,19 +262,33 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result<TodoChecklistItemModel>> AddChecklistItemAsync(string taskId, SaveChecklistItemRequest request, CancellationToken ct = default)
+        public async Task<Result> AddChecklistItemAsync(string taskId, SaveChecklistItemRequest request, CancellationToken ct = default)
         {
             try
             {
                 var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error<TodoChecklistItemModel>(Result.DATA_INVALID.Code, err);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoChecklistItemModel>(Result.DATA_INVALID.Code, NoUserMessage);
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
 
                 var task = await FindOwnedTaskAsync(taskId, userId, ct);
-                if (task == null) return Result.Error<TodoChecklistItemModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
-                if (task.CompletedAt != null) return Result.Error<TodoChecklistItemModel>(Result.DATA_INVALID.Code, CompletedLockedMessage);
+                if (task == null) return Result.Error(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
+
+                // Gửi lại cùng id (đồng bộ từ app): đã thêm rồi thì trả mục đã có
+                var clientId = ClientId(request.Id);
+                if (clientId != null)
+                {
+                    var existing = await _checklistRepo.Query(true).FirstOrDefaultAsync(x => x.Id == clientId, ct);
+                    if (existing != null)
+                    {
+                        return existing.TaskId == taskId
+                            ? Result.Ok()
+                            : Result.Error(Result.DATA_EXISTED.Code, "Mục checklist đã tồn tại");
+                    }
+                }
+
+                if (task.CompletedAt != null) return Result.Error(Result.DATA_INVALID.Code, CompletedLockedMessage);
 
                 var maxSort = await _checklistRepo.Query(true)
                     .Where(x => x.TaskId == taskId)
@@ -369,50 +296,67 @@ namespace ManageLife.Services
 
                 var item = new TodoChecklistItemEntity
                 {
+                    Id = clientId ?? IdHelper.NewId(),
                     TaskId = taskId,
                     Title = request.Title.Trim(),
                     IsDone = request.IsDone,
                     SortOrder = (maxSort ?? -1) + 1
                 };
 
+                //NOTE: Thêm mục + đánh dấu việc vừa đổi trong 1 transaction: lỗi giữa chừng mà mục đã lưu nhưng việc chưa
+                // đổi UpdatedTime thì lần đồng bộ sau của app không lấy lại checklist
+                await _uow.BeginTransactionAsync(ct);
                 if (!await _checklistRepo.InsertAsync(item, ct))
-                    return Result.Error<TodoChecklistItemModel>(Result.DATA_NOT_CREATE.Code, "Không thể thêm mục checklist");
+                {
+                    await _uow.RollbackAsync(ct);
+                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể thêm mục checklist");
+                }
+                await TouchTaskAsync(taskId, ct);
+                await _uow.CommitAsync(ct);
 
-                return Result.Ok(item.MapTo<TodoChecklistItemModel>());
+                return Result.Ok();
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Lỗi khi thêm mục checklist");
-                return Result.Exception<TodoChecklistItemModel>("Có lỗi xảy ra khi thêm mục checklist", ex);
+                return Result.Exception("Có lỗi xảy ra khi thêm mục checklist", ex);
             }
         }
 
-        public async Task<Result<TodoChecklistItemModel>> UpdateChecklistItemAsync(string itemId, SaveChecklistItemRequest request, CancellationToken ct = default)
+        public async Task<Result> UpdateChecklistItemAsync(string itemId, SaveChecklistItemRequest request, CancellationToken ct = default)
         {
             try
             {
                 var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error<TodoChecklistItemModel>(Result.DATA_INVALID.Code, err);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoChecklistItemModel>(Result.DATA_INVALID.Code, NoUserMessage);
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
 
                 var item = await FindOwnedChecklistItemAsync(itemId, userId, ct);
-                if (item == null) return Result.Error<TodoChecklistItemModel>(Result.DATA_NOT_EXISTED.Code, ChecklistNotFoundMessage);
-                if (await IsTaskCompletedAsync(item.TaskId, ct)) return Result.Error<TodoChecklistItemModel>(Result.DATA_INVALID.Code, CompletedLockedMessage);
+                if (item == null) return Result.Error(Result.DATA_NOT_EXISTED.Code, ChecklistNotFoundMessage);
+                if (await IsTaskCompletedAsync(item.TaskId, ct)) return Result.Error(Result.DATA_INVALID.Code, CompletedLockedMessage);
 
                 item.Title = request.Title.Trim();
                 item.IsDone = request.IsDone;
 
+                await _uow.BeginTransactionAsync(ct);
                 if (!await _checklistRepo.UpdateAsync(item, ct))
-                    return Result.Error<TodoChecklistItemModel>(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật mục checklist");
+                {
+                    await _uow.RollbackAsync(ct);
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật mục checklist");
+                }
+                await TouchTaskAsync(item.TaskId, ct);
+                await _uow.CommitAsync(ct);
 
-                return Result.Ok(item.MapTo<TodoChecklistItemModel>());
+                return Result.Ok();
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Lỗi khi cập nhật mục checklist");
-                return Result.Exception<TodoChecklistItemModel>("Có lỗi xảy ra khi cập nhật mục checklist", ex);
+                return Result.Exception("Có lỗi xảy ra khi cập nhật mục checklist", ex);
             }
         }
 
@@ -427,43 +371,98 @@ namespace ManageLife.Services
                 if (item == null) return Result.Error(Result.DATA_NOT_EXISTED.Code, ChecklistNotFoundMessage);
                 if (await IsTaskCompletedAsync(item.TaskId, ct)) return Result.Error(Result.DATA_INVALID.Code, CompletedLockedMessage);
 
+                await _uow.BeginTransactionAsync(ct);
                 if (!await _checklistRepo.DeleteAsync(item, ct))
+                {
+                    await _uow.RollbackAsync(ct);
                     return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá mục checklist");
+                }
+                await TouchTaskAsync(item.TaskId, ct);
+                await _uow.CommitAsync(ct);
 
                 return Result.Ok();
             }
             catch (Exception ex)
             {
+                await _uow.RollbackAsync(ct);
                 _logger.Error(ex, "Lỗi khi xoá mục checklist");
                 return Result.Exception("Có lỗi xảy ra khi xoá mục checklist", ex);
             }
         }
 
-        public async Task<Result<TodoSummaryModel>> GetSummaryAsync(CancellationToken ct = default)
+        /// <summary>
+        /// Thay đổi từ mốc `since` cho app lưu trên máy (không có mốc: toàn bộ). Lấy chồng thêm vài giây trước mốc để
+        /// không lỡ thay đổi ghi cùng lúc với lần đồng bộ trước (nhận trùng thì app chỉ ghi đè lại).
+        /// </summary>
+        public async Task<Result<TodoSyncModel>> GetChangesAsync(DateTime? since, CancellationToken ct = default)
         {
             try
             {
                 var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoSummaryModel>(Result.DATA_INVALID.Code, NoUserMessage);
+                if (userId.IsEmpty()) return Result.Error<TodoSyncModel>(Result.DATA_INVALID.Code, NoUserMessage);
 
-                var today = TodayVn();
-                var startOfTodayUtc = today.ToDateTime(TimeOnly.MinValue).ToUtcFromVnTime();
-                var startOfTomorrowUtc = today.AddDays(1).ToDateTime(TimeOnly.MinValue).ToUtcFromVnTime();
-                var owned = _taskRepo.Query(true).Where(x => x.OwnerId == userId && !x.IsDeleted);
+                var serverTime = DateTimeHelper.UtcNow();
+                var from = since.HasValue ? ToUtc(since)!.Value.AddSeconds(-SyncOverlapSeconds) : (DateTime?)null;
 
-                return Result.Ok(new TodoSummaryModel
+                var lists = await _listRepo.Query(true)
+                    .Where(x => x.OwnerId == userId)
+                    .Where(x => from == null
+                        ? !x.IsDeleted
+                        : x.CreatedTime >= from || x.UpdatedTime >= from || x.DeletedTime >= from)
+                    .ToListAsync(ct);
+                var tasks = await _taskRepo.Query(true)
+                    .Where(x => x.OwnerId == userId)
+                    .Where(x => from == null
+                        ? !x.IsDeleted
+                        : x.CreatedTime >= from || x.UpdatedTime >= from || x.DeletedTime >= from)
+                    .ToListAsync(ct);
+
+                var liveTasks = tasks.Where(x => !x.IsDeleted).ToList();
+                var liveIds = liveTasks.Select(x => x.Id).ToList();
+                var items = liveIds.IsEmpty()
+                    ? new List<TodoChecklistItemEntity>()
+                    : await _checklistRepo.Query(true)
+                        .Where(x => liveIds.Contains(x.TaskId))
+                        .OrderBy(x => x.SortOrder)
+                        .ToListAsync(ct);
+                var itemsByTask = items.GroupBy(x => x.TaskId).ToDictionary(x => x.Key, x => x.ToList());
+                // Tên/màu danh sách của công việc (kể cả danh sách không đổi trong lần này)
+                var listIds = liveTasks.Where(x => x.ListId != null).Select(x => x.ListId!).Distinct().ToList();
+                var listsById = await _listRepo.Query(true).Where(x => listIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, ct);
+
+                var model = new TodoSyncModel
                 {
-                    Today = await owned.CountAsync(x => x.CompletedAt == null && x.DueDate == today, ct),
-                    Overdue = await owned.CountAsync(x => x.CompletedAt == null && x.DueDate < today, ct),
-                    CompletedToday = await owned.CountAsync(x => x.CompletedAt >= startOfTodayUtc && x.CompletedAt < startOfTomorrowUtc, ct)
-                });
+                    ServerTime = serverTime,
+                    Full = from == null,
+                    Lists = lists.Where(x => !x.IsDeleted).MapToList<TodoListEntity, TodoListModel>(),
+                    DeletedListIds = lists.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
+                    DeletedTaskIds = tasks.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
+                    Tasks = liveTasks.Select(task =>
+                    {
+                        var taskItems = itemsByTask.GetValueOrDefault(task.Id) ?? new List<TodoChecklistItemEntity>();
+                        var detail = task.MapTo<TodoTaskDetailModel>();
+                        detail.Checklist = taskItems.MapToList<TodoChecklistItemEntity, TodoChecklistItemModel>();
+                        FillComputed(detail, task, listsById, (taskItems.Count, taskItems.Count(x => x.IsDone)));
+                        return detail;
+                    }).ToList(),
+                };
+                return Result.Ok(model);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Lỗi khi lấy tổng quan công việc");
-                return Result.Exception<TodoSummaryModel>("Có lỗi xảy ra khi lấy tổng quan công việc", ex);
+                _logger.Error(ex, "Lỗi khi đồng bộ công việc");
+                return Result.Exception<TodoSyncModel>("Có lỗi xảy ra khi đồng bộ công việc", ex);
             }
         }
+
+        /// <summary>Id app gửi lên (GUID) chuẩn hoá về dạng chữ thường; không hợp lệ/không có thì null.</summary>
+        private static string? ClientId(string? id) => Guid.TryParse(id, out var guid) ? guid.ToString() : null;
+
+        /// <summary>Đánh dấu công việc vừa đổi (checklist đổi) để lần đồng bộ sau của app lấy lại checklist.</summary>
+        private Task<int> TouchTaskAsync(string taskId, CancellationToken ct) =>
+            _taskRepo.Query()
+                .Where(x => x.Id == taskId)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.UpdatedTime, DateTimeHelper.UtcNow()), ct);
 
         #region Helpers
 
@@ -555,10 +554,9 @@ namespace ManageLife.Services
         /// Việc lặp vừa hoàn thành: tạo lần kế tiếp (bản sao, hạn mới, lời nhắc dời theo, checklist chưa tick)
         /// và chuyển chuỗi lặp sang lần mới — bỏ tick rồi tick lại việc cũ không sinh trùng.
         /// </summary>
-        /// <returns>Ngày hạn lần kế tiếp đã tạo; null nếu hết chuỗi.</returns>
-        private async Task<DateOnly?> SpawnNextOccurrenceAsync(TodoTaskEntity task, CancellationToken ct)
+        private async Task SpawnNextOccurrenceAsync(TodoTaskEntity task, CancellationToken ct)
         {
-            if (task.RepeatFrequency is not { } frequency || task.DueDate is not { } due) return null;
+            if (task.RepeatFrequency is not { } frequency || task.DueDate is not { } due) return;
 
             var nextDue = TodoRepeatHelper.NextDueDate(
                 due, frequency, task.RepeatInterval ?? 1, task.RepeatWeekdays, task.RepeatUntil, TodayVn(), task.RepeatMonthDay);
@@ -603,7 +601,6 @@ namespace ManageLife.Services
             }
 
             ClearRepeat(task);
-            return nextDue;
         }
 
         private static void ClearRepeat(TodoTaskEntity task)
@@ -621,49 +618,6 @@ namespace ManageLife.Services
                 .Where(x => x.OwnerId == userId && !x.IsDeleted && x.ListId == listId)
                 .MaxAsync(x => (int?)x.SortOrder, ct);
             return (maxSort ?? -1) + 1;
-        }
-
-        private async Task<List<TodoTaskModel>> ToModelsAsync(List<TodoTaskEntity> tasks, CancellationToken ct)
-        {
-            if (tasks.IsEmpty()) return new List<TodoTaskModel>();
-
-            var taskIds = tasks.Select(x => x.Id).ToList();
-            var listIds = tasks.Where(x => x.ListId != null).Select(x => x.ListId!).Distinct().ToList();
-
-            // 1 query cho checklist + 1 query cho list, tránh N+1
-            var checklist = await _checklistRepo.Query(true)
-                .Where(x => taskIds.Contains(x.TaskId))
-                .GroupBy(x => x.TaskId)
-                .Select(g => new { TaskId = g.Key, Total = g.Count(), Done = g.Count(x => x.IsDone) })
-                .ToDictionaryAsync(x => x.TaskId, ct);
-
-            var lists = listIds.IsEmpty()
-                ? new Dictionary<string, TodoListEntity>()
-                : await _listRepo.Query(true).Where(x => listIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, ct);
-
-            return tasks.Select(task =>
-            {
-                var model = task.MapTo<TodoTaskModel>();
-                FillComputed(model, task, lists, checklist.TryGetValue(task.Id, out var c) ? (c.Total, c.Done) : (0, 0));
-                return model;
-            }).ToList();
-        }
-
-        private async Task<TodoTaskDetailModel> ToDetailModelAsync(TodoTaskEntity task, CancellationToken ct)
-        {
-            var items = await _checklistRepo.Query(true)
-                .Where(x => x.TaskId == task.Id)
-                .OrderBy(x => x.SortOrder)
-                .ToListAsync(ct);
-
-            var lists = task.ListId == null
-                ? new Dictionary<string, TodoListEntity>()
-                : await _listRepo.Query(true).Where(x => x.Id == task.ListId).ToDictionaryAsync(x => x.Id, ct);
-
-            var model = task.MapTo<TodoTaskDetailModel>();
-            model.Checklist = items.MapToList<TodoChecklistItemEntity, TodoChecklistItemModel>();
-            FillComputed(model, task, lists, (items.Count, items.Count(x => x.IsDone)));
-            return model;
         }
 
         /// <summary>Gán các field không có trong entity (tên/màu list, số mục checklist).</summary>

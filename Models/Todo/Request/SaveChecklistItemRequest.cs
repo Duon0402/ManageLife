@@ -5,6 +5,9 @@ namespace ManageLife.Models
 {
     public class SaveChecklistItemRequest : IValidatableRequest
     {
+        /// <summary>Id do app tạo (GUID) để tạo khi mất mạng rồi đồng bộ sau; gửi lại cùng id thì không tạo trùng. Bỏ qua khi sửa.</summary>
+        public string? Id { get; set; }
+
         [Required(ErrorMessage = "Nội dung không được để trống")]
         [MaxLength(500, ErrorMessage = "Nội dung tối đa 500 ký tự")]
         public string Title { get; set; } = null!;

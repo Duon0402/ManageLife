@@ -5,6 +5,9 @@ namespace ManageLife.Models
 {
     public class SaveTodoListRequest : IValidatableRequest
     {
+        /// <summary>Id do app tạo (GUID) để tạo khi mất mạng rồi đồng bộ sau; gửi lại cùng id thì không tạo trùng. Bỏ qua khi sửa.</summary>
+        public string? Id { get; set; }
+
         [Required(ErrorMessage = "Tên danh sách không được để trống")]
         [MaxLength(100, ErrorMessage = "Tên danh sách tối đa 100 ký tự")]
         public string Name { get; set; } = null!;

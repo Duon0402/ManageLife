@@ -29,42 +29,32 @@ namespace ManageLife.Services
             _uow = uow;
         }
 
-        public async Task<Result<List<TodoListModel>>> GetListAsync(CancellationToken ct = default)
-        {
-            try
-            {
-                var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<List<TodoListModel>>(Result.DATA_INVALID.Code, NoUserMessage);
-
-                var lists = await _listRepo.Query(true)
-                    .Where(x => x.OwnerId == userId && !x.IsDeleted)
-                    .OrderBy(x => x.SortOrder).ThenBy(x => x.CreatedTime)
-                    .ToListAsync(ct);
-
-                var openCounts = await CountOpenTasksAsync(userId, ct);
-
-                return Result.Ok(lists.Select(x => ToModel(x, openCounts)).ToList());
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Lỗi khi lấy danh sách todo list");
-                return Result.Exception<List<TodoListModel>>("Có lỗi xảy ra khi lấy danh sách", ex);
-            }
-        }
-
-        public async Task<Result<TodoListModel>> CreateAsync(SaveTodoListRequest request, CancellationToken ct = default)
+        public async Task<Result> CreateAsync(SaveTodoListRequest request, CancellationToken ct = default)
         {
             try
             {
                 var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error<TodoListModel>(Result.DATA_INVALID.Code, err);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoListModel>(Result.DATA_INVALID.Code, NoUserMessage);
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                // App tạo khi mất mạng rồi gửi lại (cùng id): đã tạo rồi thì trả bản đã có, không tạo trùng
+                var clientId = Guid.TryParse(request.Id, out var guid) ? guid.ToString() : null;
+                if (clientId != null)
+                {
+                    var existing = await _listRepo.Query(true).FirstOrDefaultAsync(x => x.Id == clientId, ct);
+                    if (existing != null)
+                    {
+                        return existing.OwnerId == userId && !existing.IsDeleted
+                            ? Result.Ok()
+                            : Result.Error(Result.DATA_EXISTED.Code, "Danh sách đã bị xoá");
+                    }
+                }
 
                 var name = request.Name.Trim();
                 if (await IsDuplicateNameAsync(userId, name, null, ct))
-                    return Result.Error<TodoListModel>(Result.DATA_EXISTED.Code, DuplicateMessage);
+                    return Result.Error(Result.DATA_EXISTED.Code, DuplicateMessage);
 
                 var maxSort = await _listRepo.Query(true)
                     .Where(x => x.OwnerId == userId && !x.IsDeleted)
@@ -72,6 +62,7 @@ namespace ManageLife.Services
 
                 var entity = new TodoListEntity
                 {
+                    Id = clientId ?? IdHelper.NewId(),
                     OwnerId = userId,
                     Name = name,
                     Color = request.Color,
@@ -80,47 +71,47 @@ namespace ManageLife.Services
                 };
 
                 if (!await _listRepo.InsertAsync(entity, ct))
-                    return Result.Error<TodoListModel>(Result.DATA_NOT_CREATE.Code, "Không thể tạo danh sách");
+                    return Result.Error(Result.DATA_NOT_CREATE.Code, "Không thể tạo danh sách");
 
-                return Result.Ok(ToModel(entity, new Dictionary<string, int>()));
+                return Result.Ok();
             }
             catch (Exception ex)
             {
                 _logger.Error(ex, "Lỗi khi tạo todo list");
-                return Result.Exception<TodoListModel>("Có lỗi xảy ra khi tạo danh sách", ex);
+                return Result.Exception("Có lỗi xảy ra khi tạo danh sách", ex);
             }
         }
 
-        public async Task<Result<TodoListModel>> UpdateAsync(string id, SaveTodoListRequest request, CancellationToken ct = default)
+        public async Task<Result> UpdateAsync(string id, SaveTodoListRequest request, CancellationToken ct = default)
         {
             try
             {
                 var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error<TodoListModel>(Result.DATA_INVALID.Code, err);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
 
                 var userId = _userContext.GetUserId();
-                if (userId.IsEmpty()) return Result.Error<TodoListModel>(Result.DATA_INVALID.Code, NoUserMessage);
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
 
                 var entity = await _listRepo.FirstOrDefaultAsync(x => x.Id == id && x.OwnerId == userId && !x.IsDeleted, ct);
-                if (entity == null) return Result.Error<TodoListModel>(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
+                if (entity == null) return Result.Error(Result.DATA_NOT_EXISTED.Code, NotFoundMessage);
 
                 var name = request.Name.Trim();
                 if (await IsDuplicateNameAsync(userId, name, id, ct))
-                    return Result.Error<TodoListModel>(Result.DATA_EXISTED.Code, DuplicateMessage);
+                    return Result.Error(Result.DATA_EXISTED.Code, DuplicateMessage);
 
                 entity.Name = name;
                 entity.Color = request.Color;
                 entity.Icon = request.Icon?.Trim();
 
                 if (!await _listRepo.UpdateAsync(entity, ct))
-                    return Result.Error<TodoListModel>(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật danh sách");
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật danh sách");
 
-                return Result.Ok(ToModel(entity, await CountOpenTasksAsync(userId, ct)));
+                return Result.Ok();
             }
             catch (Exception ex)
             {
                 _logger.Error(ex, "Lỗi khi cập nhật todo list");
-                return Result.Exception<TodoListModel>("Có lỗi xảy ra khi cập nhật danh sách", ex);
+                return Result.Exception("Có lỗi xảy ra khi cập nhật danh sách", ex);
             }
         }
 
@@ -196,22 +187,6 @@ namespace ManageLife.Services
             var lowered = name.ToLower();
             return _listRepo.Query(true).AnyAsync(x =>
                 x.OwnerId == userId && !x.IsDeleted && x.Name.ToLower() == lowered && x.Id != excludeId, ct);
-        }
-
-        private Task<Dictionary<string, int>> CountOpenTasksAsync(string userId, CancellationToken ct)
-        {
-            return _taskRepo.Query(true)
-                .Where(x => x.OwnerId == userId && !x.IsDeleted && x.CompletedAt == null && x.ListId != null)
-                .GroupBy(x => x.ListId!)
-                .Select(g => new { ListId = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.ListId, x => x.Count, ct);
-        }
-
-        private static TodoListModel ToModel(TodoListEntity entity, Dictionary<string, int> openCounts)
-        {
-            var model = entity.MapTo<TodoListModel>();
-            model.OpenCount = openCounts.GetValueOrDefault(entity.Id);
-            return model;
         }
     }
 }
