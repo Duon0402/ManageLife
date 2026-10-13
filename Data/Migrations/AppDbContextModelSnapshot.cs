@@ -1046,6 +1046,9 @@ namespace ManageLife.Migrations
                     b.Property<byte>("Priority")
                         .HasColumnType("tinyint unsigned");
 
+                    b.Property<bool>("ReminderAlarm")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<DateTime?>("ReminderAt")
                         .HasColumnType("datetime(6)");
 

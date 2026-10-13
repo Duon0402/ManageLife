@@ -23,6 +23,9 @@ namespace ManageLife.Entities
         /// <summary>Thời điểm nhắc (UTC).</summary>
         public DateTime? ReminderAt { get; set; }
 
+        /// <summary>Nhắc kiểu báo thức (đổ chuông lặp, toàn màn hình) thay vì thông báo thường; chỉ có nghĩa khi có ReminderAt.</summary>
+        public bool ReminderAlarm { get; set; }
+
         /// <summary>Thời điểm hoàn thành (UTC); khác null = đã xong.</summary>
         public DateTime? CompletedAt { get; set; }
 

@@ -18,6 +18,9 @@ namespace ManageLife.Models
         /// <summary>UTC.</summary>
         public DateTime? ReminderAt { get; set; }
 
+        /// <summary>Nhắc kiểu báo thức (đổ chuông, toàn màn hình).</summary>
+        public bool ReminderAlarm { get; set; }
+
         /// <summary>UTC; khác null = đã xong.</summary>
         public DateTime? CompletedAt { get; set; }
 

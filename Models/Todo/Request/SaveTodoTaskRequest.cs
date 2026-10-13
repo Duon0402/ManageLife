@@ -22,6 +22,9 @@ namespace ManageLife.Models
         public TimeOnly? DueTime { get; set; }
         public DateTime? ReminderAt { get; set; }
 
+        /// <summary>Nhắc kiểu báo thức (bỏ qua khi không có ReminderAt).</summary>
+        public bool ReminderAlarm { get; set; }
+
         /// <summary>null = không lặp. 0 hằng ngày, 1 hằng tuần, 2 hằng tháng, 3 hằng năm (cần có DueDate).</summary>
         [Range(0, 3, ErrorMessage = "Kiểu lặp không hợp lệ")]
         public int? RepeatFrequency { get; set; }

@@ -528,6 +528,7 @@ namespace ManageLife.Services
             task.DueDate = request.DueDate;
             task.DueTime = request.DueTime;
             task.ReminderAt = ToUtc(request.ReminderAt);
+            task.ReminderAlarm = task.ReminderAt != null && request.ReminderAlarm;
 
             var frequency = (TodoRepeatFrequency?)request.RepeatFrequency;
             // Ngày gốc (lặp tháng/năm): giữ nguyên nếu không đổi ngày hạn (hạn hiện tại có thể đã bị kẹp, vd 28/2 của chuỗi ngày 31)
@@ -569,6 +570,7 @@ namespace ManageLife.Services
                     DueDate = nextDue,
                     DueTime = task.DueTime,
                     ReminderAt = task.ReminderAt?.AddDays(nextDue.Value.DayNumber - due.DayNumber),
+                    ReminderAlarm = task.ReminderAlarm,
                     RepeatFrequency = task.RepeatFrequency,
                     RepeatInterval = task.RepeatInterval,
                     RepeatWeekdays = task.RepeatWeekdays,
