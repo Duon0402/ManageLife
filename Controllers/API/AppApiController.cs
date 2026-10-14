@@ -22,6 +22,14 @@ namespace ManageLife.Controllers.API
         [AllowAnonymous]
         public IActionResult Ping() => Ok("ok");
 
+        /// <summary>Cấu hình công khai cho màn đăng nhập (cờ đăng ký) — không cần đăng nhập.</summary>
+        [HttpGet("public-config")]
+        [AllowAnonymous]
+        public async Task<Result<AppPublicConfigModel>> GetPublicConfig(CancellationToken ct)
+        {
+            return await _appConfigService.GetPublicConfigAsync(ct);
+        }
+
         [HttpGet("config")]
         public async Task<Result<AppConfigModel>> GetConfig(CancellationToken ct)
         {

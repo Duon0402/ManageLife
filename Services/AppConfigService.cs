@@ -59,6 +59,23 @@ namespace ManageLife.Services
             }
         }
 
+        public async Task<Result<AppPublicConfigModel>> GetPublicConfigAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                var model = new AppPublicConfigModel
+                {
+                    RegistrationEnabled = await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableRegistration, true)
+                };
+                return Result.Ok(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, TranslationKey.Common.Message.SystemError);
+                return Result.Exception<AppPublicConfigModel>(TranslationKey.Common.Message.SystemError, ex);
+            }
+        }
+
         /// <summary>"a, b ,, c" -> ["a","b","c"]: bỏ trống/trùng, gộp khoảng trắng, chuẩn hoá Unicode (NFC) cho app so khớp.</summary>
         private static List<string> SplitKeywords(string? value)
         {
