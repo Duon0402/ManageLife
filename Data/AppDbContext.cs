@@ -52,6 +52,9 @@ namespace ManageLife.Data
         public DbSet<TodoListEntity> TodoLists { get; set; } = default!;
         public DbSet<TodoTaskEntity> TodoTasks { get; set; } = default!;
         public DbSet<TodoChecklistItemEntity> TodoChecklistItems { get; set; } = default!;
+        public DbSet<FinanceWalletEntity> FinanceWallets { get; set; } = default!;
+        public DbSet<FinanceCategoryEntity> FinanceCategories { get; set; } = default!;
+        public DbSet<FinanceTransactionEntity> FinanceTransactions { get; set; } = default!;
         public DbSet<AnkiCardEntity> AnkiCards { get; set; } = default!;
 
         #endregion
@@ -114,6 +117,7 @@ namespace ManageLife.Data
                 .HasIndex(x => new { x.OwnerId, x.IsDeleted });
 
             ConfigureTodo(builder);
+            ConfigureFinance(builder);
 
             builder.Entity<VocabDeckEntity>()
                 .HasIndex(x => x.TopicId);
@@ -202,6 +206,47 @@ namespace ManageLife.Data
                 e.Property(x => x.Title).HasMaxLength(500);
                 e.HasOne<TodoTaskEntity>().WithMany().HasForeignKey(x => x.TaskId).OnDelete(DeleteBehavior.Cascade);
                 e.HasIndex(x => new { x.TaskId, x.SortOrder });
+            });
+        }
+
+        private static void ConfigureFinance(ModelBuilder builder)
+        {
+            builder.Entity<FinanceWalletEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.Name).HasMaxLength(50);
+                e.Property(x => x.Icon).HasMaxLength(50);
+                e.Property(x => x.Color).HasMaxLength(9);
+                e.Property(x => x.DefaultKey).HasMaxLength(30);
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted, x.SortOrder });
+            });
+
+            builder.Entity<FinanceCategoryEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.Name).HasMaxLength(50);
+                e.Property(x => x.Icon).HasMaxLength(50);
+                e.Property(x => x.Color).HasMaxLength(9);
+                e.Property(x => x.ParentId).HasMaxLength(255);
+                e.Property(x => x.DefaultKey).HasMaxLength(30);
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted, x.Kind, x.SortOrder });
+            });
+
+            builder.Entity<FinanceTransactionEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.WalletId).HasMaxLength(255);
+                e.Property(x => x.ToWalletId).HasMaxLength(255);
+                e.Property(x => x.CategoryId).HasMaxLength(255);
+                e.Property(x => x.Note).HasColumnType("text");
+                // Ví/danh mục đã có giao dịch chỉ ẩn được: xoá cứng không được phép
+                e.HasOne<FinanceWalletEntity>().WithMany().HasForeignKey(x => x.WalletId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne<FinanceWalletEntity>().WithMany().HasForeignKey(x => x.ToWalletId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne<FinanceCategoryEntity>().WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted, x.OccurredAt });
+                e.HasIndex(x => x.WalletId);
+                e.HasIndex(x => x.ToWalletId);
+                e.HasIndex(x => x.CategoryId);
             });
         }
     }

@@ -12,6 +12,7 @@ namespace ManageLife.Services
         private static readonly Dictionary<string, string> FeatureFlags = new()
         {
             ["todo"] = SettingKeys.Feature.EnableTodo,
+            ["finance"] = SettingKeys.Feature.EnableFinance,
         };
 
         // Nhóm từ khoá thêm nhanh của app -> setting (key nhóm khớp với app)

@@ -44,6 +44,9 @@ namespace ManageLife.Extensions
             services.AddScoped<ITodoListRepository, TodoListRepository>();
             services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
             services.AddScoped<ITodoChecklistItemRepository, TodoChecklistItemRepository>();
+            services.AddScoped<IFinanceWalletRepository, FinanceWalletRepository>();
+            services.AddScoped<IFinanceCategoryRepository, FinanceCategoryRepository>();
+            services.AddScoped<IFinanceTransactionRepository, FinanceTransactionRepository>();
             services.AddScoped<IPomodoroSessionRepository, PomodoroSessionRepository>();
             services.AddScoped<IPomodoroSettingRepository, PomodoroSettingRepository>();
             services.AddScoped<IAnkiCardRepository, AnkiCardRepository>();

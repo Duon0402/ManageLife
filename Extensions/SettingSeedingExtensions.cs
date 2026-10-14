@@ -39,6 +39,7 @@ namespace ManageLife.Extensions
                 new() { Key = SettingKeys.Feature.EnablePomodoro, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Pomodoro" },
                 new() { Key = SettingKeys.Feature.EnableAnkiCard, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng nhập thẻ + xuất file Anki" },
                 new() { Key = SettingKeys.Feature.EnableTodo, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Công việc (Todo)" },
+                new() { Key = SettingKeys.Feature.EnableFinance, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Tài chính trên app" },
                 new() { Key = SettingKeys.Feature.EnableFolder, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Photo Albums" },
                 new() { Key = SettingKeys.Feature.EnableNote, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Notes" },
                 new() { Key = SettingKeys.Feature.EnableHabit, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Thói quen (Habit)" },

@@ -27,6 +27,7 @@ namespace ManageLife.Commons
             public const string EnablePomodoro = "feature.enable_pomodoro";
             public const string EnableAnkiCard = "feature.enable_anki_card";
             public const string EnableTodo = "feature.enable_todo";
+            public const string EnableFinance = "feature.enable_finance";
             public const string EnableFolder = "feature.enable_folder";
             public const string EnableNote = "feature.enable_note";
             public const string EnableHabit = "feature.enable_habit";

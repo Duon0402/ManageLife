@@ -86,6 +86,13 @@ namespace ManageLife.Helpers
             CreateMap<TodoTaskEntity, TodoTaskDetailModel>()
                 .IncludeBase<TodoTaskEntity, TodoTaskModel>();
             CreateMap<TodoChecklistItemEntity, TodoChecklistItemModel>();
+
+            // Finance — thời gian lưu UTC nhưng MySQL trả Kind Unspecified: đánh dấu UTC để JSON có hậu tố Z
+            CreateMap<FinanceWalletEntity, FinanceWalletModel>();
+            CreateMap<FinanceCategoryEntity, FinanceCategoryModel>();
+            CreateMap<FinanceTransactionEntity, FinanceTransactionModel>()
+                .ForMember(d => d.OccurredAt, o => o.MapFrom(s => AsUtc(s.OccurredAt)))
+                .ForMember(d => d.CreatedTime, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedTime, DateTimeKind.Utc)));
         }
 
         private static DateTime? AsUtc(DateTime? value) =>
