@@ -28,6 +28,7 @@ namespace ManageLife.Extensions
             services.AddScoped<ITodoDailySummaryService, TodoDailySummaryService>();
             services.AddSingleton<ICacheService, CacheService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IDeviceCredentialService, DeviceCredentialService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<IPermissionGuard, PermissionGuard>();

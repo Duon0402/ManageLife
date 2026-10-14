@@ -4,6 +4,7 @@ using ManageLife.Commons;
 using ManageLife.Data;
 using ManageLife.Entities;
 using ManageLife.Contexts;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using ManageLife.Settings;
@@ -31,6 +32,7 @@ namespace ManageLife.Services
         private readonly IUserRepository _userRepo;
         private readonly IRoleRepository _roleRepo;
         private readonly IUserRoleRepository _userRoleRepo;
+        private readonly IUserDeviceCredentialRepository _deviceCredentialRepo;
         private readonly IUnitOfWork _uow;
         private readonly ICacheService _cache;
         private readonly ISettingContext _settingContext;
@@ -40,6 +42,7 @@ namespace ManageLife.Services
             IUserRepository userRepo,
             IRoleRepository roleRepo,
             IUserRoleRepository userRoleRepo,
+            IUserDeviceCredentialRepository deviceCredentialRepo,
             IOptions<JwtOptions> jwtOptions,
             IHttpContextAccessor httpContextAccessor,
             IUnitOfWork uow,
@@ -54,6 +57,7 @@ namespace ManageLife.Services
             _userRepo = userRepo;
             _roleRepo = roleRepo;
             _userRoleRepo = userRoleRepo;
+            _deviceCredentialRepo = deviceCredentialRepo;
             _uow = uow;
             _cache = cache;
             _settingContext = settingContext;
@@ -365,6 +369,9 @@ namespace ManageLife.Services
 
                 // Thu hồi đúng các phiên đã liệt kê (phiên đăng nhập mới trong lúc đó không bị đụng)
                 await RevokeSessionsAsync(userId!, others, ct);
+
+                // Máy khác không đăng nhập bằng vân tay được nữa (giữ khoá của máy đang dùng)
+                await RevokeDeviceCredentialsAsync(userId!, CurrentDeviceId(), ct);
                 return Result.Ok();
             }
             catch (Exception ex)
@@ -372,6 +379,43 @@ namespace ManageLife.Services
                 _logger.Error(ex, "Lỗi khi đăng xuất các phiên khác");
                 return Result.Exception("Có lỗi xảy ra khi đăng xuất các thiết bị khác", ex);
             }
+        }
+
+        /// <summary>
+        /// Thu hồi mọi phiên của user: đổi security stamp (mọi access token còn hạn bị từ chối), xoá refresh token và
+        /// mọi khoá đăng nhập bằng vân tay. Dùng khi đổi mật khẩu / đặt lại mật khẩu. Chạy trong transaction của caller.
+        /// </summary>
+        public async Task<Result> RevokeAllSessionsAsync(UserEntity user, CancellationToken ct = default)
+        {
+            try
+            {
+                user.SecurityStamp = IdHelper.NewId();
+                if (!await _userRepo.UpdateAsync(user, ct))
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể thu hồi các phiên đăng nhập");
+
+                await _refreshRepo.Query()
+                    .Where(x => x.UserId == user.Id)
+                    .ExecuteDeleteAsync(ct);
+                await RevokeDeviceCredentialsAsync(user.Id, null, ct);
+
+                await InvalidateSecurityStampCacheAsync(user.Id, ct);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi thu hồi mọi phiên đăng nhập");
+                return Result.Exception("Có lỗi xảy ra khi thu hồi các phiên đăng nhập", ex);
+            }
+        }
+
+        /// <summary>Xoá mềm khoá đăng nhập bằng vân tay của user (trừ máy đang dùng nếu có).</summary>
+        private async Task RevokeDeviceCredentialsAsync(string userId, string? exceptDeviceId, CancellationToken ct)
+        {
+            var credentials = await _deviceCredentialRepo.Query()
+                .Where(x => x.UserId == userId && !x.IsDeleted && x.DeviceId != exceptDeviceId)
+                .ToListAsync(ct);
+            if (credentials.IsEmpty()) return;
+            await _deviceCredentialRepo.BulkDeleteAsync(credentials, ct);
         }
 
         /// <summary>Thu hồi mọi token còn hiệu lực của các phiên (của chính user) và chặn access token của chúng.</summary>
@@ -398,51 +442,16 @@ namespace ManageLife.Services
             }
         }
 
-        /// <summary>Bỏ ký tự điều khiển, gộp khoảng trắng, tối đa 100 ký tự (không cắt giữa emoji).</summary>
-        private static string CleanDeviceName(string value)
-        {
-            // Bỏ ký tự điều khiển + ký tự định dạng ẩn (bidi, zero-width) + ngắt dòng/đoạn Unicode
-            var visible = value.Where(c => !char.IsControl(c) && CharUnicodeInfo.GetUnicodeCategory(c) is not
-                (UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator));
-            var cleaned = string.Join(' ', new string(visible.ToArray()).Split(' ', StringSplitOptions.RemoveEmptyEntries));
-            if (cleaned.Length <= 100) return cleaned;
-            var cut = char.IsHighSurrogate(cleaned[99]) ? 99 : 100;
-            return cleaned[..cut];
-        }
+        /// <summary>Tên thiết bị: header X-Device-Name (app gửi), không có thì đoán từ User-Agent.</summary>
+        private string DescribeDevice() => DeviceNames.Describe(_httpContextAccessor.HttpContext?.Request);
 
-        private static string SafeUnescape(string value)
-        {
-            try { return Uri.UnescapeDataString(value); }
-            catch (UriFormatException) { return value; }
-        }
+        /// <summary>Mã thiết bị hiện tại (header X-Device-Id, app gửi kèm mọi request).</summary>
+        private string? CurrentDeviceId()
+            => _httpContextAccessor.HttpContext?.Request.Headers["X-Device-Id"].ToString();
 
         private string? CurrentSessionId()
             => _httpContextAccessor.HttpContext?.User.FindFirstValue(JwtConst.SESSION_ID);
 
-        /// <summary>Tên thiết bị: header X-Device-Name (app gửi), không có thì đoán từ User-Agent.</summary>
-        private string DescribeDevice()
-        {
-            var request = _httpContextAccessor.HttpContext?.Request;
-            //NOTE: App gửi tên đã encodeURIComponent (header chỉ nhận ASCII, tên máy có thể có dấu)
-            var header = request?.Headers["X-Device-Name"].ToString();
-            var deviceName = header.IsNotEmpty() ? CleanDeviceName(SafeUnescape(header!)) : null;
-            if (deviceName.IsNotEmpty()) return deviceName!;
-
-            var userAgent = request?.Headers.UserAgent.ToString() ?? "";
-            var browser = userAgent.Contains("Edg/") ? "Edge"
-                : userAgent.Contains("Chrome/") ? "Chrome"
-                : userAgent.Contains("Firefox/") ? "Firefox"
-                : userAgent.Contains("Safari/") ? "Safari"
-                : null;
-            var os = userAgent.Contains("Windows") ? "Windows"
-                : userAgent.Contains("Android") ? "Android"
-                : userAgent.Contains("iPhone") || userAgent.Contains("iPad") ? "iOS"
-                : userAgent.Contains("Mac OS X") ? "macOS"
-                : userAgent.Contains("Linux") ? "Linux"
-                : null;
-            var name = string.Join(" · ", new[] { browser, os }.Where(x => x != null));
-            return name.IsNotEmpty() ? name : "Thiết bị không rõ";
-        }
         #endregion
 
         #region Cookie Management

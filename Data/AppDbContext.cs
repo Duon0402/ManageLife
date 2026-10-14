@@ -27,6 +27,7 @@ namespace ManageLife.Data
         public DbSet<RolePermissionEntity> RolePermissions { get; set; } = default!;
         public DbSet<UserPermissionEntity> UserPermissions { get; set; } = default!;
         public DbSet<UserRefreshTokenEntity> UserRefreshTokens { get; set; } = default!;
+        public DbSet<UserDeviceCredentialEntity> UserDeviceCredentials { get; set; } = default!;
         public DbSet<UserTelegramConnectionEntity> UserTelegramConnections { get; set; } = default!;
         public DbSet<TelegramBotCommandEntity> TelegramBotCommands { get; set; } = default!;
         public DbSet<FolderEntity> Folders { get; set; } = default!;
@@ -100,6 +101,15 @@ namespace ManageLife.Data
 
             builder.Entity<UserRefreshTokenEntity>()
                 .HasIndex(x => new { x.UserId, x.SessionId });
+
+            builder.Entity<UserDeviceCredentialEntity>(e =>
+            {
+                e.Property(x => x.UserId).HasMaxLength(255);
+                e.Property(x => x.DeviceId).HasMaxLength(64);
+                e.Property(x => x.DeviceName).HasMaxLength(100);
+                e.Property(x => x.SecretHash).HasMaxLength(64);
+                e.HasIndex(x => new { x.UserId, x.DeviceId });
+            });
 
             builder.Entity<UserRefreshTokenEntity>()
                 .Property(x => x.DeviceName).HasMaxLength(100);

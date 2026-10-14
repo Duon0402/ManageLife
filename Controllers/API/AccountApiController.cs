@@ -14,12 +14,32 @@ namespace ManageLife.Controllers.API
         private readonly IUserService _userService;
         private readonly ITelegramService _telegramService;
         private readonly ITokenService _tokenService;
+        private readonly IDeviceCredentialService _deviceCredentialService;
 
-        public AccountApiController(IUserService userService, ITelegramService telegramService, ITokenService tokenService)
+        public AccountApiController(
+            IUserService userService,
+            ITelegramService telegramService,
+            ITokenService tokenService,
+            IDeviceCredentialService deviceCredentialService)
         {
             _userService = userService;
             _telegramService = telegramService;
             _tokenService = tokenService;
+            _deviceCredentialService = deviceCredentialService;
+        }
+
+        /// <summary>Bật đăng nhập bằng vân tay trên máy này: lưu hash bí mật kèm mã thiết bị.</summary>
+        [HttpPost("device-credential")]
+        public async Task<Result> SaveDeviceCredential([FromBody] DeviceCredentialRequest request, CancellationToken ct)
+        {
+            return await _deviceCredentialService.SaveAsync(request, ct);
+        }
+
+        /// <summary>Tắt đăng nhập bằng vân tay trên máy này (xoá khoá cả trên máy lẫn BE).</summary>
+        [HttpDelete("device-credential/{deviceId}")]
+        public async Task<Result> DeleteDeviceCredential(string deviceId, CancellationToken ct)
+        {
+            return await _deviceCredentialService.DeleteAsync(deviceId, ct);
         }
 
         /// <summary>Các thiết bị đang đăng nhập (phiên còn hiệu lực), phiên hiện tại đứng đầu.</summary>

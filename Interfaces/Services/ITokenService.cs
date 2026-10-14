@@ -30,6 +30,12 @@ namespace ManageLife.Interfaces
         /// <summary>Đăng xuất mọi phiên khác phiên hiện tại.</summary>
         Task<Result> RevokeOtherSessionsAsync(CancellationToken ct = default);
 
+        /// <summary>
+        /// Thu hồi mọi phiên của user (đổi stamp, xoá refresh token, xoá khoá đăng nhập vân tay) — đổi/đặt lại mật khẩu.
+        /// Chạy trong transaction của caller.
+        /// </summary>
+        Task<Result> RevokeAllSessionsAsync(UserEntity user, CancellationToken ct = default);
+
         /// <summary>Thu hồi mọi token còn hiệu lực của các phiên (của chính user) và chặn access token của chúng.</summary>
         Task<int> RevokeSessionsAsync(string userId, IReadOnlyCollection<string> sessionIds, CancellationToken ct = default);
 

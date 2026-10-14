@@ -260,19 +260,14 @@ namespace ManageLife.Services
                 await _uow.BeginTransactionAsync(ct);
 
                 user.HashPassword = PasswordHelper.HashPassword(request.NewPassword);
-                user.SecurityStamp = IdHelper.NewId();
-                var updated = await _userRepo.UpdateAsync(user, ct);
-                if (!updated)
+
+                // Đăng xuất mọi thiết bị (đổi stamp, xoá refresh token + khoá vân tay), cấp phiên mới cho máy hiện tại
+                var revoked = await _tokenService.RevokeAllSessionsAsync(user, ct);
+                if (!revoked.IsOk())
                 {
                     await _uow.RollbackAsync(ct);
-                    _logger.Debug("Không thể cập nhật mật khẩu");
-                    return Result.Error<AuthTokenModel>(Result.DATA_NOT_UPDATE.Code, TranslationKey.Common.Message.UpdateError);
+                    return Result.Error<AuthTokenModel>(revoked.Code, revoked.Message);
                 }
-
-                // Đăng xuất mọi thiết bị khác, cấp phiên mới cho thiết bị đang đổi mật khẩu
-                await _refreshRepo.Query()
-                    .Where(x => x.UserId == user.Id)
-                    .ExecuteDeleteAsync(ct);
 
                 var issued = await _tokenService.IssueTokensAsync(user, ct);
                 if (!issued.IsOk())

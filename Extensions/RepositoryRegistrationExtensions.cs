@@ -19,6 +19,7 @@ namespace ManageLife.Extensions
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
             services.AddScoped<IUserRefreshTokenRepository, UserRefreshTokenRepository>();
+            services.AddScoped<IUserDeviceCredentialRepository, UserDeviceCredentialRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
             services.AddScoped<IFolderRepository, FolderRepository>();
