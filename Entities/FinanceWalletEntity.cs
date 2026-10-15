@@ -25,6 +25,9 @@ namespace ManageLife.Entities
         /// <summary>Ẩn ví (vd không dùng nữa) thay vì xoá: ví đã có giao dịch chỉ ẩn được.</summary>
         public bool IsArchived { get; set; }
 
+        /// <summary>Ví mặc định: điền sẵn khi ghi thu chi (mỗi người dùng chỉ có 1).</summary>
+        public bool IsDefault { get; set; }
+
         /// <summary>Key của bản tạo sẵn (vd "cash"); null = người dùng tự tạo.</summary>
         public string? DefaultKey { get; set; }
 

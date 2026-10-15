@@ -51,6 +51,7 @@ namespace ManageLife.Commons
             Color = "#2563EB",
             InitialBalance = 0,
             SortOrder = 0,
+            IsDefault = true,
             DefaultKey = CashKey,
         };
 

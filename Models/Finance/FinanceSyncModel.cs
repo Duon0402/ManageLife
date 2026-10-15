@@ -46,6 +46,7 @@ namespace ManageLife.Models
         public long InitialBalance { get; set; }
         public int SortOrder { get; set; }
         public bool IsArchived { get; set; }
+        public bool IsDefault { get; set; }
     }
 
     public class FinanceCategoryModel

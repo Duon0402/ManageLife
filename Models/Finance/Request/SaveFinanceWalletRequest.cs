@@ -28,5 +28,8 @@ namespace ManageLife.Models
         public long InitialBalance { get; set; }
 
         public bool IsArchived { get; set; }
+
+        /// <summary>Đặt làm ví mặc định (tự bỏ mặc định của ví khác).</summary>
+        public bool IsDefault { get; set; }
     }
 }

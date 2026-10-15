@@ -136,6 +136,7 @@ namespace ManageLife.Services
                 wallet.Color = request.Color;
                 wallet.InitialBalance = request.InitialBalance;
                 wallet.IsArchived = request.IsArchived;
+                wallet.IsDefault = request.IsDefault;
 
                 await _uow.BeginTransactionAsync(ct);
                 var saved = wallet.CreatedTime == default
@@ -146,6 +147,10 @@ namespace ManageLife.Services
                     await _uow.RollbackAsync(ct);
                     return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể lưu ví");
                 }
+
+                // Chỉ có 1 ví mặc định: bỏ mặc định của các ví khác cùng người dùng
+                if (wallet.IsDefault)
+                    await ClearOtherDefaultsAsync(userId, wallet.Id, ct);
 
                 await _uow.CommitAsync(ct);
                 return Result.Ok();
@@ -476,6 +481,15 @@ namespace ManageLife.Services
         }
 
         #endregion
+
+        /// <summary>Bỏ cờ mặc định của mọi ví khác (trừ `keepId`) — mỗi người dùng chỉ có 1 ví mặc định.</summary>
+        private async Task ClearOtherDefaultsAsync(string userId, string keepId, CancellationToken ct)
+        {
+            await _walletRepo.Query()
+                .Where(x => x.OwnerId == userId && !x.IsDeleted && x.IsDefault && x.Id != keepId)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.IsDefault, false)
+                    .SetProperty(x => x.UpdatedTime, DateTimeHelper.UtcNow()), ct);
+        }
 
         #region Helpers
 
