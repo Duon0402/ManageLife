@@ -28,6 +28,14 @@ namespace ManageLife.Controllers.API
             _deviceCredentialService = deviceCredentialService;
         }
 
+        /// <summary>Kiểm tra mật khẩu tài khoản — dùng khi người dùng quên mã PIN của app.</summary>
+        [HttpPost("verify-password")]
+        [EnableRateLimiting("login")]
+        public async Task<Result> VerifyPassword([FromBody] VerifyPasswordRequest request, CancellationToken ct)
+        {
+            return await _userService.VerifyPasswordAsync(request, ct);
+        }
+
         /// <summary>Bật đăng nhập bằng vân tay trên máy này: lưu hash bí mật kèm mã thiết bị.</summary>
         [HttpPost("device-credential")]
         public async Task<Result> SaveDeviceCredential([FromBody] DeviceCredentialRequest request, CancellationToken ct)

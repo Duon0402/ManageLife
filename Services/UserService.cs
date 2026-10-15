@@ -290,6 +290,32 @@ namespace ManageLife.Services
             }
         }
 
+        public async Task<Result> VerifyPasswordAsync(VerifyPasswordRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                var userId = _userContext.GetUserId();
+                var user = await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive && !x.IsDeleted, ct);
+                if (user == null) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
+                if (!PasswordHelper.VerifyPassword(request.Password, user.HashPassword))
+                {
+                    _logger.Debug("Xác thực mật khẩu (quên mã PIN) không đúng");
+                    return Result.Error(Result.DATA_INVALID.Code, "Mật khẩu không đúng");
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi xác thực mật khẩu");
+                return Result.Exception("Có lỗi xảy ra khi xác thực mật khẩu", ex);
+            }
+        }
+
         public async Task<Result<AccountModel>> GetMyAccountAsync(CancellationToken ct = default)
         {
             try

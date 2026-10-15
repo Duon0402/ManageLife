@@ -13,6 +13,9 @@ namespace ManageLife.Interfaces
 
         Task<Result<AuthTokenModel>> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default);
 
+        /// <summary>Kiểm tra mật khẩu tài khoản — dùng khi người dùng quên mã PIN của app.</summary>
+        Task<Result> VerifyPasswordAsync(VerifyPasswordRequest request, CancellationToken ct = default);
+
         Task<Result<AccountModel>> GetMyAccountAsync(CancellationToken ct = default);
 
         Task<Result<AccountModel>> UpdateMyAccountAsync(UpdateAccountRequest request, CancellationToken ct = default);
