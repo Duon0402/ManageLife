@@ -72,13 +72,13 @@ namespace ManageLife.Services
                 var user = await FindActiveUserAsync(request.UserName, ct);
                 var connection = user == null ? null : await FindConnectionAsync(user.Id, ct);
                 // Không có tài khoản hoặc chưa liên kết Telegram: vẫn trả cùng một câu, không gửi gì
-                if (user == null || connection == null) return Result.Ok();
+                if (user == null || connection == null) return OkSameMessage();
 
                 var cacheItem = CacheSettings.PasswordResetCode(user.Id);
                 var existing = await _cache.TryGetValueAsync<ResetCode>(cacheItem);
                 // Mã còn hạn mà mới gửi: không gửi lại (tránh spam Telegram)
                 if (existing != null && (DateTimeHelper.UtcNow() - existing.CreatedAt).TotalSeconds < ResendCooldownSeconds)
-                    return Result.Ok();
+                    return OkSameMessage();
 
                 var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString($"D{CodeLength}");
                 var resetCode = new ResetCode
@@ -93,14 +93,14 @@ namespace ManageLife.Services
                 {
                     _logger.Error(new InvalidOperationException("Ghi cache mã đặt lại mật khẩu thất bại"),
                         "Không lưu được mã đặt lại mật khẩu của user {UserId}", user.Id);
-                    return Result.Ok();
+                    return OkSameMessage();
                 }
 
                 var sent = await _telegramService.SendMessageToChatAsync(connection.ChatId,
                     $"Mã đặt lại mật khẩu Personal Hub: {code}\nMã hết hạn sau {CodeLifetimeMinutes} phút. Không đưa mã này cho ai.", ct);
                 if (!sent.IsOk()) _logger.Error(new InvalidOperationException(sent.Message), "Gửi mã đặt lại mật khẩu qua Telegram thất bại");
 
-                return Result.Ok();
+                return OkSameMessage();
             }
             catch (Exception ex)
             {
@@ -202,6 +202,9 @@ namespace ManageLife.Services
                     user.Id, TimeSpan.FromMinutes(CodeLifetimeMinutes) - (DateTimeHelper.UtcNow() - resetCode.CreatedAt)));
             return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
         }
+
+        /// <summary>Luôn trả cùng một câu cho mọi trường hợp (không lộ tài khoản có tồn tại hay không).</summary>
+        private static Result OkSameMessage() => new("00", SameMessage);
 
         private Task<UserEntity?> FindActiveUserAsync(string userName, CancellationToken ct) =>
             _userRepo.FirstOrDefaultAsync(x => x.UserName == userName && x.IsActive && !x.IsDeleted, ct);
