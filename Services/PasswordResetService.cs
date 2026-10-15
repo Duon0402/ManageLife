@@ -109,33 +109,6 @@ namespace ManageLife.Services
             }
         }
 
-        /// <summary>
-        /// Kênh đặt lại mật khẩu của tên đăng nhập. Chưa liên kết Telegram (hoặc không có tài khoản) → "none" để app
-        /// báo người dùng liên hệ admin thay vì bắt nhập mã không bao giờ tới.
-        /// </summary>
-        public async Task<Result<PasswordResetOptionModel>> GetResetOptionAsync(
-            PasswordResetOptionRequest request, CancellationToken ct = default)
-        {
-            try
-            {
-                var err = Validate(request);
-                if (err.IsNotEmpty()) return Result.Error<PasswordResetOptionModel>(Result.DATA_INVALID.Code, err);
-
-                var user = await FindActiveUserAsync(request.UserName, ct);
-                var connection = user == null ? null : await FindConnectionAsync(user.Id, ct);
-                var channel = connection == null
-                    ? PasswordResetOptionModel.ChannelNone
-                    : PasswordResetOptionModel.ChannelTelegram;
-
-                return Result.Ok(new PasswordResetOptionModel { Channel = channel });
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Lỗi khi tra kênh đặt lại mật khẩu");
-                return Result.Exception<PasswordResetOptionModel>("Có lỗi xảy ra, vui lòng thử lại", ex);
-            }
-        }
-
         /// <summary>Kiểm mã đặt lại mật khẩu: đúng mã mới cho người dùng nhập mật khẩu mới.</summary>
         public async Task<Result> VerifyCodeAsync(VerifyResetCodeRequest request, CancellationToken ct = default)
         {
