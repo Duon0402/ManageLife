@@ -36,6 +36,14 @@ namespace ManageLife.Commons
         public static CacheItem TelegramLinkCode(string code)
             => new($"{_prefix}tele_link_code:{code}", expiry: TimeSpan.FromMinutes(5));
 
+        // Mã đặt lại mật khẩu (gửi qua Telegram) → hash + số lần nhập sai; sống 10 phút
+        public static CacheItem PasswordResetCode(string userId)
+            => new($"{_prefix}pwd_reset:{userId}", expiry: TimeSpan.FromMinutes(10));
+
+        /// <summary>Nhập sai mã: ghi lại mã với thời hạn còn lại (không kéo dài thêm 10 phút).</summary>
+        public static CacheItem PasswordResetCode(string userId, TimeSpan remaining)
+            => new($"{_prefix}pwd_reset:{userId}", expiry: remaining);
+
         public static CacheItem TelegramBotUsername()
             => new($"{_prefix}tele_bot_username", CacheMode.Memory, TimeSpan.FromHours(24));
 

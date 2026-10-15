@@ -461,10 +461,14 @@ namespace ManageLife.Services
 
             var sessionTimeoutMinutes = await _settingContext.GetIntAsync(SettingKeys.Security.SessionTimeoutMinutes, 60);
 
+            // Chỉ bắt buộc Secure khi vào web qua HTTPS: chạy HTTP (dev local) mà vẫn Secure thì trình duyệt chặn cookie,
+            // đăng nhập xong không vào được admin
+            var secure = context.Request.IsHttps;
+
             context.Response.Cookies.Append("accessToken", accessToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = secure,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTimeHelper.UtcNow().AddMinutes(sessionTimeoutMinutes)
             });
@@ -472,7 +476,7 @@ namespace ManageLife.Services
             context.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = secure,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTimeHelper.UtcNow().AddDays(RefreshTokenExpiryDays)
             });
