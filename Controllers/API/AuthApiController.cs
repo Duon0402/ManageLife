@@ -1,4 +1,4 @@
-using ManageLife.Core;
+﻿using ManageLife.Core;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +38,22 @@ namespace ManageLife.Controllers.API
         public async Task<Result<AuthTokenModel>> Register([FromBody] RegisterAccountRequest model, CancellationToken ct)
         {
             return await _userService.RegisterAsync(model, ct);
+        }
+
+        /// <summary>Kênh đặt lại mật khẩu của tên đăng nhập: telegram, hoặc none (chưa liên kết → liên hệ admin).</summary>
+        [HttpPost("reset-option")]
+        [EnableRateLimiting("login")]
+        public async Task<Result<PasswordResetOptionModel>> GetResetOption([FromBody] PasswordResetOptionRequest model, CancellationToken ct)
+        {
+            return await _passwordResetService.GetResetOptionAsync(model, ct);
+        }
+
+        /// <summary>Kiểm mã đặt lại mật khẩu: đúng mã mới cho nhập mật khẩu mới.</summary>
+        [HttpPost("verify-reset-code")]
+        [EnableRateLimiting("login")]
+        public async Task<Result> VerifyResetCode([FromBody] VerifyResetCodeRequest model, CancellationToken ct)
+        {
+            return await _passwordResetService.VerifyCodeAsync(model, ct);
         }
 
         /// <summary>Quên mật khẩu: gửi mã 6 số qua Telegram đã liên kết. Luôn trả cùng một câu (không lộ tài khoản).</summary>

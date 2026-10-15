@@ -263,6 +263,8 @@ namespace ManageLife.Services
                 category.Icon = request.Icon.Trim();
                 category.Color = request.Color;
                 category.IsArchived = request.IsArchived;
+                // Đổi loại chỉ được khi danh mục chưa có giao dịch (đã kiểm ở trên)
+                category.Kind = request.Kind;
 
                 await _uow.BeginTransactionAsync(ct);
                 var saved = category.CreatedTime == default

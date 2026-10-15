@@ -109,6 +109,53 @@ namespace ManageLife.Services
             }
         }
 
+        /// <summary>
+        /// Kênh đặt lại mật khẩu của tên đăng nhập. Chưa liên kết Telegram (hoặc không có tài khoản) → "none" để app
+        /// báo người dùng liên hệ admin thay vì bắt nhập mã không bao giờ tới.
+        /// </summary>
+        public async Task<Result<PasswordResetOptionModel>> GetResetOptionAsync(
+            PasswordResetOptionRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error<PasswordResetOptionModel>(Result.DATA_INVALID.Code, err);
+
+                var user = await FindActiveUserAsync(request.UserName, ct);
+                var connection = user == null ? null : await FindConnectionAsync(user.Id, ct);
+                var channel = connection == null
+                    ? PasswordResetOptionModel.ChannelNone
+                    : PasswordResetOptionModel.ChannelTelegram;
+
+                return Result.Ok(new PasswordResetOptionModel { Channel = channel });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi tra kênh đặt lại mật khẩu");
+                return Result.Exception<PasswordResetOptionModel>("Có lỗi xảy ra, vui lòng thử lại", ex);
+            }
+        }
+
+        /// <summary>Kiểm mã đặt lại mật khẩu: đúng mã mới cho người dùng nhập mật khẩu mới.</summary>
+        public async Task<Result> VerifyCodeAsync(VerifyResetCodeRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                var user = await FindActiveUserAsync(request.UserName, ct);
+                if (user == null) return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
+
+                return await CheckCodeAsync(user, request.Code, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi kiểm tra mã đặt lại mật khẩu");
+                return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
+            }
+        }
+
         public async Task<Result> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct = default)
         {
             try
@@ -119,23 +166,8 @@ namespace ManageLife.Services
                 var user = await FindActiveUserAsync(request.UserName, ct);
                 if (user == null) return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
 
-                var cacheItem = CacheSettings.PasswordResetCode(user.Id);
-                var resetCode = await _cache.TryGetValueAsync<ResetCode>(cacheItem);
-                if (resetCode == null) return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
-
-                if (!CryptographicOperations.FixedTimeEquals(
-                        Encoding.UTF8.GetBytes(HashCode(user.Id, request.Code)),
-                        Encoding.UTF8.GetBytes(resetCode.Hash)))
-                {
-                    resetCode.Attempts += 1;
-                    if (resetCode.Attempts >= MaxAttempts)
-                        await _cache.RemoveAsync(cacheItem);
-                    else
-                        // Giữ đúng thời hạn còn lại: nhập sai không được kéo dài mã
-                        await _cache.SetAsync(resetCode, CacheSettings.PasswordResetCode(
-                            user.Id, TimeSpan.FromMinutes(CodeLifetimeMinutes) - (DateTimeHelper.UtcNow() - resetCode.CreatedAt)));
-                    return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
-                }
+                var checked_ = await CheckCodeAsync(user, request.Code, ct);
+                if (!checked_.IsOk()) return Result.Error(checked_.Code, checked_.Message);
 
                 await _uow.BeginTransactionAsync(ct);
 
@@ -157,7 +189,7 @@ namespace ManageLife.Services
                 }
 
                 await _uow.CommitAsync(ct);
-                await _cache.RemoveAsync(cacheItem);
+                await _cache.RemoveAsync(CacheSettings.PasswordResetCode(user.Id));
 
                 var connection = await FindConnectionAsync(user.Id, ct);
                 if (connection != null)
@@ -172,6 +204,30 @@ namespace ManageLife.Services
                 _logger.Error(ex, "Lỗi khi đặt lại mật khẩu");
                 return Result.Exception("Có lỗi xảy ra khi đặt lại mật khẩu", ex);
             }
+        }
+
+        /// <summary>
+        /// Đối chiếu mã với mã trong cache: sai thì tăng số lần sai (hết 5 lần thì huỷ mã), giữ nguyên thời hạn còn lại.
+        /// </summary>
+        private async Task<Result> CheckCodeAsync(UserEntity user, string code, CancellationToken ct)
+        {
+            var cacheItem = CacheSettings.PasswordResetCode(user.Id);
+            var resetCode = await _cache.TryGetValueAsync<ResetCode>(cacheItem);
+            if (resetCode == null) return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
+
+            if (CryptographicOperations.FixedTimeEquals(
+                    Encoding.UTF8.GetBytes(HashCode(user.Id, code)),
+                    Encoding.UTF8.GetBytes(resetCode.Hash)))
+                return Result.Ok();
+
+            resetCode.Attempts += 1;
+            if (resetCode.Attempts >= MaxAttempts)
+                await _cache.RemoveAsync(cacheItem);
+            else
+                // Giữ đúng thời hạn còn lại: nhập sai không được kéo dài mã
+                await _cache.SetAsync(resetCode, CacheSettings.PasswordResetCode(
+                    user.Id, TimeSpan.FromMinutes(CodeLifetimeMinutes) - (DateTimeHelper.UtcNow() - resetCode.CreatedAt)));
+            return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
         }
 
         private Task<UserEntity?> FindActiveUserAsync(string userName, CancellationToken ct) =>

@@ -1,4 +1,4 @@
-using LinqKit;
+﻿using LinqKit;
 using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Data;
@@ -370,8 +370,10 @@ namespace ManageLife.Services
                 // Thu hồi đúng các phiên đã liệt kê (phiên đăng nhập mới trong lúc đó không bị đụng)
                 await RevokeSessionsAsync(userId!, others, ct);
 
-                // Máy khác không đăng nhập bằng vân tay được nữa (giữ khoá của máy đang dùng)
-                await RevokeDeviceCredentialsAsync(userId!, CurrentDeviceId(), ct);
+                // Máy khác không đăng nhập bằng vân tay được nữa (giữ khoá của máy đang dùng).
+                // Web admin không gửi X-Device-Id: không xoá khoá nào thay vì xoá nhầm máy hiện tại.
+                var deviceId = CurrentDeviceId();
+                if (deviceId.IsNotEmpty()) await RevokeDeviceCredentialsAsync(userId!, deviceId, ct);
                 return Result.Ok();
             }
             catch (Exception ex)

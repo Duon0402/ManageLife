@@ -19,6 +19,8 @@ namespace ManageLife.Services
     public class DeviceCredentialService : ServiceBase<DeviceCredentialService>, IDeviceCredentialService
     {
         private const string DeviceLoginFailedMessage = "Không đăng nhập được bằng vân tay, hãy đăng nhập bằng mật khẩu";
+        // Khoá thiết bị hết giá trị (bị thu hồi): app xoá bí mật trên máy và tắt tính năng
+        private static readonly string CredentialRevokedCode = Result.DATA_NOT_EXISTED.Code;
         private const string NoUserMessage = "Không xác định được người dùng";
 
         private readonly IUserDeviceCredentialRepository _credentialRepo;
@@ -110,13 +112,15 @@ namespace ManageLife.Services
 
                 var credential = await _credentialRepo.Query(true)
                     .FirstOrDefaultAsync(x => x.DeviceId == request.DeviceId && !x.IsDeleted, ct);
-                if (credential == null) return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, DeviceLoginFailedMessage);
+                // Khoá không còn (thu hồi khi đổi mật khẩu/đặt lại mật khẩu/đăng xuất thiết bị khác): báo mã riêng để
+                // app tắt tính năng trên máy, khác với lockout tạm (mã 07) chỉ cần thử lại sau
+                if (credential == null)
+                    return Result.Error<AuthTokenModel>(CredentialRevokedCode, DeviceLoginFailedMessage);
 
-                // So hash cùng một lỗi cho mọi trường hợp hỏng: không để lộ mã thiết bị có tồn tại hay không
                 var secretHash = HashSecret(request.Secret);
                 if (!CryptographicOperations.FixedTimeEquals(
                         Encoding.UTF8.GetBytes(secretHash), Encoding.UTF8.GetBytes(credential.SecretHash)))
-                    return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, DeviceLoginFailedMessage);
+                    return Result.Error<AuthTokenModel>(CredentialRevokedCode, DeviceLoginFailedMessage);
 
                 var user = await _userRepo.Query(true)
                     .FirstOrDefaultAsync(x => x.Id == credential.UserId && x.IsActive && !x.IsDeleted, ct);
