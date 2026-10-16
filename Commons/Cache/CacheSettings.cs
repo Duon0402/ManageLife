@@ -44,6 +44,10 @@ namespace ManageLife.Commons
         public static CacheItem PasswordResetCode(string userId, TimeSpan remaining)
             => new($"{_prefix}pwd_reset:{userId}", expiry: remaining);
 
+        /// <summary>Số lần nhập sai mã — đếm atomic bằng Redis INCR (đọc-sửa-ghi không atomic được), sống cùng mã.</summary>
+        public static CacheItem PasswordResetAttempts(string userId)
+            => new($"{_prefix}pwd_reset_attempts:{userId}", expiry: TimeSpan.FromMinutes(10));
+
         public static CacheItem TelegramBotUsername()
             => new($"{_prefix}tele_bot_username", CacheMode.Memory, TimeSpan.FromHours(24));
 

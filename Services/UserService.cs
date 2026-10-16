@@ -301,10 +301,43 @@ namespace ManageLife.Services
                 var user = await _userRepo.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive && !x.IsDeleted, ct);
                 if (user == null) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
 
+                if (user.LockoutEnd.HasValue)
+                {
+                    if (user.LockoutEnd.Value > DateTimeHelper.UtcNow())
+                    {
+                        _logger.Debug("Xác thực mật khẩu bị chặn: tài khoản đang bị khoá tạm thời");
+                        return Result.Error(Result.DATA_INVALID.Code, "Tài khoản tạm thời bị khoá do nhập sai quá nhiều lần, vui lòng thử lại sau");
+                    }
+
+                    // Hết hạn khoá: cấp lại lượt thử mới
+                    user.AccessFailedCount = 0;
+                    user.LockoutEnd = null;
+                }
+
                 if (!PasswordHelper.VerifyPassword(request.Password, user.HashPassword))
                 {
                     _logger.Debug("Xác thực mật khẩu (quên mã PIN) không đúng");
+
+                    // Đếm lần sai + khoá tạm như đăng nhập: endpoint này là cổng của luồng đặt lại mã PIN,
+                    // không đếm thì thành đường dò mật khẩu không bị chặn
+                    var maxLoginAttempts = await _settingContext.GetIntAsync(SettingKeys.Security.MaxLoginAttempts, 5);
+                    var lockoutMinutes = await _settingContext.GetIntAsync(SettingKeys.Security.LockoutMinutes, 15);
+
+                    user.AccessFailedCount++;
+                    if (user.AccessFailedCount >= maxLoginAttempts)
+                        user.LockoutEnd = DateTimeHelper.UtcNow().AddMinutes(lockoutMinutes);
+
+                    await _userRepo.UpdateAsync(user, ct);
+
                     return Result.Error(Result.DATA_INVALID.Code, "Mật khẩu không đúng");
+                }
+
+                // Đúng mật khẩu: xoá đếm lỗi như đăng nhập thành công
+                if (user.AccessFailedCount != 0 || user.LockoutEnd.HasValue)
+                {
+                    user.AccessFailedCount = 0;
+                    user.LockoutEnd = null;
+                    await _userRepo.UpdateAsync(user, ct);
                 }
 
                 return Result.Ok();

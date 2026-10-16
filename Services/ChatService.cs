@@ -3,6 +3,7 @@ using ManageLife.Core;
 using ManageLife.Commons;
 using ManageLife.Entities;
 using ManageLife.Contexts;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
@@ -275,11 +276,7 @@ namespace ManageLife.Services
         }
 
         // Check MySQL "Duplicate entry" — SQL Server strings removed (wrong driver)
-        private static bool IsUniqueViolation(Exception ex)
-        {
-            return ex is DbUpdateException dbEx &&
-                   dbEx.InnerException?.Message.Contains("Duplicate entry") == true;
-        }
+        private static bool IsUniqueViolation(Exception ex) => DbErrorHelper.IsUniqueViolation(ex);
 
         // Precondition: user1/user2 đã được validate là non-empty ở caller (CreateOrGetPrivateRoomAsync).
         private static string GeneratePrivateKey(string user1, string user2)

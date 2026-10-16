@@ -59,6 +59,8 @@ namespace ManageLife.Models
         public string? ParentId { get; set; }
         public int SortOrder { get; set; }
         public bool IsArchived { get; set; }
+        /// <summary>Key của bản tạo sẵn (vd "food") — app khớp từ khoá nhập nhanh; null = tự tạo.</summary>
+        public string? DefaultKey { get; set; }
     }
 
     public class FinanceTransactionModel

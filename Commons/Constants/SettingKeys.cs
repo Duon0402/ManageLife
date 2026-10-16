@@ -36,6 +36,25 @@ namespace ManageLife.Commons
             public const string EnableEmailDailyReport = "feature.enable_email_daily_report";
         }
 
+        /// <summary>Từ khoá ô ghi nhanh thu chi trên app (mỗi setting: các từ cách nhau bằng dấu phẩy).</summary>
+        public static class FinanceQuickAdd
+        {
+            public const string Food = "finance.quick_add.food";
+            public const string Transport = "finance.quick_add.transport";
+            public const string Housing = "finance.quick_add.housing";
+            public const string Bills = "finance.quick_add.bills";
+            public const string Shopping = "finance.quick_add.shopping";
+            public const string Fun = "finance.quick_add.fun";
+            public const string Health = "finance.quick_add.health";
+            public const string Education = "finance.quick_add.education";
+            public const string Family = "finance.quick_add.family";
+            public const string OtherExpense = "finance.quick_add.other_expense";
+            public const string Salary = "finance.quick_add.salary";
+            public const string Bonus = "finance.quick_add.bonus";
+            public const string Interest = "finance.quick_add.interest";
+            public const string OtherIncome = "finance.quick_add.other_income";
+        }
+
         /// <summary>Từ khoá của ô thêm nhanh việc trên app (mỗi setting: các từ cách nhau bằng dấu phẩy).</summary>
         public static class TodoQuickAdd
         {

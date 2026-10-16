@@ -41,8 +41,22 @@ builder.Services.AddSingleton<DatabaseState>();
 
 builder.Services.AddRateLimiter(options =>
 {
-    // Giới hạn theo IP để một người gõ sai không chặn đăng nhập của mọi người khác
+    // Giới hạn theo IP để một người gõ sai không chặn đăng nhập của mọi người khác.
+    // Host đằng sau IIS/ANCM in-process nên RemoteIpAddress là IP client thật; điểm còn hở chung
+    // là mạng CGNAT/office (nhiều người dùng chung 1 IP public) — đã tách bucket riêng cho
+    // luồng quên mật khẩu để nhóm đó không ăn quota của nhau.
     options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0
+        }));
+    // Luồng quên mật khẩu (gửi mã → kiểm mã → đặt lại): tách khỏi "login" vì 1 lượt cần 3 request
+    // liền + người dùng hay gõ sai; chia chung thì người sau CGNAT sẽ 429 oan.
+    options.AddPolicy("password-reset", context => RateLimitPartition.GetFixedWindowLimiter(
         partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         factory: _ => new FixedWindowRateLimiterOptions
         {

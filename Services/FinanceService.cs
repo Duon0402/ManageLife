@@ -2,6 +2,7 @@
 using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Entities;
+using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
@@ -77,10 +78,17 @@ namespace ManageLife.Services
 
                     await _uow.CommitAsync(ct);
                 }
-                catch (DbUpdateException)
+                catch (DbUpdateException ex)
                 {
-                    // 2 thiết bị cùng mở tài chính lần đầu: bản sau trùng id cố định → bỏ qua, dùng bản đã tạo
+                    // 2 thiết bị cùng mở tài chính lần đầu: bản sau trùng id cố định → bỏ qua, dùng bản đã tạo.
+                    // Mọi lỗi DB khác (thiếu bảng do chưa apply migration, mất kết nối...) vẫn phải báo lỗi,
+                    // không được nuốt thành Ok — app sẽ im lặng không đồng bộ được mà không rõ nguyên nhân.
                     await _uow.RollbackAsync(ct);
+                    if (!DbErrorHelper.IsUniqueViolation(ex))
+                    {
+                        _logger.Error(ex, "Tạo dữ liệu tài chính mặc định thất bại");
+                        return Result.Exception("Không thể tạo dữ liệu tài chính mặc định", ex);
+                    }
                 }
 
                 return Result.Ok();
@@ -174,11 +182,15 @@ namespace ManageLife.Services
                 // Không có / đã xoá: coi như xong (app gửi lại lệnh xoá khi mất phản hồi)
                 if (wallet == null) return Result.Ok();
 
-                if (await IsWalletInUseAsync(wallet.Id, ct))
+                if (await IsWalletInUseAsync(wallet.Id, userId, ct))
                     return Result.Error(Result.DATA_INVALID.Code, WalletInUseMessage);
 
                 if (!await _walletRepo.DeleteAsync(wallet, ct))
                     return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá ví");
+
+                // Xoá ví đang là mặc định: nâng ví chưa ẩn còn lại lên mặc định để luôn có ví điền sẵn khi ghi nhanh
+                if (wallet.IsDefault)
+                    await PromoteNextDefaultWalletAsync(userId, ct);
 
                 return Result.Ok();
             }
@@ -246,7 +258,7 @@ namespace ManageLife.Services
                     return Result.Error(Result.DATA_EXISTED.Code, DataDeletedMessage);
 
                 if (category != null && category.Kind != request.Kind
-                    && await IsCategoryInUseAsync(category.Id, ct))
+                    && await IsCategoryInUseAsync(category.Id, userId, ct))
                     return Result.Error(Result.DATA_INVALID.Code, CategoryKindLockedMessage);
 
                 if (category == null)
@@ -302,7 +314,7 @@ namespace ManageLife.Services
                 var category = await FindOwnedCategoryAsync(id, userId, ct);
                 if (category == null) return Result.Ok();
 
-                if (await IsCategoryInUseAsync(category.Id, ct))
+                if (await IsCategoryInUseAsync(category.Id, userId, ct))
                     return Result.Error(Result.DATA_INVALID.Code, CategoryInUseMessage);
 
                 if (!await _categoryRepo.DeleteAsync(category, ct))
@@ -410,7 +422,7 @@ namespace ManageLife.Services
                 if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
 
                 var transaction = await _transactionRepo.FirstOrDefaultAsync(
-                    x => x.Id == id && x.OwnerId == userId && !x.IsDeleted, ct);
+                    x => x.Id == NormalizeId(id) && x.OwnerId == userId && !x.IsDeleted, ct);
                 if (transaction == null) return Result.Ok();
 
                 if (!await _transactionRepo.DeleteAsync(transaction, ct))
@@ -491,16 +503,38 @@ namespace ManageLife.Services
                     .SetProperty(x => x.UpdatedTime, DateTimeHelper.UtcNow()), ct);
         }
 
+        /// <summary>
+        /// Nâng ví chưa ẩn còn lại (theo thứ tự sắp xếp) lên mặc định — gọi sau khi xoá ví đang là mặc định
+        /// để luôn có ví điền sẵn khi ghi nhanh thu chi.
+        /// </summary>
+        private async Task PromoteNextDefaultWalletAsync(string userId, CancellationToken ct)
+        {
+            var next = await _walletRepo.Query(true)
+                .Where(x => x.OwnerId == userId && !x.IsDeleted && !x.IsArchived)
+                .OrderBy(x => x.SortOrder).ThenBy(x => x.CreatedTime)
+                .FirstOrDefaultAsync(ct);
+            if (next == null) return;
+
+            // Bỏ cờ của mọi ví khác rồi mới nâng (phòng trường hợp dữ liệu cũ lệch invariant > 1 ví mặc định)
+            await ClearOtherDefaultsAsync(userId, next.Id, ct);
+            next.IsDefault = true;
+            next.UpdatedTime = DateTimeHelper.UtcNow();
+            await _walletRepo.UpdateAsync(next, ct);
+        }
+
         #region Helpers
 
         /// <summary>Id app gửi lên (GUID) chuẩn hoá về dạng chữ thường; không hợp lệ/không có thì null.</summary>
         private static string? ClientId(string? id) => Guid.TryParse(id, out var guid) ? guid.ToString() : null;
 
+        /// <summary>Id app gửi lên chuẩn hoá chữ thường (khớp save); không phải GUID thì giữ nguyên.</summary>
+        private static string NormalizeId(string id) => ClientId(id) ?? id;
+
         private Task<FinanceWalletEntity?> FindOwnedWalletAsync(string id, string userId, CancellationToken ct) =>
-            _walletRepo.FirstOrDefaultAsync(x => x.Id == id && x.OwnerId == userId && !x.IsDeleted, ct);
+            _walletRepo.FirstOrDefaultAsync(x => x.Id == NormalizeId(id) && x.OwnerId == userId && !x.IsDeleted, ct);
 
         private Task<FinanceCategoryEntity?> FindOwnedCategoryAsync(string id, string userId, CancellationToken ct) =>
-            _categoryRepo.FirstOrDefaultAsync(x => x.Id == id && x.OwnerId == userId && !x.IsDeleted, ct);
+            _categoryRepo.FirstOrDefaultAsync(x => x.Id == NormalizeId(id) && x.OwnerId == userId && !x.IsDeleted, ct);
 
         /// <summary>Ví của người dùng, chưa xoá (ví đã ẩn vẫn dùng được: sửa giao dịch cũ).</summary>
         private Task<bool> IsOwnedWalletAsync(string? walletId, string userId, CancellationToken ct) =>
@@ -509,12 +543,13 @@ namespace ManageLife.Services
         private Task<bool> IsOwnedCategoryAsync(string? categoryId, string userId, FinanceCategoryKind kind, CancellationToken ct) =>
             _categoryRepo.Query(true).AnyAsync(x => x.Id == categoryId && x.OwnerId == userId && !x.IsDeleted && x.Kind == kind, ct);
 
-        private Task<bool> IsWalletInUseAsync(string walletId, CancellationToken ct) =>
+        private Task<bool> IsWalletInUseAsync(string walletId, string userId, CancellationToken ct) =>
             _transactionRepo.Query(true).AnyAsync(
-                x => !x.IsDeleted && (x.WalletId == walletId || x.ToWalletId == walletId), ct);
+                x => x.OwnerId == userId && !x.IsDeleted && (x.WalletId == walletId || x.ToWalletId == walletId), ct);
 
-        private Task<bool> IsCategoryInUseAsync(string categoryId, CancellationToken ct) =>
-            _transactionRepo.Query(true).AnyAsync(x => !x.IsDeleted && x.CategoryId == categoryId, ct);
+        private Task<bool> IsCategoryInUseAsync(string categoryId, string userId, CancellationToken ct) =>
+            _transactionRepo.Query(true).AnyAsync(
+                x => x.OwnerId == userId && !x.IsDeleted && x.CategoryId == categoryId, ct);
 
         // Hợp đồng: OccurredAt là UTC. Chuỗi không có múi giờ (Kind Unspecified) coi là UTC thay vì giờ máy chủ.
         private static DateTime ToUtc(DateTime value) => value.Kind switch

@@ -6,6 +6,7 @@ using ManageLife.Helpers;
 using ManageLife.Interfaces;
 using ManageLife.Models;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -29,11 +30,10 @@ namespace ManageLife.Services
 
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-        /// <summary>Mã đặt lại mật khẩu lưu trong cache: chỉ giữ hash + số lần nhập sai, không giữ mã gốc.</summary>
+        /// <summary>Mã đặt lại mật khẩu lưu trong cache: chỉ giữ hash, không giữ mã gốc. Số lần nhập sai đếm riêng (atomic).</summary>
         private sealed class ResetCode
         {
             public string Hash { get; set; } = null!;
-            public int Attempts { get; set; }
             public DateTime CreatedAt { get; set; }
         }
 
@@ -43,6 +43,7 @@ namespace ManageLife.Services
         private readonly ITokenService _tokenService;
         private readonly ICacheService _cache;
         private readonly IUnitOfWork _uow;
+        private readonly IConnectionMultiplexer _redis;
 
         public PasswordResetService(
             IAppLogger<PasswordResetService> logger,
@@ -52,7 +53,8 @@ namespace ManageLife.Services
             ITelegramService telegramService,
             ITokenService tokenService,
             ICacheService cache,
-            IUnitOfWork uow) : base(logger, userContext)
+            IUnitOfWork uow,
+            IConnectionMultiplexer redis) : base(logger, userContext)
         {
             _userRepo = userRepo;
             _connectionRepo = connectionRepo;
@@ -60,6 +62,7 @@ namespace ManageLife.Services
             _tokenService = tokenService;
             _cache = cache;
             _uow = uow;
+            _redis = redis;
         }
 
         public async Task<Result> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct = default)
@@ -84,10 +87,11 @@ namespace ManageLife.Services
                 var resetCode = new ResetCode
                 {
                     Hash = HashCode(user.Id, code),
-                    Attempts = 0,
                     CreatedAt = DateTimeHelper.UtcNow()
                 };
                 await _cache.SetAsync(resetCode, cacheItem);
+                // Mã mới: đếm số lần nhập sai của mã cũ không còn giá trị
+                await _cache.RemoveAsync(CacheSettings.PasswordResetAttempts(user.Id));
                 //NOTE: CacheService nuốt lỗi khi ghi: đọc lại để biết mã có thực sự lưu được không
                 if (await _cache.TryGetValueAsync<ResetCode>(cacheItem) == null)
                 {
@@ -163,6 +167,7 @@ namespace ManageLife.Services
 
                 await _uow.CommitAsync(ct);
                 await _cache.RemoveAsync(CacheSettings.PasswordResetCode(user.Id));
+                await _cache.RemoveAsync(CacheSettings.PasswordResetAttempts(user.Id));
 
                 var connection = await FindConnectionAsync(user.Id, ct);
                 if (connection != null)
@@ -181,6 +186,7 @@ namespace ManageLife.Services
 
         /// <summary>
         /// Đối chiếu mã với mã trong cache: sai thì tăng số lần sai (hết 5 lần thì huỷ mã), giữ nguyên thời hạn còn lại.
+        /// Đếm bằng INCR của Redis nên nhiều request song song không cùng "đọc 4 rồi ghi 5" được nữa.
         /// </summary>
         private async Task<Result> CheckCodeAsync(UserEntity user, string code, CancellationToken ct)
         {
@@ -193,13 +199,17 @@ namespace ManageLife.Services
                     Encoding.UTF8.GetBytes(resetCode.Hash)))
                 return Result.Ok();
 
-            resetCode.Attempts += 1;
-            if (resetCode.Attempts >= MaxAttempts)
+            var attemptsKey = CacheSettings.PasswordResetAttempts(user.Id);
+            var attempts = await _redis.GetDatabase().StringIncrementAsync(attemptsKey.Key);
+            // Lần sai đầu tiên: đếm theo đúng thời hạn còn lại của mã (nhập sai không được kéo dài mã)
+            if (attempts == 1)
+                await _redis.GetDatabase().KeyExpireAsync(
+                    attemptsKey.Key, TimeSpan.FromMinutes(CodeLifetimeMinutes) - (DateTimeHelper.UtcNow() - resetCode.CreatedAt));
+            if (attempts >= MaxAttempts)
+            {
                 await _cache.RemoveAsync(cacheItem);
-            else
-                // Giữ đúng thời hạn còn lại: nhập sai không được kéo dài mã
-                await _cache.SetAsync(resetCode, CacheSettings.PasswordResetCode(
-                    user.Id, TimeSpan.FromMinutes(CodeLifetimeMinutes) - (DateTimeHelper.UtcNow() - resetCode.CreatedAt)));
+                await _cache.RemoveAsync(attemptsKey);
+            }
             return Result.Error(Result.DATA_INVALID.Code, InvalidCodeMessage);
         }
 

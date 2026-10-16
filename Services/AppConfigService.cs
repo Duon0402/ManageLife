@@ -15,6 +15,10 @@ namespace ManageLife.Services
             ["finance"] = SettingKeys.Feature.EnableFinance,
         };
 
+        // Nhóm từ khoá ghi nhanh thu chi -> setting: sinh từ danh mục mặc định (FinanceDefaults), không khai báo tay
+        private static readonly Dictionary<string, string> FinanceQuickAddKeywords =
+            new(FinanceDefaults.QuickAddSettingKeys);
+
         // Nhóm từ khoá thêm nhanh của app -> setting (key nhóm khớp với app)
         private static readonly Dictionary<string, string> QuickAddKeywords = new()
         {
@@ -49,6 +53,9 @@ namespace ManageLife.Services
 
                 foreach (var (group, settingKey) in QuickAddKeywords)
                     model.QuickAdd[group] = SplitKeywords(await _settingContext.GetStringAsync(settingKey));
+
+                foreach (var (key, settingKey) in FinanceQuickAddKeywords)
+                    model.FinanceKeywords[key] = SplitKeywords(await _settingContext.GetStringAsync(settingKey));
 
                 return Result.Ok(model);
             }

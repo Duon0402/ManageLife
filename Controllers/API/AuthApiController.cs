@@ -42,7 +42,7 @@ namespace ManageLife.Controllers.API
 
         /// <summary>Kiểm mã đặt lại mật khẩu: đúng mã mới cho nhập mật khẩu mới.</summary>
         [HttpPost("verify-reset-code")]
-        [EnableRateLimiting("login")]
+        [EnableRateLimiting("password-reset")]
         public async Task<Result> VerifyResetCode([FromBody] VerifyResetCodeRequest model, CancellationToken ct)
         {
             return await _passwordResetService.VerifyCodeAsync(model, ct);
@@ -50,7 +50,7 @@ namespace ManageLife.Controllers.API
 
         /// <summary>Quên mật khẩu: gửi mã 6 số qua Telegram đã liên kết. Luôn trả cùng một câu (không lộ tài khoản).</summary>
         [HttpPost("forgot-password")]
-        [EnableRateLimiting("login")]
+        [EnableRateLimiting("password-reset")]
         public async Task<Result> ForgotPassword([FromBody] ForgotPasswordRequest model, CancellationToken ct)
         {
             return await _passwordResetService.ForgotPasswordAsync(model, ct);
@@ -58,7 +58,7 @@ namespace ManageLife.Controllers.API
 
         /// <summary>Đặt lại mật khẩu bằng mã gửi qua Telegram: thu hồi mọi phiên đăng nhập.</summary>
         [HttpPost("reset-password")]
-        [EnableRateLimiting("login")]
+        [EnableRateLimiting("password-reset")]
         public async Task<Result> ResetPassword([FromBody] ResetPasswordRequest model, CancellationToken ct)
         {
             return await _passwordResetService.ResetPasswordAsync(model, ct);
