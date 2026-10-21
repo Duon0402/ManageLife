@@ -48,6 +48,13 @@ namespace ManageLife.Commons
         public static CacheItem PasswordResetAttempts(string userId)
             => new($"{_prefix}pwd_reset_attempts:{userId}", expiry: TimeSpan.FromMinutes(10));
 
+        /// <summary>
+        /// Số mã đặt lại mật khẩu đã gửi cho 1 tài khoản trong 24 giờ (Redis INCR). Mỗi mã cho nhập sai 5 lần rồi huỷ; không
+        /// giới hạn số mã thì chỉ cần xin mã mới liên tục là dò được mã 6 số.
+        /// </summary>
+        public static CacheItem PasswordResetSent(string userId)
+            => new($"{_prefix}pwd_reset_sent:{userId}", expiry: TimeSpan.FromHours(24));
+
         public static CacheItem TelegramBotUsername()
             => new($"{_prefix}tele_bot_username", CacheMode.Memory, TimeSpan.FromHours(24));
 

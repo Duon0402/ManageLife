@@ -196,6 +196,16 @@ namespace ManageLife.Services
                 if (claimed != 1 && !await IsJustRotatedAsync(tokenEntity, now, ct))
                 {
                     await _uow.RollbackAsync(ct);
+                    //NOTE: Token đã bị thay từ lâu (quá thời gian ân hạn) mà vẫn có người dùng lại → token bị lộ/đánh cắp
+                    // (kẻ gian hoặc chủ thật đã làm mới trước). Thu hồi cả phiên để bên còn giữ token mới cũng bị đăng xuất,
+                    // không để kẻ gian giữ phiên. Chạy sau rollback: phải ghi được dù nhánh làm mới bị huỷ.
+                    if (tokenEntity.SessionId.IsNotEmpty())
+                    {
+                        var revoked = await RevokeSessionsAsync(tokenEntity.UserId, new[] { tokenEntity.SessionId }, ct);
+                        if (revoked > 0)
+                            _logger.Warning("Refresh token đã thu hồi bị dùng lại: thu hồi phiên {sessionId} của user {userId}",
+                                tokenEntity.SessionId, tokenEntity.UserId);
+                    }
                     return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, InvalidSessionMessage);
                 }
 
@@ -496,10 +506,9 @@ namespace ManageLife.Services
         {
             try
             {
-                // Giữ token vừa thu hồi trong thời gian ân hạn (request làm mới song song còn cần tới nó)
-                var graceFrom = DateTimeHelper.UtcNow().AddSeconds(-RefreshReuseGraceSeconds);
-                var predicate = PredicateBuilder.New<UserRefreshTokenEntity>(x => x.ExpiryTime <= DateTimeHelper.UtcNow()
-                    || (x.IsRevoked && (x.RevokedAt == null || x.RevokedAt < graceFrom)));
+                //NOTE: Chỉ xoá token đã hết hạn. Token đã thu hồi giữ tới lúc hết hạn: vừa cho thời gian ân hạn làm mới song song,
+                // vừa để nhận ra token cũ bị dùng lại (RefreshTokenAsync thu hồi cả phiên) — xoá sớm thì không còn gì để đối chiếu
+                var predicate = PredicateBuilder.New<UserRefreshTokenEntity>(x => x.ExpiryTime <= DateTimeHelper.UtcNow());
 
                 if (userId.IsNotEmpty())
                     predicate = predicate.And(x => x.UserId == userId);

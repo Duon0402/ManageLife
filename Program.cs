@@ -112,7 +112,19 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    //NOTE: Lỗi chưa bắt (service đã tự bắt phần lớn): /api trả JSON Result mã "99" như mọi API để app đọc được,
+    // không trả trang lỗi/body rỗng; không lộ chi tiết lỗi ra ngoài môi trường dev (đã ghi log ở middleware)
+    app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            await context.Response.WriteAsJsonAsync(new ManageLife.Core.Result("99", "Đã có lỗi xảy ra, vui lòng thử lại sau"));
+            return;
+        }
+        context.Response.ContentType = "text/plain; charset=utf-8";
+        await context.Response.WriteAsync("Đã có lỗi xảy ra, vui lòng thử lại sau");
+    }));
     app.UseHsts();
 }
 

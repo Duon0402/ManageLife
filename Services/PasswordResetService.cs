@@ -24,6 +24,8 @@ namespace ManageLife.Services
         private const int CodeLifetimeMinutes = 10;
         // Không cho spam Telegram: mã mới chỉ gửi lại sau bao lâu
         private const int ResendCooldownSeconds = 60;
+        // Tối đa bao nhiêu mã cho 1 tài khoản trong 24 giờ (mỗi mã 5 lần thử → tối đa 25 lần đoán/ngày, chặn dò mã)
+        private const int MaxCodesPerDay = 5;
         private const string SameMessage = "Nếu tài khoản đã liên kết Telegram, mã đã được gửi";
         private const string InvalidCodeMessage = "Mã không đúng hoặc đã hết hạn";
         private const string NoUserMessage = "Không xác định được người dùng";
@@ -82,6 +84,17 @@ namespace ManageLife.Services
                 // Mã còn hạn mà mới gửi: không gửi lại (tránh spam Telegram)
                 if (existing != null && (DateTimeHelper.UtcNow() - existing.CreatedAt).TotalSeconds < ResendCooldownSeconds)
                     return OkSameMessage();
+
+                //NOTE: Đếm theo tài khoản (giới hạn tần suất của endpoint chỉ theo IP): đủ số mã trong ngày thì thôi gửi,
+                // vẫn trả cùng một câu (không lộ gì). Đếm trước khi gửi, mã gửi lỗi cũng tính — chấp nhận để không bị lách
+                var sentKey = CacheSettings.PasswordResetSent(user.Id);
+                var sentToday = await _redis.GetDatabase().StringIncrementAsync(sentKey.Key);
+                if (sentToday == 1) await _redis.GetDatabase().KeyExpireAsync(sentKey.Key, sentKey.Expiry);
+                if (sentToday > MaxCodesPerDay)
+                {
+                    _logger.Warning("Quá {max} mã đặt lại mật khẩu/24 giờ cho user {userId}: không gửi thêm", MaxCodesPerDay, user.Id);
+                    return OkSameMessage();
+                }
 
                 var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString($"D{CodeLength}");
                 var resetCode = new ResetCode

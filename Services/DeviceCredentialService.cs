@@ -110,16 +110,16 @@ namespace ManageLife.Services
                 var err = Validate(request);
                 if (err.IsNotEmpty()) return Result.Error<AuthTokenModel>(Result.DATA_INVALID.Code, DeviceLoginFailedMessage);
 
+                //NOTE: Tìm theo cả mã thiết bị + hash bí mật, không chỉ mã thiết bị: mã thiết bị do app gửi (không bí mật) và
+                // không duy nhất giữa các tài khoản (2 tài khoản trên 1 máy, hoặc người khác cố ý đăng ký trùng mã) — tìm theo
+                // mã thiết bị thôi có thể lấy nhầm bản ghi của tài khoản khác rồi báo "khoá đã thu hồi", làm app tắt vân tay oan.
+                // Bí mật 256 bit ngẫu nhiên nên so khớp hash trong DB không dò được.
+                var secretHash = HashSecret(request.Secret);
                 var credential = await _credentialRepo.Query(true)
-                    .FirstOrDefaultAsync(x => x.DeviceId == request.DeviceId && !x.IsDeleted, ct);
+                    .FirstOrDefaultAsync(x => x.DeviceId == request.DeviceId && x.SecretHash == secretHash && !x.IsDeleted, ct);
                 // Khoá không còn (thu hồi khi đổi mật khẩu/đặt lại mật khẩu/đăng xuất thiết bị khác): báo mã riêng để
                 // app tắt tính năng trên máy, khác với lockout tạm (mã 07) chỉ cần thử lại sau
                 if (credential == null)
-                    return Result.Error<AuthTokenModel>(CredentialRevokedCode, DeviceLoginFailedMessage);
-
-                var secretHash = HashSecret(request.Secret);
-                if (!CryptographicOperations.FixedTimeEquals(
-                        Encoding.UTF8.GetBytes(secretHash), Encoding.UTF8.GetBytes(credential.SecretHash)))
                     return Result.Error<AuthTokenModel>(CredentialRevokedCode, DeviceLoginFailedMessage);
 
                 var user = await _userRepo.Query(true)
@@ -155,7 +155,7 @@ namespace ManageLife.Services
             }
         }
 
-        /// <summary>Hex SHA-256 của bí mật (độ dài cố định, so sánn được bằng FixedTimeEquals).</summary>
+        /// <summary>Hex SHA-256 của bí mật (lưu hash, không lưu bí mật gốc; đăng nhập tìm theo hash này).</summary>
         private static string HashSecret(string secret) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(secret)));
     }
 }
