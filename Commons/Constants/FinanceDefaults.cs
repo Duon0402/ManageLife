@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using ManageLife.Entities;
@@ -35,37 +34,6 @@ namespace ManageLife.Commons
             ("interest", "Lãi", "percent-outline", "#0891B2"),
             ("other-income", "Khác", "dots-horizontal-circle-outline", "#64748B"),
         };
-
-        /// <summary>
-        /// Key mọi danh mục tạo sẵn — nguồn duy nhất cho setting từ khoá ghi nhanh (AppConfigService) và bộ seed
-        /// (SettingSeedingExtensions): thêm danh mục vào 2 mảng trên là đủ, thiếu ở đâu đó sẽ lỗi ngay lúc khởi động.
-        /// </summary>
-        public static readonly string[] CategoryKeys =
-            ExpenseCategories.Concat(IncomeCategories).Select(item => item.Key).ToArray();
-
-        /// <summary>
-        /// Key setting từ khoá ghi nhanh cho mỗi danh mục mặc định (danh mục → setting). Sinh từ CategoryKeys nên
-        /// không còn bảng khai báo tay ở AppConfigService; thiếu const trong SettingKeys.FinanceQuickAdd là lỗi ngay.
-        /// </summary>
-        public static IReadOnlyDictionary<string, string> QuickAddSettingKeys { get; } = BuildQuickAddSettingKeys();
-
-        private static Dictionary<string, string> BuildQuickAddSettingKeys()
-        {
-            var fields = typeof(SettingKeys.FinanceQuickAdd).GetFields(BindingFlags.Public | BindingFlags.Static);
-            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var key in CategoryKeys)
-            {
-                var name = ToPascalCase(key);
-                var field = fields.FirstOrDefault(item => item.Name == name)
-                    ?? throw new InvalidOperationException($"Thiếu SettingKeys.FinanceQuickAdd.{name} cho danh mục mặc định '{key}'");
-                map[key] = (string)field.GetRawConstantValue()!;
-            }
-            return map;
-        }
-
-        /// <summary>"other-expense" → "OtherExpense" (khớp tên const trong SettingKeys.FinanceQuickAdd).</summary>
-        private static string ToPascalCase(string key) =>
-            string.Join(string.Empty, key.Split('-').Select(part => char.ToUpperInvariant(part[0]) + part[1..]));
 
         /// <summary>Id cố định theo người dùng và key: GUID từ 16 byte đầu của SHA256("finance:{userId}:{key}").</summary>
         public static string DeterministicId(string userId, string key)

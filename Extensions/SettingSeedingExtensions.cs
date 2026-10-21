@@ -48,31 +48,6 @@ namespace ManageLife.Extensions
                 new() { Key = SettingKeys.Feature.EnableVideoDownloader, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng Video Downloader" },
                 new() { Key = SettingKeys.Feature.EnableEmailDailyReport, Value = "true", Type = SettingType.Boolean, Group = "Feature", Description = "Bật tính năng gửi báo cáo Email hàng ngày" },
 
-                // --- Todo: từ khoá thêm nhanh (app ghép thành mẫu nhận dạng; để trống = dùng mặc định của app) ---
-                new() { Key = SettingKeys.TodoQuickAdd.Today, Value = "hôm nay", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ chỉ hôm nay, cách nhau bằng dấu phẩy" },
-                new() { Key = SettingKeys.TodoQuickAdd.Tomorrow, Value = "ngày mai, mai", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ chỉ ngày mai. Từ đơn (vd \"mai\") chỉ nhận khi gõ chữ thường để không nhầm tên riêng" },
-                new() { Key = SettingKeys.TodoQuickAdd.DayAfter, Value = "ngày kia, ngày mốt, mốt", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ chỉ ngày kia (sau 2 ngày)" },
-                new() { Key = SettingKeys.TodoQuickAdd.NextWeek, Value = "tuần sau, tuần tới", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ chỉ tuần sau (đứng riêng = sau 7 ngày; kèm thứ = thứ đó tuần sau)" },
-                new() { Key = SettingKeys.TodoQuickAdd.PriorityHigh, Value = "!cao", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ đặt ưu tiên cao (vd !cao, !gấp)" },
-                new() { Key = SettingKeys.TodoQuickAdd.PriorityMedium, Value = "!vừa, !vua", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ đặt ưu tiên vừa" },
-                new() { Key = SettingKeys.TodoQuickAdd.PriorityLow, Value = "!thấp, !thap", Type = SettingType.Text, Group = "Todo", Description = "Thêm nhanh — từ đặt ưu tiên thấp" },
-
-                // --- Tài chính: từ khoá ghi nhanh (app so khớp không dấu với tên danh mục; để trống = dùng mặc định của app) ---
-                new() { Key = SettingKeys.FinanceQuickAdd.Food, Value = "ăn, cơm, phở, bún, cafe, cà phê, trà sữa", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Ăn uống" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Transport, Value = "xăng, grab, taxi, gửi xe, bus", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Đi lại" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Housing, Value = "tiền nhà, tiền thuê nhà", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Nhà ở" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Bills, Value = "điện, nước, internet, điện thoại", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Hoá đơn" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Shopping, Value = "mua, shopee, lazada, quần áo", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Mua sắm" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Fun, Value = "xem phim, karaoke, game", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Giải trí" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Health, Value = "thuốc, khám", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Sức khoẻ" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Education, Value = "học, sách", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Giáo dục" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Family, Value = "con, bố mẹ, gia đình", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Gia đình" },
-                new() { Key = SettingKeys.FinanceQuickAdd.OtherExpense, Value = "", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Chi khác" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Salary, Value = "lương", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Lương" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Bonus, Value = "thưởng", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Thưởng" },
-                new() { Key = SettingKeys.FinanceQuickAdd.Interest, Value = "lãi", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Lãi" },
-                new() { Key = SettingKeys.FinanceQuickAdd.OtherIncome, Value = "", Type = SettingType.Text, Group = "Finance", Description = "Ghi nhanh — từ chỉ danh mục Thu khác" },
-
                 // --- UI ---
                 new() { Key = SettingKeys.Ui.PrimaryColor, Value = "#4b49ac", Type = SettingType.Color, Group = "UI", Description = "Màu chủ đạo của giao diện" },
                 new() { Key = SettingKeys.Ui.MaxUploadSizeMb, Value = "10", Type = SettingType.Number, Group = "UI", Description = "Dung lượng tối đa cho phép upload (MB)" },
@@ -99,15 +74,6 @@ namespace ManageLife.Extensions
                 new() { Key = SettingKeys.Security.LockoutMinutes, Value = "15", Type = SettingType.Number, Group = "Security", Description = "Thời gian khoá tài khoản (phút) sau khi đăng nhập sai quá số lần cho phép" },
                 new() { Key = SettingKeys.Security.SessionTimeoutMinutes, Value = "60", Type = SettingType.Number, Group = "Security", Description = "Thời gian hết hạn phiên đăng nhập (phút)" },
             };
-
-            // Bộ seed từ khoá ghi nhanh thu chi phải đủ theo danh mục mặc định: thiếu/ thuờng là app không có
-            // từ khoá cho danh mục đó mà KHÔNG có lỗi nào báo — kiểm tại chỗ để fail fast lúc khởi động.
-            var financeSeeds = registered.Where(item => item.Group == "Finance").Select(item => item.Key).ToHashSet();
-            var expected = FinanceDefaults.QuickAddSettingKeys.Values.ToHashSet();
-            if (!financeSeeds.SetEquals(expected))
-                throw new InvalidOperationException(
-                    "Seed từ khoá ghi nhanh thu chi không khớp danh mục mặc định (FinanceDefaults): "
-                    + $"thiếu {string.Join(", ", expected.Except(financeSeeds))}; thừa {string.Join(", ", financeSeeds.Except(expected))}");
 
             await settingService.RegisterSettingsAsync(registered);
         }
