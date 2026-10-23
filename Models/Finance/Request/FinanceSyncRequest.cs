@@ -13,7 +13,7 @@ namespace ManageLife.Models
 
     /// <summary>
     /// Một thao tác của app. Type: saveWallet, deleteWallet, reorderWallets, saveCategory, deleteCategory,
-    /// reorderCategories, saveTransaction, deleteTransaction.
+    /// reorderCategories, saveTransaction, deleteTransaction, saveBudget, deleteBudget.
     /// </summary>
     public class FinanceSyncOperation
     {
@@ -25,7 +25,10 @@ namespace ManageLife.Models
         /// <summary>reorderWallets/reorderCategories: thứ tự mới.</summary>
         public List<string>? Ids { get; set; }
 
-        /// <summary>Dữ liệu lưu (SaveFinanceWalletRequest, SaveFinanceCategoryRequest hoặc SaveFinanceTransactionRequest theo Type).</summary>
+        /// <summary>
+        /// Dữ liệu lưu, theo Type: SaveFinanceWalletRequest, SaveFinanceCategoryRequest,
+        /// SaveFinanceTransactionRequest hoặc SaveFinanceBudgetRequest.
+        /// </summary>
         public JsonElement? Body { get; set; }
     }
 }

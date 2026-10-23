@@ -19,5 +19,8 @@ namespace ManageLife.Interfaces
 
         Task<Result> SaveTransactionAsync(string id, SaveFinanceTransactionRequest request, CancellationToken ct = default);
         Task<Result> DeleteTransactionAsync(string id, CancellationToken ct = default);
+
+        Task<Result> SaveBudgetAsync(string id, SaveFinanceBudgetRequest request, CancellationToken ct = default);
+        Task<Result> DeleteBudgetAsync(string id, CancellationToken ct = default);
     }
 }

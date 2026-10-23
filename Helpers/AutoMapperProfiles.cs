@@ -93,6 +93,9 @@ namespace ManageLife.Helpers
             CreateMap<FinanceTransactionEntity, FinanceTransactionModel>()
                 .ForMember(d => d.OccurredAt, o => o.MapFrom(s => AsUtc(s.OccurredAt)))
                 .ForMember(d => d.CreatedTime, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedTime, DateTimeKind.Utc)));
+            // Hạn mức: CategoryId rỗng (hạn mức tổng) thành null — app dùng null để phân biệt "tổng" với 1 danh mục
+            CreateMap<FinanceBudgetEntity, FinanceBudgetModel>()
+                .ForMember(d => d.CategoryId, o => o.MapFrom(s => s.CategoryId == "" ? null : s.CategoryId));
         }
 
         private static DateTime? AsUtc(DateTime? value) =>

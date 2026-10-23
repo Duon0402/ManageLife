@@ -29,11 +29,15 @@ namespace ManageLife.Models
 
         public List<FinanceTransactionModel> Transactions { get; set; } = new();
 
+        public List<FinanceBudgetModel> Budgets { get; set; } = new();
+
         public List<string> DeletedWalletIds { get; set; } = new();
 
         public List<string> DeletedCategoryIds { get; set; } = new();
 
         public List<string> DeletedTransactionIds { get; set; } = new();
+
+        public List<string> DeletedBudgetIds { get; set; } = new();
     }
 
     public class FinanceWalletModel
@@ -74,5 +78,16 @@ namespace ManageLife.Models
         public DateTime OccurredAt { get; set; }
         public string? Note { get; set; }
         public DateTime CreatedTime { get; set; }
+    }
+
+    public class FinanceBudgetModel
+    {
+        public string Id { get; set; } = null!;
+        /// <summary>Danh mục chi; null = hạn mức tổng cả kỳ.</summary>
+        public string? CategoryId { get; set; }
+        public byte PeriodKind { get; set; }
+        public DateOnly PeriodStart { get; set; }
+        public DateOnly PeriodEnd { get; set; }
+        public long Amount { get; set; }
     }
 }

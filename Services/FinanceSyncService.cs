@@ -21,12 +21,13 @@ namespace ManageLife.Services
         // Đồng bộ lấy chồng thêm trước mốc (giây): bù lệch thời điểm ghi giữa các request
         private const int SyncOverlapSeconds = 10;
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-        private static readonly HashSet<string> DeleteTypes = new() { "deleteWallet", "deleteCategory", "deleteTransaction" };
+        private static readonly HashSet<string> DeleteTypes = new() { "deleteWallet", "deleteCategory", "deleteTransaction", "deleteBudget" };
 
         private readonly IFinanceService _financeService;
         private readonly IFinanceWalletRepository _walletRepo;
         private readonly IFinanceCategoryRepository _categoryRepo;
         private readonly IFinanceTransactionRepository _transactionRepo;
+        private readonly IFinanceBudgetRepository _budgetRepo;
         private readonly ISettingContext _settingContext;
         private readonly IUnitOfWork _uow;
 
@@ -37,6 +38,7 @@ namespace ManageLife.Services
             IFinanceWalletRepository walletRepo,
             IFinanceCategoryRepository categoryRepo,
             IFinanceTransactionRepository transactionRepo,
+            IFinanceBudgetRepository budgetRepo,
             ISettingContext settingContext,
             IUnitOfWork uow) : base(logger, userContext)
         {
@@ -44,6 +46,7 @@ namespace ManageLife.Services
             _walletRepo = walletRepo;
             _categoryRepo = categoryRepo;
             _transactionRepo = transactionRepo;
+            _budgetRepo = budgetRepo;
             _settingContext = settingContext;
             _uow = uow;
         }
@@ -132,6 +135,12 @@ namespace ManageLife.Services
                         ? !x.IsDeleted
                         : x.CreatedTime >= from || x.UpdatedTime >= from || x.DeletedTime >= from)
                     .ToListAsync(ct);
+                var budgets = await _budgetRepo.Query(true)
+                    .Where(x => x.OwnerId == userId)
+                    .Where(x => from == null
+                        ? !x.IsDeleted
+                        : x.CreatedTime >= from || x.UpdatedTime >= from || x.DeletedTime >= from)
+                    .ToListAsync(ct);
 
                 return Result.Ok(new FinanceSyncModel
                 {
@@ -140,9 +149,11 @@ namespace ManageLife.Services
                     Wallets = wallets.Where(x => !x.IsDeleted).MapToList<FinanceWalletEntity, FinanceWalletModel>(),
                     Categories = categories.Where(x => !x.IsDeleted).MapToList<FinanceCategoryEntity, FinanceCategoryModel>(),
                     Transactions = transactions.Where(x => !x.IsDeleted).MapToList<FinanceTransactionEntity, FinanceTransactionModel>(),
+                    Budgets = budgets.Where(x => !x.IsDeleted).MapToList<FinanceBudgetEntity, FinanceBudgetModel>(),
                     DeletedWalletIds = wallets.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                     DeletedCategoryIds = categories.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                     DeletedTransactionIds = transactions.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
+                    DeletedBudgetIds = budgets.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                 });
             }
             catch (Exception ex)
@@ -166,6 +177,8 @@ namespace ManageLife.Services
                     "reorderCategories" => _financeService.ReorderCategoriesAsync(new ReorderRequest { Ids = op.Ids ?? new() }, ct),
                     "saveTransaction" => _financeService.SaveTransactionAsync(RequireId(op), Body<SaveFinanceTransactionRequest>(op), ct),
                     "deleteTransaction" => _financeService.DeleteTransactionAsync(RequireId(op), ct),
+                    "saveBudget" => _financeService.SaveBudgetAsync(RequireId(op), Body<SaveFinanceBudgetRequest>(op), ct),
+                    "deleteBudget" => _financeService.DeleteBudgetAsync(RequireId(op), ct),
                     _ => Task.FromResult(Result.Error(Result.DATA_INVALID.Code, $"Thao tác không hỗ trợ: {op.Type}"))
                 };
             }

@@ -30,11 +30,16 @@ namespace ManageLife.Services
         /// <summary>Giao dịch không được quá khứ xa và không được xa quá 1 năm (chừa giao dịch định kỳ tạo trước).</summary>
         private static readonly DateTime MinOccurredAt = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+        /// <summary>Năm hợp lệ của kỳ hạn mức — ngoài khoảng này coi như kỳ không hợp lệ (chặn tràn số khi cộng ngày/tháng).</summary>
+        private const int MinPeriodYear = 2000;
+        private const int MaxPeriodYear = 2100;
+
         private static DateTime MaxOccurredAt() => DateTimeHelper.UtcNow().AddDays(366);
 
         private readonly IFinanceWalletRepository _walletRepo;
         private readonly IFinanceCategoryRepository _categoryRepo;
         private readonly IFinanceTransactionRepository _transactionRepo;
+        private readonly IFinanceBudgetRepository _budgetRepo;
         private readonly IUnitOfWork _uow;
 
         public FinanceService(
@@ -43,11 +48,13 @@ namespace ManageLife.Services
             IFinanceWalletRepository walletRepo,
             IFinanceCategoryRepository categoryRepo,
             IFinanceTransactionRepository transactionRepo,
+            IFinanceBudgetRepository budgetRepo,
             IUnitOfWork uow) : base(logger, userContext)
         {
             _walletRepo = walletRepo;
             _categoryRepo = categoryRepo;
             _transactionRepo = transactionRepo;
+            _budgetRepo = budgetRepo;
             _uow = uow;
         }
 
@@ -494,6 +501,107 @@ namespace ManageLife.Services
 
         #endregion
 
+        #region Hạn mức
+
+        public async Task<Result> SaveBudgetAsync(string id, SaveFinanceBudgetRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                if (ClientId(id) is not { } budgetId)
+                    return Result.Error(Result.DATA_INVALID.Code, "Id hạn mức không hợp lệ");
+
+                if (request.PeriodKind == 4 && request.PeriodStart > request.PeriodEnd)
+                    return Result.Error(Result.DATA_INVALID.Code, "Ngày bắt đầu phải trước ngày kết thúc");
+
+                if (!IsValidPeriod(request.PeriodKind, request.PeriodStart, request.PeriodEnd))
+                    return Result.Error(Result.DATA_INVALID.Code, "Kỳ không hợp lệ");
+
+                // Hạn mức tổng: danh mục rỗng. Danh mục có giá trị phải là danh mục CHI của chính người dùng.
+                // Lấy Id chuẩn từ entity (không dùng chuỗi app gửi) để id lưu khớp đúng id danh mục.
+                var categoryId = string.Empty;
+                if (!request.CategoryId.IsEmpty())
+                {
+                    var category = await _categoryRepo.Query(true).FirstOrDefaultAsync(
+                        x => x.Id == request.CategoryId!.Trim() && x.OwnerId == userId
+                             && !x.IsDeleted && x.Kind == FinanceCategoryKind.Expense, ct);
+                    if (category == null)
+                        return Result.Error(Result.DATA_INVALID.Code, CategoryNotFoundMessage);
+                    categoryId = category.Id;
+                }
+
+                var budget = await _budgetRepo.Query(true).FirstOrDefaultAsync(x => x.Id == budgetId, ct);
+                if (budget != null && (budget.OwnerId != userId || budget.IsDeleted))
+                    return Result.Error(Result.DATA_EXISTED.Code, DataDeletedMessage);
+
+                // 1 hạn mức cho mỗi phạm vi + kỳ: bản khác id ở cùng phạm vi/kỳ là trùng
+                var duplicated = await _budgetRepo.Query(true).AnyAsync(
+                    x => x.OwnerId == userId && !x.IsDeleted && x.Id != budgetId
+                         && x.CategoryId == categoryId && x.PeriodKind == request.PeriodKind
+                         && x.PeriodStart == request.PeriodStart && x.PeriodEnd == request.PeriodEnd, ct);
+                if (duplicated)
+                    return Result.Error(Result.DATA_EXISTED.Code, "Đã có hạn mức cho kỳ này");
+
+                budget ??= new FinanceBudgetEntity { Id = budgetId, OwnerId = userId };
+
+                budget.CategoryId = categoryId;
+                budget.PeriodKind = request.PeriodKind;
+                budget.PeriodStart = request.PeriodStart;
+                budget.PeriodEnd = request.PeriodEnd;
+                budget.Amount = request.Amount;
+
+                await _uow.BeginTransactionAsync(ct);
+                var saved = budget.CreatedTime == default
+                    ? await _budgetRepo.InsertAsync(budget, ct)
+                    : await _budgetRepo.UpdateAsync(budget, ct);
+                if (!saved)
+                {
+                    await _uow.RollbackAsync(ct);
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể lưu hạn mức");
+                }
+
+                await _uow.CommitAsync(ct);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                await _uow.RollbackAsync(ct);
+                _logger.Error(ex, "Lỗi khi lưu hạn mức");
+                return Result.Exception("Có lỗi xảy ra khi lưu hạn mức", ex);
+            }
+        }
+
+        public async Task<Result> DeleteBudgetAsync(string id, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var budget = await _budgetRepo.FirstOrDefaultAsync(
+                    x => x.Id == NormalizeId(id) && x.OwnerId == userId && !x.IsDeleted, ct);
+                // Không có / đã xoá: coi như xong (app gửi lại lệnh xoá khi mất phản hồi)
+                if (budget == null) return Result.Ok();
+
+                if (!await _budgetRepo.DeleteAsync(budget, ct))
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá hạn mức");
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi xoá hạn mức");
+                return Result.Exception("Có lỗi xảy ra khi xoá hạn mức", ex);
+            }
+        }
+
+        #endregion
+
         /// <summary>Bỏ cờ mặc định của mọi ví khác (trừ `keepId`) — mỗi người dùng chỉ có 1 ví mặc định.</summary>
         private async Task ClearOtherDefaultsAsync(string userId, string keepId, CancellationToken ct)
         {
@@ -557,6 +665,46 @@ namespace ManageLife.Services
             DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
             _ => value.ToUniversalTime()
         };
+
+        /// <summary>
+        /// Kỳ hợp lệ theo loại: tuần (Thứ Hai → Chủ nhật), tháng, quý, năm; khoảng tuỳ chọn thì start <= end.
+        /// Cùng quy tắc với app (src/features/finance/utils/budget-period.ts) — app luôn gửi đúng, kiểm ở đây
+        /// để lỗi app bị chặn thay vì lưu dữ liệu sai.
+        /// </summary>
+        private static bool IsValidPeriod(byte kind, DateOnly start, DateOnly end)
+        {
+            // Chặn năm vô lý TRƯỚC khi cộng ngày/tháng: DateOnly.AddDays/AddMonths ném ngoại lệ khi vượt biên
+            // (ví dụ tuần bắt đầu 9999-12-27 → AddDays(6) = năm 10000). Ngoại lệ đó làm hỏng CẢ lượt đồng bộ.
+            if (start.Year < MinPeriodYear || start.Year > MaxPeriodYear) return false;
+            if (end.Year < MinPeriodYear || end.Year > MaxPeriodYear) return false;
+
+            try
+            {
+                switch (kind)
+                {
+                    case 0: // tuần: bắt đầu Thứ Hai
+                        return start.DayOfWeek == DayOfWeek.Monday && end == start.AddDays(6);
+                    case 1: // tháng
+                        return start.Day == 1 && end == LastDayOfMonth(start);
+                    case 2: // quý: tháng đầu quý là 1, 4, 7, 10; kỳ kết thúc cuối tháng thứ 3 của quý
+                        return start.Month % 3 == 1 && start.Day == 1 && end == LastDayOfMonth(start.AddMonths(2));
+                    case 3: // năm
+                        return start.Month == 1 && start.Day == 1 && end == new DateOnly(start.Year, 12, 31);
+                    case 4: // khoảng tuỳ chọn
+                        return start <= end;
+                    default:
+                        return false;
+                }
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Ngày cực đại vượt biên DateOnly → coi như kỳ không hợp lệ (không để lỗi làm hỏng lượt đồng bộ)
+                return false;
+            }
+        }
+
+        private static DateOnly LastDayOfMonth(DateOnly date) =>
+            new(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month));
 
         #endregion
     }

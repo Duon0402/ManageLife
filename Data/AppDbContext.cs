@@ -56,6 +56,7 @@ namespace ManageLife.Data
         public DbSet<FinanceWalletEntity> FinanceWallets { get; set; } = default!;
         public DbSet<FinanceCategoryEntity> FinanceCategories { get; set; } = default!;
         public DbSet<FinanceTransactionEntity> FinanceTransactions { get; set; } = default!;
+        public DbSet<FinanceBudgetEntity> FinanceBudgets { get; set; } = default!;
         public DbSet<AnkiCardEntity> AnkiCards { get; set; } = default!;
 
         #endregion
@@ -257,6 +258,15 @@ namespace ManageLife.Data
                 e.HasIndex(x => x.WalletId);
                 e.HasIndex(x => x.ToWalletId);
                 e.HasIndex(x => x.CategoryId);
+            });
+
+            builder.Entity<FinanceBudgetEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.CategoryId).HasMaxLength(255);
+                // KHÔNG đặt index UNIQUE ở DB: hàng đã xoá mềm vẫn chiếm index → tạo lại hạn mức cùng phạm vi/kỳ
+                // sẽ vi phạm. Ràng buộc "1 hạn mức cho mỗi phạm vi + kỳ" do service kiểm (FinanceService.SaveBudgetAsync).
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted });
             });
         }
     }

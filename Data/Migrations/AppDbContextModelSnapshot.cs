@@ -328,6 +328,62 @@ namespace ManageLife.Migrations
                     b.ToTable("Files");
                 });
 
+            modelBuilder.Entity("ManageLife.Entities.FinanceBudgetEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CategoryId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateOnly>("PeriodEnd")
+                        .HasColumnType("date");
+
+                    b.Property<byte>("PeriodKind")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<DateOnly>("PeriodStart")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedUser")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "IsDeleted");
+
+                    b.ToTable("FinanceBudgets");
+                });
+
             modelBuilder.Entity("ManageLife.Entities.FinanceCategoryEntity", b =>
                 {
                     b.Property<string>("Id")
