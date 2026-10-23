@@ -1,4 +1,5 @@
-﻿using ManageLife.Commons;
+﻿using System.Collections.Concurrent;
+using ManageLife.Commons;
 using ManageLife.Contexts;
 using ManageLife.Core;
 using ManageLife.Entities;
@@ -20,8 +21,8 @@ namespace ManageLife.Services
         private const string WalletNotFoundMessage = "Không tìm thấy ví";
         private const string CategoryNotFoundMessage = "Không tìm thấy danh mục";
         private const string WalletInUseMessage = "Ví đã có giao dịch, chỉ ẩn được";
-        private const string CategoryInUseMessage = "Danh mục đã có giao dịch, chỉ ẩn được";
-        private const string CategoryKindLockedMessage = "Danh mục đã có giao dịch, không đổi loại được";
+        private const string CategoryInUseMessage = "Danh mục đã có giao dịch hoặc hạn mức, chỉ ẩn được";
+        private const string CategoryKindLockedMessage = "Danh mục đã có giao dịch hoặc hạn mức, không đổi loại được";
         private const string SubCategoryMessage = "Chưa hỗ trợ danh mục con";
 
         /// <summary>Trần số tiền một giao dịch (đồng): 10^12.</summary>
@@ -532,38 +533,19 @@ namespace ManageLife.Services
                     categoryId = category.Id;
                 }
 
-                var budget = await _budgetRepo.Query(true).FirstOrDefaultAsync(x => x.Id == budgetId, ct);
-                if (budget != null && (budget.OwnerId != userId || budget.IsDeleted))
-                    return Result.Error(Result.DATA_EXISTED.Code, DataDeletedMessage);
-
-                // 1 hạn mức cho mỗi phạm vi + kỳ: bản khác id ở cùng phạm vi/kỳ là trùng
-                var duplicated = await _budgetRepo.Query(true).AnyAsync(
-                    x => x.OwnerId == userId && !x.IsDeleted && x.Id != budgetId
-                         && x.CategoryId == categoryId && x.PeriodKind == request.PeriodKind
-                         && x.PeriodStart == request.PeriodStart && x.PeriodEnd == request.PeriodEnd, ct);
-                if (duplicated)
-                    return Result.Error(Result.DATA_EXISTED.Code, "Đã có hạn mức cho kỳ này");
-
-                budget ??= new FinanceBudgetEntity { Id = budgetId, OwnerId = userId };
-
-                budget.CategoryId = categoryId;
-                budget.PeriodKind = request.PeriodKind;
-                budget.PeriodStart = request.PeriodStart;
-                budget.PeriodEnd = request.PeriodEnd;
-                budget.Amount = request.Amount;
-
-                await _uow.BeginTransactionAsync(ct);
-                var saved = budget.CreatedTime == default
-                    ? await _budgetRepo.InsertAsync(budget, ct)
-                    : await _budgetRepo.UpdateAsync(budget, ct);
-                if (!saved)
+                // Kiểm trùng rồi mới ghi: 2 máy của cùng người dùng đồng bộ đúng lúc có thể cùng qua bước kiểm và tạo 2 hạn
+                // mức cùng phạm vi/kỳ (DB không có unique index vì hàng xoá mềm vẫn chiếm chỗ). Khoá theo người dùng để
+                // kiểm + ghi chạy lần lượt (máy chủ chạy 1 instance).
+                var userLock = BudgetLocks.GetOrAdd(userId, _ => new SemaphoreSlim(1, 1));
+                await userLock.WaitAsync(ct);
+                try
                 {
-                    await _uow.RollbackAsync(ct);
-                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể lưu hạn mức");
+                    return await SaveBudgetLockedAsync(userId, budgetId, categoryId, request, ct);
                 }
-
-                await _uow.CommitAsync(ct);
-                return Result.Ok();
+                finally
+                {
+                    userLock.Release();
+                }
             }
             catch (Exception ex)
             {
@@ -571,6 +553,45 @@ namespace ManageLife.Services
                 _logger.Error(ex, "Lỗi khi lưu hạn mức");
                 return Result.Exception("Có lỗi xảy ra khi lưu hạn mức", ex);
             }
+        }
+
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> BudgetLocks = new();
+
+        private async Task<Result> SaveBudgetLockedAsync(
+            string userId, string budgetId, string categoryId, SaveFinanceBudgetRequest request, CancellationToken ct)
+        {
+            var budget = await _budgetRepo.Query(true).FirstOrDefaultAsync(x => x.Id == budgetId, ct);
+            if (budget != null && (budget.OwnerId != userId || budget.IsDeleted))
+                return Result.Error(Result.DATA_EXISTED.Code, DataDeletedMessage);
+
+            // 1 hạn mức cho mỗi phạm vi + kỳ: bản khác id ở cùng phạm vi/kỳ là trùng
+            var duplicated = await _budgetRepo.Query(true).AnyAsync(
+                x => x.OwnerId == userId && !x.IsDeleted && x.Id != budgetId
+                     && x.CategoryId == categoryId && x.PeriodKind == request.PeriodKind
+                     && x.PeriodStart == request.PeriodStart && x.PeriodEnd == request.PeriodEnd, ct);
+            if (duplicated)
+                return Result.Error(Result.DATA_EXISTED.Code, "Đã có hạn mức cho kỳ này");
+
+            budget ??= new FinanceBudgetEntity { Id = budgetId, OwnerId = userId };
+
+            budget.CategoryId = categoryId;
+            budget.PeriodKind = request.PeriodKind;
+            budget.PeriodStart = request.PeriodStart;
+            budget.PeriodEnd = request.PeriodEnd;
+            budget.Amount = request.Amount;
+
+            await _uow.BeginTransactionAsync(ct);
+            var saved = budget.CreatedTime == default
+                ? await _budgetRepo.InsertAsync(budget, ct)
+                : await _budgetRepo.UpdateAsync(budget, ct);
+            if (!saved)
+            {
+                await _uow.RollbackAsync(ct);
+                return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể lưu hạn mức");
+            }
+
+            await _uow.CommitAsync(ct);
+            return Result.Ok();
         }
 
         public async Task<Result> DeleteBudgetAsync(string id, CancellationToken ct = default)
@@ -652,8 +673,14 @@ namespace ManageLife.Services
             _transactionRepo.Query(true).AnyAsync(
                 x => x.OwnerId == userId && !x.IsDeleted && (x.WalletId == walletId || x.ToWalletId == walletId), ct);
 
-        private Task<bool> IsCategoryInUseAsync(string categoryId, string userId, CancellationToken ct) =>
-            _transactionRepo.Query(true).AnyAsync(
+        /// <summary>
+        /// Danh mục đang được dùng: có giao dịch hoặc hạn mức (chưa xoá). Không xoá / không đổi loại được — hạn mức trỏ
+        /// tới danh mục đã xoá hoặc đã thành danh mục thu sẽ bị từ chối khi sửa (app phải đồng bộ lại toàn bộ).
+        /// </summary>
+        private async Task<bool> IsCategoryInUseAsync(string categoryId, string userId, CancellationToken ct) =>
+            await _transactionRepo.Query(true).AnyAsync(
+                x => x.OwnerId == userId && !x.IsDeleted && x.CategoryId == categoryId, ct)
+            || await _budgetRepo.Query(true).AnyAsync(
                 x => x.OwnerId == userId && !x.IsDeleted && x.CategoryId == categoryId, ct);
 
         // Hợp đồng: OccurredAt là UTC. Chuỗi không có múi giờ (Kind Unspecified) coi là UTC thay vì giờ máy chủ.
