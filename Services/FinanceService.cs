@@ -516,9 +516,6 @@ namespace ManageLife.Services
                 if (ClientId(id) is not { } budgetId)
                     return Result.Error(Result.DATA_INVALID.Code, "Id hạn mức không hợp lệ");
 
-                if (request.PeriodKind == 4 && request.PeriodStart > request.PeriodEnd)
-                    return Result.Error(Result.DATA_INVALID.Code, "Ngày bắt đầu phải trước ngày kết thúc");
-
                 if (!IsValidPeriod(request.PeriodKind, request.PeriodStart, request.PeriodEnd))
                     return Result.Error(Result.DATA_INVALID.Code, "Kỳ không hợp lệ");
 
@@ -667,7 +664,8 @@ namespace ManageLife.Services
         };
 
         /// <summary>
-        /// Kỳ hợp lệ theo loại: tuần (Thứ Hai → Chủ nhật), tháng, quý, năm; khoảng tuỳ chọn thì start <= end.
+        /// Kỳ hợp lệ theo loại: tuần (Thứ Hai → Chủ nhật), tháng, năm (ngân sách chỉ theo 1 chu kỳ, đã bỏ quý và
+        /// khoảng tuỳ chọn: hạn mức nhiều loại kỳ chồng lên nhau dễ mâu thuẫn).
         /// Cùng quy tắc với app (src/features/finance/utils/budget-period.ts) — app luôn gửi đúng, kiểm ở đây
         /// để lỗi app bị chặn thay vì lưu dữ liệu sai.
         /// </summary>
@@ -686,12 +684,8 @@ namespace ManageLife.Services
                         return start.DayOfWeek == DayOfWeek.Monday && end == start.AddDays(6);
                     case 1: // tháng
                         return start.Day == 1 && end == LastDayOfMonth(start);
-                    case 2: // quý: tháng đầu quý là 1, 4, 7, 10; kỳ kết thúc cuối tháng thứ 3 của quý
-                        return start.Month % 3 == 1 && start.Day == 1 && end == LastDayOfMonth(start.AddMonths(2));
                     case 3: // năm
                         return start.Month == 1 && start.Day == 1 && end == new DateOnly(start.Year, 12, 31);
-                    case 4: // khoảng tuỳ chọn
-                        return start <= end;
                     default:
                         return false;
                 }

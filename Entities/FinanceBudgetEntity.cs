@@ -11,7 +11,7 @@ namespace ManageLife.Entities
         /// <summary>Danh mục chi; rỗng = hạn mức tổng cả kỳ (rỗng để tạo được UNIQUE index).</summary>
         public string CategoryId { get; set; } = string.Empty;
 
-        /// <summary>Loại kỳ: 0 tuần, 1 tháng, 2 quý, 3 năm, 4 khoảng tuỳ chọn.</summary>
+        /// <summary>Loại kỳ: 0 tuần, 1 tháng, 3 năm (2 quý và 4 khoảng tuỳ chọn đã bỏ).</summary>
         public byte PeriodKind { get; set; }
 
         /// <summary>Ngày đầu kỳ.</summary>

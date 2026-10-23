@@ -12,8 +12,8 @@ namespace ManageLife.Models
         [StringLength(255, ErrorMessage = "Id danh mục không hợp lệ")]
         public string? CategoryId { get; set; }
 
-        /// <summary>Loại kỳ: 0 tuần, 1 tháng, 2 quý, 3 năm, 4 khoảng tuỳ chọn.</summary>
-        [Range(0, 4, ErrorMessage = "Loại kỳ không hợp lệ")]
+        /// <summary>Loại kỳ: 0 tuần, 1 tháng, 3 năm (2 quý và 4 khoảng tuỳ chọn đã bỏ).</summary>
+        [Range(0, 3, ErrorMessage = "Loại kỳ không hợp lệ")]
         public byte PeriodKind { get; set; }
 
         /// <summary>Ngày đầu kỳ ('YYYY-MM-DD').</summary>
