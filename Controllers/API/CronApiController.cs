@@ -18,8 +18,8 @@ namespace ManageLife.Controllers.API
             _dailySummaryService = dailySummaryService;
         }
 
-        [HttpPost("todo-daily-summary")]
-        public async Task<IActionResult> SendTodoDailySummary(CancellationToken ct)
+        [HttpPost("daily-summary")]
+        public async Task<IActionResult> SendDailySummary(CancellationToken ct)
         {
             var rs = await _dailySummaryService.SendDailySummaryAsync(ct);
 

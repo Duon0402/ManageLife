@@ -24,7 +24,8 @@ namespace ManageLife.Services
         private static readonly SystemCronJob[] SystemJobs =
         {
             // Mỗi giờ: người dùng tự chọn giờ nhận tóm tắt (UserTelegramConnection.DailySummaryHour)
-            new("ManageLife · Tóm tắt hằng ngày", "/api/cron/todo-daily-summary", EveryHour, new() { 0 }, true),
+            new("ManageLife · Tóm tắt hằng ngày", "/api/cron/daily-summary", EveryHour, new() { 0 }, true,
+                OldPath: "/api/cron/todo-daily-summary"),
             new("ManageLife · Dọn refresh token hết hạn", "/api/token/cleanup-refresh-tokens", new() { 3 }, new() { 0 }, true),
             new("ManageLife · Giữ server thức", "/api/app/ping", EveryHour, new() { 0, 10, 20, 30, 40, 50 }, false),
         };
@@ -205,7 +206,10 @@ namespace ManageLife.Services
                 foreach (var system in SystemJobs)
                 {
                     var url = BuildUrl(system.Path);
-                    var existing = jobs.FirstOrDefault(x => string.Equals(x.Url, url, StringComparison.OrdinalIgnoreCase));
+                    //NOTE: Job đã đổi endpoint thì sửa job cũ sang URL mới (không tạo thêm job, không để job cũ gọi 404)
+                    var oldUrl = system.OldPath != null ? BuildUrl(system.OldPath) : null;
+                    var existing = jobs.FirstOrDefault(x => string.Equals(x.Url, url, StringComparison.OrdinalIgnoreCase))
+                        ?? jobs.FirstOrDefault(x => oldUrl != null && string.Equals(x.Url, oldUrl, StringComparison.OrdinalIgnoreCase));
                     var job = new CronJobWriteModel
                     {
                         Title = system.Title,
@@ -452,7 +456,8 @@ namespace ManageLife.Services
             return $"{message}: {content}";
         }
 
-        private sealed record SystemCronJob(string Title, string Path, List<int> Hours, List<int> Minutes, bool UseCronSecret);
+        private sealed record SystemCronJob(string Title, string Path, List<int> Hours, List<int> Minutes, bool UseCronSecret,
+            string? OldPath = null);
 
         #endregion
     }
