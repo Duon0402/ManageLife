@@ -127,12 +127,26 @@ namespace ManageLife.Services
 
                 await _uow.BeginTransactionAsync(ct);
 
-                // FK cascade chỉ chạy khi xoá cứng: phải tự soft delete các task của list
+                // Không xoá việc theo list: chuyển sang "Chưa phân loại" (ListId = null), xếp cuối, giữ thứ tự cũ
                 var tasks = await _taskRepo.Query()
                     .Where(x => x.ListId == id && x.OwnerId == userId && !x.IsDeleted)
+                    .OrderBy(x => x.SortOrder)
                     .ToListAsync(ct);
 
-                var deleted = (tasks.IsEmpty() || await _taskRepo.BulkDeleteAsync(tasks, ct))
+                if (tasks.IsNotEmpty())
+                {
+                    var maxInboxSort = await _taskRepo.Query(true)
+                        .Where(x => x.OwnerId == userId && !x.IsDeleted && x.ListId == null)
+                        .MaxAsync(x => (int?)x.SortOrder, ct);
+                    var nextSort = (maxInboxSort ?? -1) + 1;
+                    foreach (var task in tasks)
+                    {
+                        task.ListId = null;
+                        task.SortOrder = nextSort++;
+                    }
+                }
+
+                var deleted = (tasks.IsEmpty() || await _taskRepo.BulkUpdateAsync(tasks, ct))
                     && await _listRepo.DeleteAsync(entity, ct);
                 if (!deleted)
                 {
