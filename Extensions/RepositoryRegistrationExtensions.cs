@@ -49,6 +49,8 @@ namespace ManageLife.Extensions
             services.AddScoped<IFinanceCategoryRepository, FinanceCategoryRepository>();
             services.AddScoped<IFinanceTransactionRepository, FinanceTransactionRepository>();
             services.AddScoped<IFinanceBudgetRepository, FinanceBudgetRepository>();
+            services.AddScoped<IFinanceRecurringRepository, FinanceRecurringRepository>();
+            services.AddScoped<IFinanceDebtRepository, FinanceDebtRepository>();
             services.AddScoped<IPomodoroSessionRepository, PomodoroSessionRepository>();
             services.AddScoped<IPomodoroSettingRepository, PomodoroSettingRepository>();
             services.AddScoped<IAnkiCardRepository, AnkiCardRepository>();

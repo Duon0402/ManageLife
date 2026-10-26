@@ -22,5 +22,11 @@ namespace ManageLife.Interfaces
 
         Task<Result> SaveBudgetAsync(string id, SaveFinanceBudgetRequest request, CancellationToken ct = default);
         Task<Result> DeleteBudgetAsync(string id, CancellationToken ct = default);
+
+        Task<Result> SaveRecurringAsync(string id, SaveFinanceRecurringRequest request, CancellationToken ct = default);
+        Task<Result> DeleteRecurringAsync(string id, CancellationToken ct = default);
+
+        Task<Result> SaveDebtAsync(string id, SaveFinanceDebtRequest request, CancellationToken ct = default);
+        Task<Result> DeleteDebtAsync(string id, CancellationToken ct = default);
     }
 }

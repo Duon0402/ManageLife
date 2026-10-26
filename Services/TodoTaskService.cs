@@ -497,6 +497,12 @@ namespace ManageLife.Services
             if (request.RepeatFrequency.HasValue && !request.DueDate.HasValue)
                 return (Result.Error(Result.DATA_INVALID.Code, "Việc lặp lại cần có ngày hạn"), null);
 
+            if (request.StartDate.HasValue && !request.DueDate.HasValue)
+                return (Result.Error(Result.DATA_INVALID.Code, "Cần chọn ngày hạn trước khi chọn ngày bắt đầu"), null);
+
+            if (request.StartDate > request.DueDate)
+                return (Result.Error(Result.DATA_INVALID.Code, "Ngày bắt đầu không được sau ngày hạn"), null);
+
             //NOTE: Giới hạn khoảng ngày hợp lý (tránh tràn DateOnly khi tính lần lặp kế tiếp)
             if (request.DueDate > MaxDate || request.RepeatUntil > MaxDate)
                 return (Result.Error(Result.DATA_INVALID.Code, "Ngày không được sau năm 2100"), null);
@@ -531,6 +537,7 @@ namespace ManageLife.Services
             task.ListId = listId;
             task.Priority = (TodoPriority)request.Priority;
             task.DueDate = request.DueDate;
+            task.StartDate = request.DueDate.HasValue ? request.StartDate : null;
             task.DueTime = request.DueTime;
             task.ReminderAt = ToUtc(request.ReminderAt);
             task.ReminderAlarm = task.ReminderAt != null && request.ReminderAlarm;
@@ -572,6 +579,8 @@ namespace ManageLife.Services
                     Note = task.Note,
                     Priority = task.Priority,
                     DueDate = nextDue,
+                    // Việc nhiều ngày: lần sau giữ nguyên số ngày từ bắt đầu tới hạn
+                    StartDate = task.StartDate?.AddDays(nextDue.Value.DayNumber - due.DayNumber),
                     DueTime = task.DueTime,
                     ReminderAt = task.ReminderAt?.AddDays(nextDue.Value.DayNumber - due.DayNumber),
                     ReminderAlarm = task.ReminderAlarm,

@@ -96,6 +96,9 @@ namespace ManageLife.Helpers
             // Hạn mức: CategoryId rỗng (hạn mức tổng) thành null — app dùng null để phân biệt "tổng" với 1 danh mục
             CreateMap<FinanceBudgetEntity, FinanceBudgetModel>()
                 .ForMember(d => d.CategoryId, o => o.MapFrom(s => s.CategoryId == "" ? null : s.CategoryId));
+            CreateMap<FinanceRecurringEntity, FinanceRecurringModel>();
+            CreateMap<FinanceDebtEntity, FinanceDebtModel>()
+                .ForMember(d => d.OccurredAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.OccurredAt, DateTimeKind.Utc)));
         }
 
         private static DateTime? AsUtc(DateTime? value) =>

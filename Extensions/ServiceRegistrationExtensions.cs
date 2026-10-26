@@ -25,6 +25,7 @@ namespace ManageLife.Extensions
             services.AddScoped<ITodoSyncService, TodoSyncService>();
             services.AddScoped<IFinanceService, FinanceService>();
             services.AddScoped<IFinanceSyncService, FinanceSyncService>();
+            services.AddScoped<IFinanceSummaryBuilder, FinanceSummaryBuilder>();
             services.AddScoped<ITodoDailySummaryService, TodoDailySummaryService>();
             services.AddSingleton<ICacheService, CacheService>();
             services.AddScoped<ITokenService, TokenService>();

@@ -12,6 +12,7 @@ namespace ManageLife.Models
         public string? Note { get; set; }
         public TodoPriority Priority { get; set; }
         public DateOnly? DueDate { get; set; }
+        public DateOnly? StartDate { get; set; }
         public TimeOnly? DueTime { get; set; }
 
         /// <summary>UTC.</summary>

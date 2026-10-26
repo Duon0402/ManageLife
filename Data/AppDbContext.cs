@@ -57,6 +57,8 @@ namespace ManageLife.Data
         public DbSet<FinanceCategoryEntity> FinanceCategories { get; set; } = default!;
         public DbSet<FinanceTransactionEntity> FinanceTransactions { get; set; } = default!;
         public DbSet<FinanceBudgetEntity> FinanceBudgets { get; set; } = default!;
+        public DbSet<FinanceRecurringEntity> FinanceRecurrings { get; set; } = default!;
+        public DbSet<FinanceDebtEntity> FinanceDebts { get; set; } = default!;
         public DbSet<AnkiCardEntity> AnkiCards { get; set; } = default!;
 
         #endregion
@@ -249,6 +251,7 @@ namespace ManageLife.Data
                 e.Property(x => x.WalletId).HasMaxLength(255);
                 e.Property(x => x.ToWalletId).HasMaxLength(255);
                 e.Property(x => x.CategoryId).HasMaxLength(255);
+                e.Property(x => x.DebtId).HasMaxLength(255);
                 e.Property(x => x.Note).HasColumnType("text");
                 // Ví/danh mục đã có giao dịch chỉ ẩn được: xoá cứng không được phép
                 e.HasOne<FinanceWalletEntity>().WithMany().HasForeignKey(x => x.WalletId).OnDelete(DeleteBehavior.Restrict);
@@ -258,6 +261,18 @@ namespace ManageLife.Data
                 e.HasIndex(x => x.WalletId);
                 e.HasIndex(x => x.ToWalletId);
                 e.HasIndex(x => x.CategoryId);
+                e.HasOne<FinanceDebtEntity>().WithMany().HasForeignKey(x => x.DebtId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => x.DebtId);
+            });
+
+            builder.Entity<FinanceDebtEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.PersonName).HasMaxLength(100);
+                e.Property(x => x.WalletId).HasMaxLength(255);
+                e.Property(x => x.Note).HasMaxLength(500);
+                e.HasOne<FinanceWalletEntity>().WithMany().HasForeignKey(x => x.WalletId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted });
             });
 
             builder.Entity<FinanceBudgetEntity>(e =>
@@ -266,6 +281,21 @@ namespace ManageLife.Data
                 e.Property(x => x.CategoryId).HasMaxLength(255);
                 // KHÔNG đặt index UNIQUE ở DB: hàng đã xoá mềm vẫn chiếm index → tạo lại hạn mức cùng phạm vi/kỳ
                 // sẽ vi phạm. Ràng buộc "1 hạn mức cho mỗi phạm vi + kỳ" do service kiểm (FinanceService.SaveBudgetAsync).
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted });
+            });
+
+            builder.Entity<FinanceRecurringEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.Name).HasMaxLength(100);
+                e.Property(x => x.WalletId).HasMaxLength(255);
+                e.Property(x => x.ToWalletId).HasMaxLength(255);
+                e.Property(x => x.CategoryId).HasMaxLength(255);
+                e.Property(x => x.Note).HasMaxLength(500);
+                // Ví/danh mục đang dùng trong khoản định kỳ chỉ ẩn được (FinanceService.IsWalletInUseAsync/IsCategoryInUseAsync)
+                e.HasOne<FinanceWalletEntity>().WithMany().HasForeignKey(x => x.WalletId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne<FinanceWalletEntity>().WithMany().HasForeignKey(x => x.ToWalletId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne<FinanceCategoryEntity>().WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Restrict);
                 e.HasIndex(x => new { x.OwnerId, x.IsDeleted });
             });
         }

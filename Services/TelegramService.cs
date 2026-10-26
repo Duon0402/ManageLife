@@ -119,7 +119,7 @@ namespace ManageLife.Services
 
         // ──────────────────── Commands ────────────────────
 
-        private const string LinkGuide = "Để liên kết, mở app ManageLife → Cài đặt → Tài khoản → Telegram → Liên kết.";
+        private const string LinkGuide = "Để liên kết, mở app Personal Hub → tab Tài khoản → Telegram → Liên kết.";
 
         private async Task HandleCommandAsync(long chatId, string messageText, bool isPrivate, CancellationToken ct)
         {
@@ -138,7 +138,7 @@ namespace ManageLife.Services
 
                 case "/start":
                     await _botClient.SendMessage(chatId,
-                        "Chào mừng bạn đến với ManageLife Bot!\n" + LinkGuide + "\nGửi /help để xem các lệnh hỗ trợ.",
+                        "Chào mừng bạn đến với Personal Hub Bot!\n" + LinkGuide + "\nGửi /help để xem các lệnh hỗ trợ.",
                         cancellationToken: ct);
                     break;
 
@@ -153,7 +153,7 @@ namespace ManageLife.Services
                         "📋 Các lệnh hỗ trợ:\n\n" +
                         "/start - Bắt đầu\n" +
                         "/info - Lấy Chat ID của bạn\n" +
-                        "/link - Hướng dẫn liên kết tài khoản ManageLife\n" +
+                        "/link - Hướng dẫn liên kết tài khoản Personal Hub\n" +
                         "/unlink - Gỡ liên kết Telegram này khỏi tài khoản\n" +
                         "/help - Hướng dẫn",
                         cancellationToken: ct);
@@ -231,8 +231,14 @@ namespace ManageLife.Services
 
         public bool IsValidWebhookSecret(string? secretToken)
         {
-            //NOTE: Chưa cấu hình secret thì chặn hết, tránh mở webhook cho bất kỳ ai giả mạo update
-            if (_webhookSecret.IsEmpty() || secretToken.IsEmpty()) return false;
+            //NOTE: Chưa cấu hình secret thì chặn hết, tránh mở webhook cho bất kỳ ai giả mạo update. Ghi lỗi rõ: thiếu cấu hình
+            // này làm bot im lặng với mọi lệnh (Telegram nhận 401)
+            if (_webhookSecret.IsEmpty())
+            {
+                _logger.Warning("TelegramSettings:WebhookSecret chưa cấu hình: mọi lệnh gửi tới bot đều bị từ chối");
+                return false;
+            }
+            if (secretToken.IsEmpty()) return false;
             return CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(secretToken!), Encoding.UTF8.GetBytes(_webhookSecret!));
         }
 
@@ -253,7 +259,7 @@ namespace ManageLife.Services
             }
 
             await _botClient.SendMessage(chatId,
-                connections.Count > 0 ? "✅ Đã gỡ liên kết Telegram này khỏi tài khoản ManageLife." : "Telegram này chưa liên kết với tài khoản nào.",
+                connections.Count > 0 ? "✅ Đã gỡ liên kết Telegram này khỏi tài khoản Personal Hub." : "Telegram này chưa liên kết với tài khoản nào.",
                 cancellationToken: ct);
         }
 
@@ -300,7 +306,7 @@ namespace ManageLife.Services
             if (linkedToOther)
             {
                 await _botClient.SendMessage(chatId,
-                    "❌ Telegram này đang liên kết với một tài khoản ManageLife khác. Gửi /unlink để gỡ rồi mở lại liên kết từ app.",
+                    "❌ Telegram này đang liên kết với một tài khoản Personal Hub khác. Gửi /unlink để gỡ rồi mở lại liên kết từ app.",
                     cancellationToken: ct);
                 return;
             }
@@ -326,7 +332,7 @@ namespace ManageLife.Services
             _logger.Info("Đã liên kết Telegram chat {chatId} với user {userId}", chatId, user.Id);
             //NOTE: Gửi text thường (không Markdown) để tên tài khoản có ký tự đặc biệt không làm lỗi tin nhắn
             await _botClient.SendMessage(chatId,
-                $"✅ Đã liên kết Telegram với tài khoản {user.UserName}. Bạn sẽ nhận tóm tắt công việc mỗi sáng.",
+                $"✅ Đã liên kết Telegram với tài khoản {user.UserName}. Mỗi sáng bạn sẽ nhận tóm tắt công việc và tài chính.",
                 cancellationToken: ct);
         }
 

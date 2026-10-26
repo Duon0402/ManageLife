@@ -455,6 +455,173 @@ namespace ManageLife.Migrations
                     b.ToTable("FinanceCategories");
                 });
 
+            modelBuilder.Entity("ManageLife.Entities.FinanceDebtEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<byte>("Direction")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("PersonName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("WalletId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WalletId");
+
+                    b.HasIndex("OwnerId", "IsDeleted");
+
+                    b.ToTable("FinanceDebts");
+                });
+
+            modelBuilder.Entity("ManageLife.Entities.FinanceRecurringEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CategoryId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPaused")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<byte>("Kind")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateOnly?>("NextDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<byte>("RepeatFrequency")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("RepeatInterval")
+                        .HasColumnType("int");
+
+                    b.Property<byte?>("RepeatMonthDay")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<byte?>("RepeatWeekdays")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ToWalletId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("WalletId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ToWalletId");
+
+                    b.HasIndex("WalletId");
+
+                    b.HasIndex("OwnerId", "IsDeleted");
+
+                    b.ToTable("FinanceRecurrings");
+                });
+
             modelBuilder.Entity("ManageLife.Entities.FinanceTransactionEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -473,6 +640,10 @@ namespace ManageLife.Migrations
                     b.Property<string>("CreatedUser")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("DebtId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime?>("DeletedTime")
                         .HasColumnType("datetime(6)");
@@ -515,6 +686,8 @@ namespace ManageLife.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("DebtId");
 
                     b.HasIndex("ToWalletId");
 
@@ -1340,6 +1513,9 @@ namespace ManageLife.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -1957,11 +2133,44 @@ namespace ManageLife.Migrations
                     b.ToTable("VocabWords");
                 });
 
+            modelBuilder.Entity("ManageLife.Entities.FinanceDebtEntity", b =>
+                {
+                    b.HasOne("ManageLife.Entities.FinanceWalletEntity", null)
+                        .WithMany()
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ManageLife.Entities.FinanceRecurringEntity", b =>
+                {
+                    b.HasOne("ManageLife.Entities.FinanceCategoryEntity", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ManageLife.Entities.FinanceWalletEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ToWalletId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ManageLife.Entities.FinanceWalletEntity", null)
+                        .WithMany()
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ManageLife.Entities.FinanceTransactionEntity", b =>
                 {
                     b.HasOne("ManageLife.Entities.FinanceCategoryEntity", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ManageLife.Entities.FinanceDebtEntity", null)
+                        .WithMany()
+                        .HasForeignKey("DebtId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ManageLife.Entities.FinanceWalletEntity", null)

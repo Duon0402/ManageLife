@@ -28,6 +28,10 @@ namespace ManageLife.Models
         [StringLength(255, ErrorMessage = "Id danh mục không hợp lệ")]
         public string? CategoryId { get; set; }
 
+        /// <summary>Khoản vay — bắt buộc với DebtOpen/DebtPayment, không có với loại khác.</summary>
+        [StringLength(255, ErrorMessage = "Id khoản vay không hợp lệ")]
+        public string? DebtId { get; set; }
+
         [Required(ErrorMessage = "Thiếu thời điểm giao dịch")]
         public DateTime OccurredAt { get; set; }
 

@@ -31,6 +31,10 @@ namespace ManageLife.Models
 
         public List<FinanceBudgetModel> Budgets { get; set; } = new();
 
+        public List<FinanceRecurringModel> Recurrings { get; set; } = new();
+
+        public List<FinanceDebtModel> Debts { get; set; } = new();
+
         public List<string> DeletedWalletIds { get; set; } = new();
 
         public List<string> DeletedCategoryIds { get; set; } = new();
@@ -38,6 +42,10 @@ namespace ManageLife.Models
         public List<string> DeletedTransactionIds { get; set; } = new();
 
         public List<string> DeletedBudgetIds { get; set; } = new();
+
+        public List<string> DeletedRecurringIds { get; set; } = new();
+
+        public List<string> DeletedDebtIds { get; set; } = new();
     }
 
     public class FinanceWalletModel
@@ -75,9 +83,43 @@ namespace ManageLife.Models
         public string WalletId { get; set; } = null!;
         public string? ToWalletId { get; set; }
         public string? CategoryId { get; set; }
+        public string? DebtId { get; set; }
         public DateTime OccurredAt { get; set; }
         public string? Note { get; set; }
         public DateTime CreatedTime { get; set; }
+    }
+
+    public class FinanceDebtModel
+    {
+        public string Id { get; set; } = null!;
+        public byte Direction { get; set; }
+        public string PersonName { get; set; } = null!;
+        public long Amount { get; set; }
+        public string WalletId { get; set; } = null!;
+        public DateTime OccurredAt { get; set; }
+        public DateOnly? DueDate { get; set; }
+        public string? Note { get; set; }
+        public bool IsClosed { get; set; }
+    }
+
+    public class FinanceRecurringModel
+    {
+        public string Id { get; set; } = null!;
+        public string Name { get; set; } = null!;
+        public FinanceTransactionKind Kind { get; set; }
+        public long Amount { get; set; }
+        public string WalletId { get; set; } = null!;
+        public string? ToWalletId { get; set; }
+        public string? CategoryId { get; set; }
+        public string? Note { get; set; }
+        public TodoRepeatFrequency RepeatFrequency { get; set; }
+        public int RepeatInterval { get; set; }
+        public int? RepeatWeekdays { get; set; }
+        public int? RepeatMonthDay { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly? EndDate { get; set; }
+        public DateOnly? NextDate { get; set; }
+        public bool IsPaused { get; set; }
     }
 
     public class FinanceBudgetModel

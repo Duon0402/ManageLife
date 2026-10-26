@@ -17,6 +17,9 @@ namespace ManageLife.Entities
         /// <summary>Ngày hết hạn theo giờ VN (giờ treo tường, không quy đổi múi giờ).</summary>
         public DateOnly? DueDate { get; set; }
 
+        /// <summary>Ngày bắt đầu (giờ VN) của việc kéo dài nhiều ngày; chỉ khi có DueDate, &lt;= DueDate.</summary>
+        public DateOnly? StartDate { get; set; }
+
         /// <summary>Giờ hết hạn theo giờ VN; null = cả ngày.</summary>
         public TimeOnly? DueTime { get; set; }
 

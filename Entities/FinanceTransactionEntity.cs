@@ -22,6 +22,9 @@ namespace ManageLife.Entities
         /// <summary>Danh mục thu/chi — không có khi chuyển hoặc điều chỉnh.</summary>
         public string? CategoryId { get; set; }
 
+        /// <summary>Khoản vay của giao dịch DebtOpen/DebtPayment; null với giao dịch thường.</summary>
+        public string? DebtId { get; set; }
+
         /// <summary>Thời điểm phát sinh (UTC).</summary>
         public DateTime OccurredAt { get; set; }
 

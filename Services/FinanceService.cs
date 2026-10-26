@@ -20,9 +20,9 @@ namespace ManageLife.Services
         private const string DataDeletedMessage = "Dữ liệu đã bị xoá";
         private const string WalletNotFoundMessage = "Không tìm thấy ví";
         private const string CategoryNotFoundMessage = "Không tìm thấy danh mục";
-        private const string WalletInUseMessage = "Ví đã có giao dịch, chỉ ẩn được";
-        private const string CategoryInUseMessage = "Danh mục đã có giao dịch hoặc hạn mức, chỉ ẩn được";
-        private const string CategoryKindLockedMessage = "Danh mục đã có giao dịch hoặc hạn mức, không đổi loại được";
+        private const string WalletInUseMessage = "Ví đã có giao dịch hoặc khoản định kỳ, chỉ ẩn được";
+        private const string CategoryInUseMessage = "Danh mục đã có giao dịch, hạn mức hoặc khoản định kỳ, chỉ ẩn được";
+        private const string CategoryKindLockedMessage = "Danh mục đã có giao dịch, hạn mức hoặc khoản định kỳ, không đổi loại được";
         private const string SubCategoryMessage = "Chưa hỗ trợ danh mục con";
 
         /// <summary>Trần số tiền một giao dịch (đồng): 10^12.</summary>
@@ -41,6 +41,8 @@ namespace ManageLife.Services
         private readonly IFinanceCategoryRepository _categoryRepo;
         private readonly IFinanceTransactionRepository _transactionRepo;
         private readonly IFinanceBudgetRepository _budgetRepo;
+        private readonly IFinanceRecurringRepository _recurringRepo;
+        private readonly IFinanceDebtRepository _debtRepo;
         private readonly IUnitOfWork _uow;
 
         public FinanceService(
@@ -50,12 +52,16 @@ namespace ManageLife.Services
             IFinanceCategoryRepository categoryRepo,
             IFinanceTransactionRepository transactionRepo,
             IFinanceBudgetRepository budgetRepo,
+            IFinanceRecurringRepository recurringRepo,
+            IFinanceDebtRepository debtRepo,
             IUnitOfWork uow) : base(logger, userContext)
         {
             _walletRepo = walletRepo;
             _categoryRepo = categoryRepo;
             _transactionRepo = transactionRepo;
             _budgetRepo = budgetRepo;
+            _recurringRepo = recurringRepo;
+            _debtRepo = debtRepo;
             _uow = uow;
         }
 
@@ -384,7 +390,7 @@ namespace ManageLife.Services
                 if (ClientId(id) is not { } transactionId)
                     return Result.Error(Result.DATA_INVALID.Code, "Id giao dịch không hợp lệ");
 
-                var ruleError = await ValidateTransactionAsync(request, userId, ct);
+                var ruleError = await ValidateTransactionAsync(transactionId, request, userId, ct);
                 if (ruleError != null) return ruleError;
 
                 var transaction = await _transactionRepo.Query(true).FirstOrDefaultAsync(x => x.Id == transactionId, ct);
@@ -398,6 +404,7 @@ namespace ManageLife.Services
                 transaction.WalletId = request.WalletId;
                 transaction.ToWalletId = request.ToWalletId;
                 transaction.CategoryId = request.CategoryId;
+                transaction.DebtId = IsDebtKind(request.Kind) ? request.DebtId : null;
                 transaction.OccurredAt = ToUtc(request.OccurredAt);
                 transaction.Note = request.Note.IsEmpty() ? null : request.Note!.Trim();
 
@@ -446,7 +453,8 @@ namespace ManageLife.Services
         }
 
         /// <summary>Kiểm giao dịch trước khi lưu (cùng luật với app, xem đặc tả T06).</summary>
-        private async Task<Result?> ValidateTransactionAsync(SaveFinanceTransactionRequest request, string userId, CancellationToken ct)
+        private async Task<Result?> ValidateTransactionAsync(
+            string transactionId, SaveFinanceTransactionRequest request, string userId, CancellationToken ct)
         {
             var kind = request.Kind;
             var amount = request.Amount;
@@ -466,35 +474,93 @@ namespace ManageLife.Services
             if (occurredAt < MinOccurredAt || occurredAt > MaxOccurredAt())
                 return Result.Error(Result.DATA_INVALID.Code, "Thời điểm giao dịch không hợp lệ");
 
+            if (IsDebtKind(kind))
+                return await ValidateDebtTransactionAsync(transactionId, request, userId, ct);
+            if (request.DebtId.IsNotEmpty())
+                return Result.Error(Result.DATA_INVALID.Code, "Giao dịch thường không thuộc khoản vay");
+
+            return await ValidateWalletsAndCategoryAsync(kind, request.WalletId, request.ToWalletId, request.CategoryId, userId, ct);
+        }
+
+        private static bool IsDebtKind(FinanceTransactionKind kind) =>
+            kind is FinanceTransactionKind.DebtOpen or FinanceTransactionKind.DebtPayment;
+
+        /// <summary>
+        /// Giao dịch của khoản vay (cùng luật với app): cần khoản vay của chính người dùng, không danh mục/ví đích; dấu số
+        /// tiền theo chiều tiền vào/ra ví — cho vay: mở −, được trả +; đi vay: mở +, trả nợ −. Giao dịch mở: đúng số gốc,
+        /// mỗi khoản vay chỉ 1.
+        /// </summary>
+        private async Task<Result?> ValidateDebtTransactionAsync(
+            string transactionId, SaveFinanceTransactionRequest request, string userId, CancellationToken ct)
+        {
+            if (request.ToWalletId.IsNotEmpty() || request.CategoryId.IsNotEmpty())
+                return Result.Error(Result.DATA_INVALID.Code, "Giao dịch vay nợ không cần ví đích và danh mục");
+            if (request.DebtId.IsEmpty())
+                return Result.Error(Result.DATA_INVALID.Code, "Thiếu khoản vay của giao dịch");
+
+            var debt = await _debtRepo.Query(true)
+                .FirstOrDefaultAsync(x => x.Id == request.DebtId && x.OwnerId == userId && !x.IsDeleted, ct);
+            if (debt == null) return Result.Error(Result.DATA_NOT_EXISTED.Code, "Không tìm thấy khoản vay");
+
+            var lend = debt.Direction == 0;
+            var open = request.Kind == FinanceTransactionKind.DebtOpen;
+            // Tiền vào ví (+): nhận tiền vay, được trả; tiền ra ví (−): cho vay, trả nợ
+            var moneyIn = open ? !lend : lend;
+            if (moneyIn ? request.Amount <= 0 : request.Amount >= 0)
+                return Result.Error(Result.DATA_INVALID.Code, "Số tiền không khớp chiều khoản vay");
+
+            if (open)
+            {
+                if (Math.Abs(request.Amount) != debt.Amount)
+                    return Result.Error(Result.DATA_INVALID.Code, "Số tiền mở khoản vay phải bằng số gốc");
+                if (await _transactionRepo.Query(true).AnyAsync(x => x.OwnerId == userId && !x.IsDeleted
+                        && x.DebtId == debt.Id && x.Kind == FinanceTransactionKind.DebtOpen && x.Id != transactionId, ct))
+                    return Result.Error(Result.DATA_EXISTED.Code, "Khoản vay đã có giao dịch mở");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Ví đích / danh mục theo loại (dùng chung cho giao dịch và khoản định kỳ): thu/chi cần danh mục đúng loại, chuyển
+        /// cần ví đích khác ví nguồn, điều chỉnh không có cả 2. Ví nguồn đã kiểm ở nơi gọi.
+        /// </summary>
+        private async Task<Result?> ValidateWalletsAndCategoryAsync(
+            FinanceTransactionKind kind, string walletId, string? toWalletId, string? categoryId, string userId, CancellationToken ct)
+        {
             switch (kind)
             {
                 case FinanceTransactionKind.Expense:
                 case FinanceTransactionKind.Income:
-                    if (request.ToWalletId.IsNotEmpty())
+                    if (toWalletId.IsNotEmpty())
                         return Result.Error(Result.DATA_INVALID.Code, "Thu/chi không chuyển giữa 2 ví được");
-                    if (request.CategoryId.IsEmpty())
+                    if (categoryId.IsEmpty())
                         return Result.Error(Result.DATA_INVALID.Code, "Cần chọn danh mục cho giao dịch thu/chi");
-                    if (!await IsOwnedCategoryAsync(request.CategoryId, userId, kind == FinanceTransactionKind.Expense
+                    if (!await IsOwnedCategoryAsync(categoryId, userId, kind == FinanceTransactionKind.Expense
                             ? FinanceCategoryKind.Expense
                             : FinanceCategoryKind.Income, ct))
                         return Result.Error(Result.DATA_INVALID.Code, "Danh mục không đúng loại giao dịch");
                     break;
 
                 case FinanceTransactionKind.Transfer:
-                    if (request.CategoryId.IsNotEmpty())
+                    if (categoryId.IsNotEmpty())
                         return Result.Error(Result.DATA_INVALID.Code, "Chuyển tiền không cần danh mục");
-                    if (request.ToWalletId.IsEmpty())
+                    if (toWalletId.IsEmpty())
                         return Result.Error(Result.DATA_INVALID.Code, "Cần chọn ví đích khi chuyển tiền");
-                    if (request.ToWalletId == request.WalletId)
+                    if (toWalletId == walletId)
                         return Result.Error(Result.DATA_INVALID.Code, "Ví đích phải khác ví nguồn");
-                    if (!await IsOwnedWalletAsync(request.ToWalletId, userId, ct))
+                    if (!await IsOwnedWalletAsync(toWalletId, userId, ct))
                         return Result.Error(Result.DATA_NOT_EXISTED.Code, WalletNotFoundMessage);
                     break;
 
-                default:
-                    if (request.ToWalletId.IsNotEmpty() || request.CategoryId.IsNotEmpty())
+                case FinanceTransactionKind.Adjust:
+                    if (toWalletId.IsNotEmpty() || categoryId.IsNotEmpty())
                         return Result.Error(Result.DATA_INVALID.Code, "Điều chỉnh số dư không cần ví đích và danh mục");
                     break;
+
+                default:
+                    // Loại lạ (app mới hơn BE…) không được rơi vào nhánh nào rồi lưu sai
+                    return Result.Error(Result.DATA_INVALID.Code, "Loại giao dịch không hợp lệ");
             }
 
             return null;
@@ -620,6 +686,234 @@ namespace ManageLife.Services
 
         #endregion
 
+        #region Khoản định kỳ
+
+        public async Task<Result> SaveRecurringAsync(string id, SaveFinanceRecurringRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                if (ClientId(id) is not { } recurringId)
+                    return Result.Error(Result.DATA_INVALID.Code, "Id khoản định kỳ không hợp lệ");
+
+                var ruleError = await ValidateRecurringAsync(request, userId, ct);
+                if (ruleError != null) return ruleError;
+
+                var recurring = await _recurringRepo.Query(true).FirstOrDefaultAsync(x => x.Id == recurringId, ct);
+                if (recurring != null && (recurring.OwnerId != userId || recurring.IsDeleted))
+                    return Result.Error(Result.DATA_EXISTED.Code, DataDeletedMessage);
+
+                recurring ??= new FinanceRecurringEntity { Id = recurringId, OwnerId = userId };
+
+                var monthly = request.RepeatFrequency is TodoRepeatFrequency.Monthly or TodoRepeatFrequency.Yearly;
+                recurring.Name = request.Name.Trim();
+                recurring.Kind = request.Kind;
+                recurring.Amount = request.Amount;
+                recurring.WalletId = request.WalletId;
+                recurring.ToWalletId = request.Kind == FinanceTransactionKind.Transfer ? request.ToWalletId : null;
+                recurring.CategoryId = request.Kind == FinanceTransactionKind.Transfer ? null : request.CategoryId;
+                recurring.Note = request.Note.IsEmpty() ? null : request.Note!.Trim();
+                recurring.RepeatFrequency = request.RepeatFrequency;
+                recurring.RepeatInterval = request.RepeatInterval;
+                // Hằng tuần mà không chọn thứ thì lặp đúng thứ của kỳ đầu
+                recurring.RepeatWeekdays = request.RepeatFrequency == TodoRepeatFrequency.Weekly
+                    ? (byte?)request.RepeatWeekdays ?? TodoRepeatHelper.WeekdayBit(request.StartDate.DayOfWeek)
+                    : null;
+                recurring.RepeatMonthDay = monthly ? (byte?)request.RepeatMonthDay ?? (byte)request.StartDate.Day : null;
+                recurring.StartDate = request.StartDate;
+                recurring.EndDate = request.EndDate;
+                recurring.NextDate = request.NextDate;
+                recurring.IsPaused = request.IsPaused;
+
+                await _uow.BeginTransactionAsync(ct);
+                var saved = recurring.CreatedTime == default
+                    ? await _recurringRepo.InsertAsync(recurring, ct)
+                    : await _recurringRepo.UpdateAsync(recurring, ct);
+                if (!saved)
+                {
+                    await _uow.RollbackAsync(ct);
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể lưu khoản định kỳ");
+                }
+
+                await _uow.CommitAsync(ct);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                await _uow.RollbackAsync(ct);
+                _logger.Error(ex, "Lỗi khi lưu khoản định kỳ");
+                return Result.Exception("Có lỗi xảy ra khi lưu khoản định kỳ", ex);
+            }
+        }
+
+        public async Task<Result> DeleteRecurringAsync(string id, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var recurring = await _recurringRepo.FirstOrDefaultAsync(
+                    x => x.Id == NormalizeId(id) && x.OwnerId == userId && !x.IsDeleted, ct);
+                // Không có / đã xoá: coi như xong (app gửi lại lệnh xoá khi mất phản hồi)
+                if (recurring == null) return Result.Ok();
+
+                if (!await _recurringRepo.DeleteAsync(recurring, ct))
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá khoản định kỳ");
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi xoá khoản định kỳ");
+                return Result.Exception("Có lỗi xảy ra khi xoá khoản định kỳ", ex);
+            }
+        }
+
+        /// <summary>
+        /// Kiểm khoản định kỳ (cùng luật với app): chỉ chi/thu/chuyển; ví/danh mục như giao dịch; thứ trong tuần chỉ khi
+        /// lặp tuần; kỳ đầu/kết thúc/kỳ kế tiếp trong khoảng hợp lý và đúng thứ tự. NextDate do app tính — chỉ kiểm khoảng.
+        /// </summary>
+        private async Task<Result?> ValidateRecurringAsync(SaveFinanceRecurringRequest request, string userId, CancellationToken ct)
+        {
+            if (request.Kind is not (FinanceTransactionKind.Expense or FinanceTransactionKind.Income or FinanceTransactionKind.Transfer))
+                return Result.Error(Result.DATA_INVALID.Code, "Khoản định kỳ chỉ là chi, thu hoặc chuyển tiền");
+
+            if (request.RepeatWeekdays.HasValue && request.RepeatFrequency != TodoRepeatFrequency.Weekly)
+                return Result.Error(Result.DATA_INVALID.Code, "Chỉ lặp hằng tuần mới chọn thứ");
+
+            if (!IsValidRecurringDate(request.StartDate)
+                || (request.EndDate is { } end && !IsValidRecurringDate(end))
+                || (request.NextDate is { } next && !IsValidRecurringDate(next)))
+                return Result.Error(Result.DATA_INVALID.Code, "Ngày không hợp lệ");
+
+            if (request.EndDate < request.StartDate)
+                return Result.Error(Result.DATA_INVALID.Code, "Ngày kết thúc phải từ ngày bắt đầu trở đi");
+
+            if (request.NextDate < request.StartDate || request.NextDate > request.EndDate)
+                return Result.Error(Result.DATA_INVALID.Code, "Kỳ kế tiếp không hợp lệ");
+
+            if (!await IsOwnedWalletAsync(request.WalletId, userId, ct))
+                return Result.Error(Result.DATA_NOT_EXISTED.Code, WalletNotFoundMessage);
+
+            return await ValidateWalletsAndCategoryAsync(
+                request.Kind, request.WalletId, request.ToWalletId, request.CategoryId, userId, ct);
+        }
+
+        private static bool IsValidRecurringDate(DateOnly date) => date.Year is >= MinPeriodYear and <= MaxPeriodYear;
+
+        #endregion
+
+        #region Vay nợ
+
+        public async Task<Result> SaveDebtAsync(string id, SaveFinanceDebtRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                if (ClientId(id) is not { } debtId)
+                    return Result.Error(Result.DATA_INVALID.Code, "Id khoản vay không hợp lệ");
+
+                if (request.PersonName.IsEmpty() || request.PersonName.Trim().Length == 0)
+                    return Result.Error(Result.DATA_INVALID.Code, "Nhập tên người vay / cho vay");
+
+                if (!await IsOwnedWalletAsync(request.WalletId, userId, ct))
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, WalletNotFoundMessage);
+
+                var occurredAt = ToUtc(request.OccurredAt);
+                if (occurredAt < MinOccurredAt || occurredAt > MaxOccurredAt())
+                    return Result.Error(Result.DATA_INVALID.Code, "Thời điểm vay không hợp lệ");
+
+                if (request.DueDate is { } due && !IsValidRecurringDate(due))
+                    return Result.Error(Result.DATA_INVALID.Code, "Hạn trả không hợp lệ");
+
+                var debt = await _debtRepo.Query(true).FirstOrDefaultAsync(x => x.Id == debtId, ct);
+                if (debt != null && (debt.OwnerId != userId || debt.IsDeleted))
+                    return Result.Error(Result.DATA_EXISTED.Code, DataDeletedMessage);
+
+                // Đã có lần trả thì không đổi chiều (dấu các giao dịch đã ghi sẽ sai)
+                if (debt != null && debt.Direction != request.Direction && await _transactionRepo.Query(true).AnyAsync(
+                        x => x.OwnerId == userId && !x.IsDeleted && x.DebtId == debt.Id && x.Kind == FinanceTransactionKind.DebtPayment, ct))
+                    return Result.Error(Result.DATA_INVALID.Code, "Khoản vay đã có lần trả, không đổi chiều được");
+
+                debt ??= new FinanceDebtEntity { Id = debtId, OwnerId = userId };
+                debt.Direction = request.Direction;
+                debt.PersonName = request.PersonName.Trim();
+                debt.Amount = request.Amount;
+                debt.WalletId = request.WalletId;
+                debt.OccurredAt = occurredAt;
+                debt.DueDate = request.DueDate;
+                debt.Note = request.Note.IsEmpty() ? null : request.Note!.Trim();
+                debt.IsClosed = request.IsClosed;
+
+                await _uow.BeginTransactionAsync(ct);
+                var saved = debt.CreatedTime == default
+                    ? await _debtRepo.InsertAsync(debt, ct)
+                    : await _debtRepo.UpdateAsync(debt, ct);
+                if (!saved)
+                {
+                    await _uow.RollbackAsync(ct);
+                    return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể lưu khoản vay");
+                }
+
+                await _uow.CommitAsync(ct);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                await _uow.RollbackAsync(ct);
+                _logger.Error(ex, "Lỗi khi lưu khoản vay");
+                return Result.Exception("Có lỗi xảy ra khi lưu khoản vay", ex);
+            }
+        }
+
+        /// <summary>Xoá khoản vay cùng mọi giao dịch của nó (mở + các lần trả) — số dư ví tính lại.</summary>
+        public async Task<Result> DeleteDebtAsync(string id, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var debt = await _debtRepo.FirstOrDefaultAsync(
+                    x => x.Id == NormalizeId(id) && x.OwnerId == userId && !x.IsDeleted, ct);
+                if (debt == null) return Result.Ok();
+
+                await _uow.BeginTransactionAsync(ct);
+                var transactions = await _transactionRepo.Query()
+                    .Where(x => x.OwnerId == userId && !x.IsDeleted && x.DebtId == debt.Id)
+                    .ToListAsync(ct);
+                var deleted = (transactions.IsEmpty() || await _transactionRepo.BulkDeleteAsync(transactions, ct))
+                    && await _debtRepo.DeleteAsync(debt, ct);
+                if (!deleted)
+                {
+                    await _uow.RollbackAsync(ct);
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá khoản vay");
+                }
+
+                await _uow.CommitAsync(ct);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                await _uow.RollbackAsync(ct);
+                _logger.Error(ex, "Lỗi khi xoá khoản vay");
+                return Result.Exception("Có lỗi xảy ra khi xoá khoản vay", ex);
+            }
+        }
+
+        #endregion
+
         /// <summary>Bỏ cờ mặc định của mọi ví khác (trừ `keepId`) — mỗi người dùng chỉ có 1 ví mặc định.</summary>
         private async Task ClearOtherDefaultsAsync(string userId, string keepId, CancellationToken ct)
         {
@@ -669,18 +963,23 @@ namespace ManageLife.Services
         private Task<bool> IsOwnedCategoryAsync(string? categoryId, string userId, FinanceCategoryKind kind, CancellationToken ct) =>
             _categoryRepo.Query(true).AnyAsync(x => x.Id == categoryId && x.OwnerId == userId && !x.IsDeleted && x.Kind == kind, ct);
 
-        private Task<bool> IsWalletInUseAsync(string walletId, string userId, CancellationToken ct) =>
-            _transactionRepo.Query(true).AnyAsync(
+        /// <summary>Ví đang được dùng: có giao dịch hoặc khoản định kỳ (chưa xoá) — chỉ ẩn được.</summary>
+        private async Task<bool> IsWalletInUseAsync(string walletId, string userId, CancellationToken ct) =>
+            await _transactionRepo.Query(true).AnyAsync(
+                x => x.OwnerId == userId && !x.IsDeleted && (x.WalletId == walletId || x.ToWalletId == walletId), ct)
+            || await _recurringRepo.Query(true).AnyAsync(
                 x => x.OwnerId == userId && !x.IsDeleted && (x.WalletId == walletId || x.ToWalletId == walletId), ct);
 
         /// <summary>
-        /// Danh mục đang được dùng: có giao dịch hoặc hạn mức (chưa xoá). Không xoá / không đổi loại được — hạn mức trỏ
+        /// Danh mục đang được dùng: có giao dịch, hạn mức hoặc khoản định kỳ (chưa xoá). Không xoá / không đổi loại được — hạn mức trỏ
         /// tới danh mục đã xoá hoặc đã thành danh mục thu sẽ bị từ chối khi sửa (app phải đồng bộ lại toàn bộ).
         /// </summary>
         private async Task<bool> IsCategoryInUseAsync(string categoryId, string userId, CancellationToken ct) =>
             await _transactionRepo.Query(true).AnyAsync(
                 x => x.OwnerId == userId && !x.IsDeleted && x.CategoryId == categoryId, ct)
             || await _budgetRepo.Query(true).AnyAsync(
+                x => x.OwnerId == userId && !x.IsDeleted && x.CategoryId == categoryId, ct)
+            || await _recurringRepo.Query(true).AnyAsync(
                 x => x.OwnerId == userId && !x.IsDeleted && x.CategoryId == categoryId, ct);
 
         // Hợp đồng: OccurredAt là UTC. Chuỗi không có múi giờ (Kind Unspecified) coi là UTC thay vì giờ máy chủ.

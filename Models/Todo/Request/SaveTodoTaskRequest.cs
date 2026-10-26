@@ -22,6 +22,9 @@ namespace ManageLife.Models
         public int Priority { get; set; }
 
         public DateOnly? DueDate { get; set; }
+
+        /// <summary>Ngày bắt đầu (việc nhiều ngày): cần có DueDate và không sau DueDate.</summary>
+        public DateOnly? StartDate { get; set; }
         public TimeOnly? DueTime { get; set; }
         public DateTime? ReminderAt { get; set; }
 
