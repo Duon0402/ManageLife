@@ -172,7 +172,7 @@ namespace ManageLife.Services
             }
         }
 
-        public async Task<Result> SetCompletedAsync(string id, bool completed, CancellationToken ct = default)
+        public async Task<Result> SetCompletedAsync(string id, bool completed, bool spawnNext = true, CancellationToken ct = default)
         {
             try
             {
@@ -185,7 +185,7 @@ namespace ManageLife.Services
                 // Gọi lại complete trên task đã xong thì giữ nguyên thời điểm hoàn thành cũ
                 var completedAt = completed ? task.CompletedAt ?? DateTimeHelper.UtcNow() : (DateTime?)null;
 
-                if (completed && task.CompletedAt == null && task.RepeatFrequency != null)
+                if (completed && spawnNext && task.CompletedAt == null && task.RepeatFrequency != null)
                 {
                     await _uow.BeginTransactionAsync(ct);
                     //NOTE: "Giành" task bằng UPDATE có điều kiện: bấm 2 lần / 2 máy cùng tick thì chỉ 1 request tạo lần kế tiếp
@@ -216,6 +216,8 @@ namespace ManageLife.Services
                 }
                 else
                 {
+                    // App đã tự tạo lần kế tiếp: việc này hết lặp (như sau khi server tạo lần kế tiếp)
+                    if (completed && !spawnNext && task.CompletedAt == null) ClearRepeat(task);
                     task.CompletedAt = completedAt;
                     if (!await _taskRepo.UpdateAsync(task, ct))
                         return Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể cập nhật công việc");
@@ -546,7 +548,8 @@ namespace ManageLife.Services
             // Ngày gốc (lặp tháng/năm): giữ nguyên nếu không đổi ngày hạn (hạn hiện tại có thể đã bị kẹp, vd 28/2 của chuỗi ngày 31)
             var keepMonthDay = task.RepeatMonthDay != null && previousDueDate == request.DueDate;
             task.RepeatMonthDay = frequency is TodoRepeatFrequency.Monthly or TodoRepeatFrequency.Yearly
-                ? keepMonthDay ? task.RepeatMonthDay : (byte?)request.DueDate!.Value.Day
+                ? request.RepeatMonthDay is { } monthDay ? (byte)monthDay
+                : keepMonthDay ? task.RepeatMonthDay : (byte?)request.DueDate!.Value.Day
                 : null;
             task.RepeatFrequency = frequency;
             task.RepeatInterval = frequency.HasValue ? request.RepeatInterval ?? 1 : null;

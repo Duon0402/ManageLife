@@ -46,6 +46,10 @@ namespace ManageLife.Models
         /// <summary>Lặp đến hết ngày này (giờ VN); null = không giới hạn.</summary>
         public DateOnly? RepeatUntil { get; set; }
 
+        /// <summary>Lặp tháng/năm: ngày gốc 1–31 (app gửi khi tự tạo lần kế tiếp); null = lấy ngày của DueDate.</summary>
+        [Range(1, 31, ErrorMessage = "Ngày trong tháng không hợp lệ")]
+        public int? RepeatMonthDay { get; set; }
+
         /// <summary>Tiêu đề các mục checklist, chỉ dùng khi tạo task (độ dài từng mục kiểm ở service).</summary>
         [MaxLength(100, ErrorMessage = "Checklist tối đa 100 mục")]
         public List<string>? Checklist { get; set; }

@@ -88,7 +88,7 @@ namespace ManageLife.Services
                     "createTask" => _taskService.CreateAsync(Body<SaveTodoTaskRequest>(op, true), ct),
                     "updateTask" => _taskService.UpdateAsync(RequireId(op), Body<SaveTodoTaskRequest>(op), ct),
                     "deleteTask" => _taskService.DeleteAsync(RequireId(op), ct),
-                    "completeTask" => _taskService.SetCompletedAsync(RequireId(op), op.Completed, ct),
+                    "completeTask" => _taskService.SetCompletedAsync(RequireId(op), op.Completed, op.SpawnNext ?? true, ct),
                     "reorderTasks" => _taskService.ReorderAsync(new ReorderRequest { Ids = op.Ids ?? new() }, ct),
                     "addChecklist" => _taskService.AddChecklistItemAsync(
                         op.TaskId ?? throw new InvalidOperationException("Thiếu công việc của mục checklist"),

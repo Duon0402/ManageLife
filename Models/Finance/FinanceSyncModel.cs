@@ -59,6 +59,8 @@ namespace ManageLife.Models
         public int SortOrder { get; set; }
         public bool IsArchived { get; set; }
         public bool IsDefault { get; set; }
+        /// <summary>Key của ví tạo sẵn ("cash"); null = tự tạo. App ghép ví "Tiền mặt" của khách khi gộp dữ liệu.</summary>
+        public string? DefaultKey { get; set; }
     }
 
     public class FinanceCategoryModel

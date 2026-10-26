@@ -9,6 +9,9 @@
         public string? Email { get; set; }
         public List<string> Roles { get; set; } = new();
         public bool TelegramLinked { get; set; }
+        /// <summary>Tóm tắt buổi sáng qua Telegram: bật/tắt và giờ gửi (giờ VN); chỉ có nghĩa khi đã liên kết.</summary>
+        public bool TelegramSummaryEnabled { get; set; }
+        public int TelegramSummaryHour { get; set; } = 7;
         public DateTime CreatedTime { get; set; }
     }
 }

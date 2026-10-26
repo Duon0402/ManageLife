@@ -407,8 +407,10 @@ namespace ManageLife.Services
                 .Join(_roleRepo.Query(true), ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
                 .ToListAsync(ct);
 
-            var telegramLinked = await _telegramRepo.Query(true)
-                .AnyAsync(x => x.UserId == user.Id && !x.IsDeleted, ct);
+            var telegram = await _telegramRepo.Query(true)
+                .Where(x => x.UserId == user.Id && !x.IsDeleted)
+                .Select(x => new { x.DailySummaryEnabled, x.DailySummaryHour })
+                .FirstOrDefaultAsync(ct);
 
             return new AccountModel
             {
@@ -417,7 +419,9 @@ namespace ManageLife.Services
                 FullName = user.FullName,
                 Email = user.Email,
                 Roles = roles,
-                TelegramLinked = telegramLinked,
+                TelegramLinked = telegram != null,
+                TelegramSummaryEnabled = telegram?.DailySummaryEnabled ?? false,
+                TelegramSummaryHour = telegram?.DailySummaryHour ?? 7,
                 CreatedTime = DateTime.SpecifyKind(user.CreatedTime, DateTimeKind.Utc)
             };
         }

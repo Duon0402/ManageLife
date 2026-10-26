@@ -23,6 +23,12 @@ namespace ManageLife.Models
         public string? TaskId { get; set; }
         /// <summary>completeTask: true = xong, false = bỏ xong.</summary>
         public bool Completed { get; set; }
+
+        /// <summary>
+        /// completeTask: có tạo lần lặp kế tiếp ở server không. App mới tự tạo lần kế tiếp (gửi createTask riêng) nên gửi
+        /// false; null (app cũ) = true như trước.
+        /// </summary>
+        public bool? SpawnNext { get; set; }
         /// <summary>reorderLists/reorderTasks: thứ tự mới.</summary>
         public List<string>? Ids { get; set; }
         /// <summary>Dữ liệu tạo/sửa (SaveTodoListRequest, SaveTodoTaskRequest hoặc SaveChecklistItemRequest theo Type).</summary>

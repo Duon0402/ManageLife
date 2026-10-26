@@ -6,6 +6,7 @@ namespace ManageLife.Interfaces
 {
     public interface ITelegramService
     {
+        Task<Result> UpdateSummarySettingsAsync(UpdateTelegramSummaryRequest request, CancellationToken ct = default);
         Task<Result> SendMessageAsync(SendTelegramMessageRequest request, CancellationToken ct = default);
         Task<Result> SendMessageToChatAsync(long chatId, string message, CancellationToken ct = default);
 

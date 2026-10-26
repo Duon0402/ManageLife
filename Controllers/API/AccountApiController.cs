@@ -98,6 +98,13 @@ namespace ManageLife.Controllers.API
             return await _telegramService.CreateLinkAsync(ct);
         }
 
+        /// <summary>Bật/tắt tóm tắt buổi sáng qua Telegram và chọn giờ gửi (giờ VN).</summary>
+        [HttpPut("telegram/summary")]
+        public async Task<Result> UpdateTelegramSummary([FromBody] UpdateTelegramSummaryRequest request, CancellationToken ct)
+        {
+            return await _telegramService.UpdateSummarySettingsAsync(request, ct);
+        }
+
         [HttpDelete("telegram")]
         public async Task<Result> UnlinkTelegram(CancellationToken ct)
         {

@@ -1791,6 +1791,12 @@ namespace ManageLife.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("DailySummaryEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<byte>("DailySummaryHour")
+                        .HasColumnType("tinyint unsigned");
+
                     b.Property<DateTime?>("DeletedTime")
                         .HasColumnType("datetime(6)");
 

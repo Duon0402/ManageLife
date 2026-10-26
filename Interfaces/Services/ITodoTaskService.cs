@@ -9,7 +9,8 @@ namespace ManageLife.Interfaces
         Task<Result> CreateAsync(SaveTodoTaskRequest request, CancellationToken ct = default);
         Task<Result> UpdateAsync(string id, SaveTodoTaskRequest request, CancellationToken ct = default);
         Task<Result> DeleteAsync(string id, CancellationToken ct = default);
-        Task<Result> SetCompletedAsync(string id, bool completed, CancellationToken ct = default);
+        /// <param name="spawnNext">Xong việc lặp: server tạo lần kế tiếp (app cũ); false khi app đã tự tạo.</param>
+        Task<Result> SetCompletedAsync(string id, bool completed, bool spawnNext = true, CancellationToken ct = default);
         Task<Result> ReorderAsync(ReorderRequest request, CancellationToken ct = default);
         Task<Result> AddChecklistItemAsync(string taskId, SaveChecklistItemRequest request, CancellationToken ct = default);
         Task<Result> UpdateChecklistItemAsync(string itemId, SaveChecklistItemRequest request, CancellationToken ct = default);

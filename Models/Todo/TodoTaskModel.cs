@@ -32,6 +32,8 @@ namespace ManageLife.Models
         /// <summary>Bitmask T2=1 ... CN=64 (chỉ khi lặp hằng tuần).</summary>
         public int? RepeatWeekdays { get; set; }
         public DateOnly? RepeatUntil { get; set; }
+        /// <summary>Lặp tháng/năm: ngày gốc 1–31 (app tính lần kế tiếp không bị trôi 31 → 28).</summary>
+        public int? RepeatMonthDay { get; set; }
 
         public int ChecklistTotal { get; set; }
         public int ChecklistDone { get; set; }

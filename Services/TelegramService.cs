@@ -209,6 +209,36 @@ namespace ManageLife.Services
             }
         }
 
+        public async Task<Result> UpdateSummarySettingsAsync(UpdateTelegramSummaryRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, "Không xác định được người dùng");
+
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                var connections = await _connectionRepo.Query().Where(x => x.UserId == userId && !x.IsDeleted).ToListAsync(ct);
+                if (connections.Count == 0)
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Chưa liên kết Telegram");
+
+                foreach (var connection in connections)
+                {
+                    connection.DailySummaryEnabled = request.Enabled;
+                    connection.DailySummaryHour = (byte)request.Hour;
+                    await _connectionRepo.UpdateAsync(connection, ct);
+                }
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi lưu cài đặt tóm tắt Telegram");
+                return Result.Exception("Có lỗi xảy ra khi lưu cài đặt tóm tắt", ex);
+            }
+        }
+
         public async Task<Result> UnlinkAsync(CancellationToken ct = default)
         {
             try
@@ -332,7 +362,7 @@ namespace ManageLife.Services
             _logger.Info("Đã liên kết Telegram chat {chatId} với user {userId}", chatId, user.Id);
             //NOTE: Gửi text thường (không Markdown) để tên tài khoản có ký tự đặc biệt không làm lỗi tin nhắn
             await _botClient.SendMessage(chatId,
-                $"✅ Đã liên kết Telegram với tài khoản {user.UserName}. Mỗi sáng bạn sẽ nhận tóm tắt công việc và tài chính.",
+                $"✅ Đã liên kết Telegram với tài khoản {user.UserName}. Mỗi ngày bạn sẽ nhận tóm tắt công việc và tài chính (đổi giờ gửi trong app → Tài khoản).",
                 cancellationToken: ct);
         }
 

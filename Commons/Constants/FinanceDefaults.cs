@@ -19,7 +19,7 @@ namespace ManageLife.Commons
             ("transport", "Đi lại", "car-outline", "#3B82F6"),
             ("housing", "Nhà ở", "home-outline", "#8B5CF6"),
             ("bills", "Hoá đơn", "file-document-outline", "#0EA5E9"),
-            ("shopping", "Mua sắp", "shopping-outline", "#EC4899"),
+            ("shopping", "Mua sắm", "shopping-outline", "#EC4899"),
             ("fun", "Giải trí", "movie-open-outline", "#EAB308"),
             ("health", "Sức khoẻ", "heart-pulse", "#EF4444"),
             ("education", "Giáo dục", "school-outline", "#14B8A6"),

@@ -49,10 +49,14 @@ namespace ManageLife.Services
                 var financeEnabled = await _settingContext.GetBoolAsync(SettingKeys.Feature.EnableFinance, true);
                 if (!todoEnabled && !financeEnabled) return Result.Ok();
 
-                var connections = await _connectionRepo.Query(true).Where(x => !x.IsDeleted).ToListAsync(ct);
+                // Cron chạy mỗi giờ: chỉ gửi cho người bật tóm tắt và chọn đúng giờ hiện tại (giờ VN)
+                var now = DateTimeHelper.VNTime();
+                var connections = await _connectionRepo.Query(true)
+                    .Where(x => !x.IsDeleted && x.DailySummaryEnabled && x.DailySummaryHour == now.Hour)
+                    .ToListAsync(ct);
                 if (connections.Count == 0) return Result.Ok();
 
-                var today = DateOnly.FromDateTime(DateTimeHelper.VNTime());
+                var today = DateOnly.FromDateTime(now);
                 var userIds = connections.Select(x => x.UserId).Distinct().ToList();
 
                 var tasks = !todoEnabled ? new List<SummaryTask>() : await _taskRepo.Query(true)
@@ -97,17 +101,17 @@ namespace ManageLife.Services
                         else
                         {
                             failed++;
-                            _logger.Warning("Không gửi được tóm tắt buổi sáng cho user {userId}, chat {chatId}: {message}", userId, connection.ChatId, rs.Message);
+                            _logger.Warning("Không gửi được tóm tắt hằng ngày cho user {userId}, chat {chatId}: {message}", userId, connection.ChatId, rs.Message);
                         }
                     }
                 }
 
-                _logger.Info("Tóm tắt công việc buổi sáng: gửi {sent}, lỗi {failed}", sent, failed);
+                _logger.Info("Tóm tắt hằng ngày: gửi {sent}, lỗi {failed}", sent, failed);
                 return Result.Ok();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Lỗi khi gửi tóm tắt công việc buổi sáng");
+                _logger.Error(ex, "Lỗi khi gửi tóm tắt hằng ngày");
                 return Result.Exception("Có lỗi xảy ra khi gửi tóm tắt công việc", ex);
             }
         }
@@ -119,8 +123,8 @@ namespace ManageLife.Services
             var inProgress = tasks.Where(x => x.DueDate > today).ToList();
 
             var sb = new StringBuilder();
-            //NOTE: Không có việc nào (chỉ có phần Tài chính) thì tiêu đề chung, không ghi "Việc hôm nay"
-            sb.Append(tasks.Count > 0 ? "☀️ Việc hôm nay " : "☀️ Buổi sáng ").Append(today.ToString("dd/MM", CultureInfo.InvariantCulture));
+            //NOTE: Người dùng tự chọn giờ gửi (có thể buổi tối) nên không ghi "buổi sáng"; không có việc thì tiêu đề chung
+            sb.Append(tasks.Count > 0 ? "📋 Việc hôm nay " : "📋 Tóm tắt ").Append(today.ToString("dd/MM", CultureInfo.InvariantCulture));
             //NOTE: Việc quá hạn kèm ngày hạn để biết đã trễ bao lâu
             AppendGroup(sb, $"⚠️ Quá hạn ({overdue.Count})", overdue, listNames, withDate: true);
             AppendGroup(sb, $"📅 Hôm nay ({dueToday.Count})", dueToday, listNames, withDate: false);

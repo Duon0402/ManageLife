@@ -23,7 +23,8 @@ namespace ManageLife.Services
         /// </summary>
         private static readonly SystemCronJob[] SystemJobs =
         {
-            new("ManageLife · Tóm tắt công việc buổi sáng", "/api/cron/todo-daily-summary", new() { 7 }, new() { 0 }, true),
+            // Mỗi giờ: người dùng tự chọn giờ nhận tóm tắt (UserTelegramConnection.DailySummaryHour)
+            new("ManageLife · Tóm tắt hằng ngày", "/api/cron/todo-daily-summary", EveryHour, new() { 0 }, true),
             new("ManageLife · Dọn refresh token hết hạn", "/api/token/cleanup-refresh-tokens", new() { 3 }, new() { 0 }, true),
             new("ManageLife · Giữ server thức", "/api/app/ping", EveryHour, new() { 0, 10, 20, 30, 40, 50 }, false),
         };
