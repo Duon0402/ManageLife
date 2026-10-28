@@ -21,7 +21,7 @@ namespace ManageLife.Services
         // Đồng bộ lấy chồng thêm trước mốc (giây): bù lệch thời điểm ghi giữa các request
         private const int SyncOverlapSeconds = 10;
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-        private static readonly HashSet<string> DeleteTypes = new() { "deleteWallet", "deleteCategory", "deleteTransaction", "deleteBudget", "deleteRecurring", "deleteDebt" };
+        private static readonly HashSet<string> DeleteTypes = new() { "deleteWallet", "deleteCategory", "deleteTransaction", "deleteBudget", "deleteRecurring", "deleteDebt", "deleteSavingGoal", "deleteSavingGoalEntry" };
 
         private readonly IFinanceService _financeService;
         private readonly IFinanceWalletRepository _walletRepo;
@@ -30,6 +30,8 @@ namespace ManageLife.Services
         private readonly IFinanceBudgetRepository _budgetRepo;
         private readonly IFinanceRecurringRepository _recurringRepo;
         private readonly IFinanceDebtRepository _debtRepo;
+        private readonly IFinanceSavingGoalRepository _goalRepo;
+        private readonly IFinanceSavingGoalEntryRepository _goalEntryRepo;
         private readonly ISettingContext _settingContext;
         private readonly IUnitOfWork _uow;
 
@@ -43,6 +45,8 @@ namespace ManageLife.Services
             IFinanceBudgetRepository budgetRepo,
             IFinanceRecurringRepository recurringRepo,
             IFinanceDebtRepository debtRepo,
+            IFinanceSavingGoalRepository goalRepo,
+            IFinanceSavingGoalEntryRepository goalEntryRepo,
             ISettingContext settingContext,
             IUnitOfWork uow) : base(logger, userContext)
         {
@@ -53,6 +57,8 @@ namespace ManageLife.Services
             _budgetRepo = budgetRepo;
             _recurringRepo = recurringRepo;
             _debtRepo = debtRepo;
+            _goalRepo = goalRepo;
+            _goalEntryRepo = goalEntryRepo;
             _settingContext = settingContext;
             _uow = uow;
         }
@@ -159,6 +165,18 @@ namespace ManageLife.Services
                         ? !x.IsDeleted
                         : x.CreatedTime >= from || x.UpdatedTime >= from || x.DeletedTime >= from)
                     .ToListAsync(ct);
+                var goals = await _goalRepo.Query(true)
+                    .Where(x => x.OwnerId == userId)
+                    .Where(x => from == null
+                        ? !x.IsDeleted
+                        : x.CreatedTime >= from || x.UpdatedTime >= from || x.DeletedTime >= from)
+                    .ToListAsync(ct);
+                var goalEntries = await _goalEntryRepo.Query(true)
+                    .Where(x => x.OwnerId == userId)
+                    .Where(x => from == null
+                        ? !x.IsDeleted
+                        : x.CreatedTime >= from || x.UpdatedTime >= from || x.DeletedTime >= from)
+                    .ToListAsync(ct);
 
                 return Result.Ok(new FinanceSyncModel
                 {
@@ -170,12 +188,16 @@ namespace ManageLife.Services
                     Budgets = budgets.Where(x => !x.IsDeleted).MapToList<FinanceBudgetEntity, FinanceBudgetModel>(),
                     Debts = debts.Where(x => !x.IsDeleted).MapToList<FinanceDebtEntity, FinanceDebtModel>(),
                     Recurrings = recurrings.Where(x => !x.IsDeleted).MapToList<FinanceRecurringEntity, FinanceRecurringModel>(),
+                    SavingGoals = goals.Where(x => !x.IsDeleted).MapToList<FinanceSavingGoalEntity, FinanceSavingGoalModel>(),
+                    SavingGoalEntries = goalEntries.Where(x => !x.IsDeleted).MapToList<FinanceSavingGoalEntryEntity, FinanceSavingGoalEntryModel>(),
                     DeletedWalletIds = wallets.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                     DeletedCategoryIds = categories.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                     DeletedTransactionIds = transactions.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                     DeletedBudgetIds = budgets.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                     DeletedRecurringIds = recurrings.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                     DeletedDebtIds = debts.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
+                    DeletedSavingGoalIds = goals.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
+                    DeletedSavingGoalEntryIds = goalEntries.Where(x => x.IsDeleted).Select(x => x.Id).ToList(),
                 });
             }
             catch (Exception ex)
@@ -205,6 +227,10 @@ namespace ManageLife.Services
                     "deleteRecurring" => _financeService.DeleteRecurringAsync(RequireId(op), ct),
                     "saveDebt" => _financeService.SaveDebtAsync(RequireId(op), Body<SaveFinanceDebtRequest>(op), ct),
                     "deleteDebt" => _financeService.DeleteDebtAsync(RequireId(op), ct),
+                    "saveSavingGoal" => _financeService.SaveSavingGoalAsync(RequireId(op), Body<SaveFinanceSavingGoalRequest>(op), ct),
+                    "deleteSavingGoal" => _financeService.DeleteSavingGoalAsync(RequireId(op), ct),
+                    "saveSavingGoalEntry" => _financeService.SaveSavingGoalEntryAsync(RequireId(op), Body<SaveFinanceSavingGoalEntryRequest>(op), ct),
+                    "deleteSavingGoalEntry" => _financeService.DeleteSavingGoalEntryAsync(RequireId(op), ct),
                     _ => Task.FromResult(Result.Error(Result.DATA_INVALID.Code, $"Thao tác không hỗ trợ: {op.Type}"))
                 };
             }

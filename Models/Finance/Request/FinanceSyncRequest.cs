@@ -13,7 +13,8 @@ namespace ManageLife.Models
 
     /// <summary>
     /// Một thao tác của app. Type: saveWallet, deleteWallet, reorderWallets, saveCategory, deleteCategory,
-    /// reorderCategories, saveTransaction, deleteTransaction, saveBudget, deleteBudget, saveRecurring, deleteRecurring, saveDebt, deleteDebt.
+    /// reorderCategories, saveTransaction, deleteTransaction, saveBudget, deleteBudget, saveRecurring, deleteRecurring, saveDebt, deleteDebt,
+    /// saveSavingGoal, deleteSavingGoal, saveSavingGoalEntry, deleteSavingGoalEntry.
     /// </summary>
     public class FinanceSyncOperation
     {

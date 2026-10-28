@@ -20,7 +20,7 @@ namespace ManageLife.Services
         private const string DataDeletedMessage = "Dữ liệu đã bị xoá";
         private const string WalletNotFoundMessage = "Không tìm thấy ví";
         private const string CategoryNotFoundMessage = "Không tìm thấy danh mục";
-        private const string WalletInUseMessage = "Ví đã có giao dịch hoặc khoản định kỳ, chỉ ẩn được";
+        private const string WalletInUseMessage = "Ví đã có giao dịch, khoản định kỳ hoặc lần góp mục tiêu, chỉ ẩn được";
         private const string CategoryInUseMessage = "Danh mục đã có giao dịch, hạn mức hoặc khoản định kỳ, chỉ ẩn được";
         private const string CategoryKindLockedMessage = "Danh mục đã có giao dịch, hạn mức hoặc khoản định kỳ, không đổi loại được";
         private const string SubCategoryMessage = "Chưa hỗ trợ danh mục con";
@@ -43,6 +43,8 @@ namespace ManageLife.Services
         private readonly IFinanceBudgetRepository _budgetRepo;
         private readonly IFinanceRecurringRepository _recurringRepo;
         private readonly IFinanceDebtRepository _debtRepo;
+        private readonly IFinanceSavingGoalRepository _goalRepo;
+        private readonly IFinanceSavingGoalEntryRepository _goalEntryRepo;
         private readonly IUnitOfWork _uow;
 
         public FinanceService(
@@ -54,6 +56,8 @@ namespace ManageLife.Services
             IFinanceBudgetRepository budgetRepo,
             IFinanceRecurringRepository recurringRepo,
             IFinanceDebtRepository debtRepo,
+            IFinanceSavingGoalRepository goalRepo,
+            IFinanceSavingGoalEntryRepository goalEntryRepo,
             IUnitOfWork uow) : base(logger, userContext)
         {
             _walletRepo = walletRepo;
@@ -62,6 +66,8 @@ namespace ManageLife.Services
             _budgetRepo = budgetRepo;
             _recurringRepo = recurringRepo;
             _debtRepo = debtRepo;
+            _goalRepo = goalRepo;
+            _goalEntryRepo = goalEntryRepo;
             _uow = uow;
         }
 
@@ -914,6 +920,167 @@ namespace ManageLife.Services
 
         #endregion
 
+        #region Mục tiêu tiết kiệm
+
+        public async Task<Result> SaveSavingGoalAsync(string id, SaveFinanceSavingGoalRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                if (ClientId(id) is not { } goalId)
+                    return Result.Error(Result.DATA_INVALID.Code, "Id mục tiêu không hợp lệ");
+
+                if (request.Name.IsEmpty() || request.Name.Trim().Length == 0)
+                    return Result.Error(Result.DATA_INVALID.Code, "Nhập tên mục tiêu");
+
+                if (request.Deadline is { } deadline && !IsValidRecurringDate(deadline))
+                    return Result.Error(Result.DATA_INVALID.Code, "Hạn không hợp lệ");
+
+                var goal = await _goalRepo.Query(true).FirstOrDefaultAsync(x => x.Id == goalId, ct);
+                if (goal != null && (goal.OwnerId != userId || goal.IsDeleted))
+                    return Result.Error(Result.DATA_EXISTED.Code, DataDeletedMessage);
+
+                goal ??= new FinanceSavingGoalEntity { Id = goalId, OwnerId = userId };
+                goal.Name = request.Name.Trim();
+                goal.TargetAmount = request.TargetAmount;
+                goal.Deadline = request.Deadline;
+                goal.MonthlyPlan = request.MonthlyPlan;
+                goal.Icon = request.Icon;
+                goal.Color = request.Color;
+                goal.Note = request.Note.IsEmpty() ? null : request.Note!.Trim();
+                goal.IsClosed = request.IsClosed;
+
+                var saved = goal.CreatedTime == default
+                    ? await _goalRepo.InsertAsync(goal, ct)
+                    : await _goalRepo.UpdateAsync(goal, ct);
+                return saved ? Result.Ok() : Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể lưu mục tiêu");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi lưu mục tiêu");
+                return Result.Exception("Có lỗi xảy ra khi lưu mục tiêu", ex);
+            }
+        }
+
+        /// <summary>Xoá mục tiêu cùng các lần góp/rút (phần đã dành trả về ví; số dư ví không đổi).</summary>
+        public async Task<Result> DeleteSavingGoalAsync(string id, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var goal = await _goalRepo.FirstOrDefaultAsync(
+                    x => x.Id == NormalizeId(id) && x.OwnerId == userId && !x.IsDeleted, ct);
+                if (goal == null) return Result.Ok();
+
+                await _uow.BeginTransactionAsync(ct);
+                var entries = await _goalEntryRepo.Query()
+                    .Where(x => x.OwnerId == userId && !x.IsDeleted && x.GoalId == goal.Id)
+                    .ToListAsync(ct);
+                var deleted = (entries.IsEmpty() || await _goalEntryRepo.BulkDeleteAsync(entries, ct))
+                    && await _goalRepo.DeleteAsync(goal, ct);
+                if (!deleted)
+                {
+                    await _uow.RollbackAsync(ct);
+                    return Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá mục tiêu");
+                }
+
+                await _uow.CommitAsync(ct);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                await _uow.RollbackAsync(ct);
+                _logger.Error(ex, "Lỗi khi xoá mục tiêu");
+                return Result.Exception("Có lỗi xảy ra khi xoá mục tiêu", ex);
+            }
+        }
+
+        /// <summary>
+        /// Lưu 1 lần góp/rút. Không kiểm "ví còn đủ phần chưa dành" ở đây: số dư phụ thuộc thứ tự các thao tác đồng bộ từ
+        /// nhiều máy — app đã chặn lúc ghi, server chỉ giữ dữ liệu hợp lệ về sở hữu.
+        /// </summary>
+        public async Task<Result> SaveSavingGoalEntryAsync(string id, SaveFinanceSavingGoalEntryRequest request, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var err = Validate(request);
+                if (err.IsNotEmpty()) return Result.Error(Result.DATA_INVALID.Code, err);
+
+                if (ClientId(id) is not { } entryId)
+                    return Result.Error(Result.DATA_INVALID.Code, "Id lần góp không hợp lệ");
+
+                if (request.Amount == 0)
+                    return Result.Error(Result.DATA_INVALID.Code, "Nhập số tiền");
+
+                var goal = await _goalRepo.Query(true).FirstOrDefaultAsync(
+                    x => x.Id == NormalizeId(request.GoalId) && x.OwnerId == userId && !x.IsDeleted, ct);
+                if (goal == null)
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, "Không tìm thấy mục tiêu");
+
+                if (!await IsOwnedWalletAsync(request.WalletId, userId, ct))
+                    return Result.Error(Result.DATA_NOT_EXISTED.Code, WalletNotFoundMessage);
+
+                var occurredAt = ToUtc(request.OccurredAt);
+                if (occurredAt < MinOccurredAt || occurredAt > MaxOccurredAt())
+                    return Result.Error(Result.DATA_INVALID.Code, "Thời điểm góp không hợp lệ");
+
+                var entry = await _goalEntryRepo.Query(true).FirstOrDefaultAsync(x => x.Id == entryId, ct);
+                if (entry != null && (entry.OwnerId != userId || entry.IsDeleted))
+                    return Result.Error(Result.DATA_EXISTED.Code, DataDeletedMessage);
+
+                entry ??= new FinanceSavingGoalEntryEntity { Id = entryId, OwnerId = userId };
+                entry.GoalId = goal.Id;
+                entry.WalletId = request.WalletId;
+                entry.Amount = request.Amount;
+                entry.OccurredAt = occurredAt;
+                entry.Note = request.Note.IsEmpty() ? null : request.Note!.Trim();
+
+                var saved = entry.CreatedTime == default
+                    ? await _goalEntryRepo.InsertAsync(entry, ct)
+                    : await _goalEntryRepo.UpdateAsync(entry, ct);
+                return saved ? Result.Ok() : Result.Error(Result.DATA_NOT_UPDATE.Code, "Không thể lưu lần góp");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi lưu lần góp mục tiêu");
+                return Result.Exception("Có lỗi xảy ra khi lưu lần góp mục tiêu", ex);
+            }
+        }
+
+        public async Task<Result> DeleteSavingGoalEntryAsync(string id, CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = _userContext.GetUserId();
+                if (userId.IsEmpty()) return Result.Error(Result.DATA_INVALID.Code, NoUserMessage);
+
+                var entry = await _goalEntryRepo.FirstOrDefaultAsync(
+                    x => x.Id == NormalizeId(id) && x.OwnerId == userId && !x.IsDeleted, ct);
+                if (entry == null) return Result.Ok();
+
+                return await _goalEntryRepo.DeleteAsync(entry, ct)
+                    ? Result.Ok()
+                    : Result.Error(Result.DATA_NOT_DELETE.Code, "Không thể xoá lần góp");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Lỗi khi xoá lần góp mục tiêu");
+                return Result.Exception("Có lỗi xảy ra khi xoá lần góp mục tiêu", ex);
+            }
+        }
+
+        #endregion
+
         /// <summary>Bỏ cờ mặc định của mọi ví khác (trừ `keepId`) — mỗi người dùng chỉ có 1 ví mặc định.</summary>
         private async Task ClearOtherDefaultsAsync(string userId, string keepId, CancellationToken ct)
         {
@@ -963,12 +1130,14 @@ namespace ManageLife.Services
         private Task<bool> IsOwnedCategoryAsync(string? categoryId, string userId, FinanceCategoryKind kind, CancellationToken ct) =>
             _categoryRepo.Query(true).AnyAsync(x => x.Id == categoryId && x.OwnerId == userId && !x.IsDeleted && x.Kind == kind, ct);
 
-        /// <summary>Ví đang được dùng: có giao dịch hoặc khoản định kỳ (chưa xoá) — chỉ ẩn được.</summary>
+        /// <summary>Ví đang được dùng: có giao dịch, khoản định kỳ hoặc lần góp mục tiêu (chưa xoá) — chỉ ẩn được.</summary>
         private async Task<bool> IsWalletInUseAsync(string walletId, string userId, CancellationToken ct) =>
             await _transactionRepo.Query(true).AnyAsync(
                 x => x.OwnerId == userId && !x.IsDeleted && (x.WalletId == walletId || x.ToWalletId == walletId), ct)
             || await _recurringRepo.Query(true).AnyAsync(
-                x => x.OwnerId == userId && !x.IsDeleted && (x.WalletId == walletId || x.ToWalletId == walletId), ct);
+                x => x.OwnerId == userId && !x.IsDeleted && (x.WalletId == walletId || x.ToWalletId == walletId), ct)
+            || await _goalEntryRepo.Query(true).AnyAsync(
+                x => x.OwnerId == userId && !x.IsDeleted && x.WalletId == walletId, ct);
 
         /// <summary>
         /// Danh mục đang được dùng: có giao dịch, hạn mức hoặc khoản định kỳ (chưa xoá). Không xoá / không đổi loại được — hạn mức trỏ

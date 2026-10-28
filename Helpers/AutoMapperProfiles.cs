@@ -99,6 +99,10 @@ namespace ManageLife.Helpers
             CreateMap<FinanceRecurringEntity, FinanceRecurringModel>();
             CreateMap<FinanceDebtEntity, FinanceDebtModel>()
                 .ForMember(d => d.OccurredAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.OccurredAt, DateTimeKind.Utc)));
+            CreateMap<FinanceSavingGoalEntity, FinanceSavingGoalModel>()
+                .ForMember(d => d.CreatedTime, o => o.MapFrom(s => DateTime.SpecifyKind(s.CreatedTime, DateTimeKind.Utc)));
+            CreateMap<FinanceSavingGoalEntryEntity, FinanceSavingGoalEntryModel>()
+                .ForMember(d => d.OccurredAt, o => o.MapFrom(s => DateTime.SpecifyKind(s.OccurredAt, DateTimeKind.Utc)));
         }
 
         private static DateTime? AsUtc(DateTime? value) =>

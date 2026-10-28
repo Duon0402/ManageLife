@@ -35,6 +35,10 @@ namespace ManageLife.Models
 
         public List<FinanceDebtModel> Debts { get; set; } = new();
 
+        public List<FinanceSavingGoalModel> SavingGoals { get; set; } = new();
+
+        public List<FinanceSavingGoalEntryModel> SavingGoalEntries { get; set; } = new();
+
         public List<string> DeletedWalletIds { get; set; } = new();
 
         public List<string> DeletedCategoryIds { get; set; } = new();
@@ -46,6 +50,10 @@ namespace ManageLife.Models
         public List<string> DeletedRecurringIds { get; set; } = new();
 
         public List<string> DeletedDebtIds { get; set; } = new();
+
+        public List<string> DeletedSavingGoalIds { get; set; } = new();
+
+        public List<string> DeletedSavingGoalEntryIds { get; set; } = new();
     }
 
     public class FinanceWalletModel
@@ -102,6 +110,30 @@ namespace ManageLife.Models
         public DateOnly? DueDate { get; set; }
         public string? Note { get; set; }
         public bool IsClosed { get; set; }
+    }
+
+    public class FinanceSavingGoalModel
+    {
+        public string Id { get; set; } = null!;
+        public string Name { get; set; } = null!;
+        public long TargetAmount { get; set; }
+        public DateOnly? Deadline { get; set; }
+        public long? MonthlyPlan { get; set; }
+        public string Icon { get; set; } = null!;
+        public string Color { get; set; } = null!;
+        public string? Note { get; set; }
+        public bool IsClosed { get; set; }
+        public DateTime CreatedTime { get; set; }
+    }
+
+    public class FinanceSavingGoalEntryModel
+    {
+        public string Id { get; set; } = null!;
+        public string GoalId { get; set; } = null!;
+        public string WalletId { get; set; } = null!;
+        public long Amount { get; set; }
+        public DateTime OccurredAt { get; set; }
+        public string? Note { get; set; }
     }
 
     public class FinanceRecurringModel

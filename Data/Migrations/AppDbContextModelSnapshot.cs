@@ -622,6 +622,139 @@ namespace ManageLife.Migrations
                     b.ToTable("FinanceRecurrings");
                 });
 
+            modelBuilder.Entity("ManageLife.Entities.FinanceSavingGoalEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateOnly?>("Deadline")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("DeletedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<long?>("MonthlyPlan")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<long>("TargetAmount")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedUser")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "IsDeleted");
+
+                    b.ToTable("FinanceSavingGoals");
+                });
+
+            modelBuilder.Entity("ManageLife.Entities.FinanceSavingGoalEntryEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("GoalId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedUser")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("WalletId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoalId");
+
+                    b.HasIndex("WalletId");
+
+                    b.HasIndex("OwnerId", "IsDeleted");
+
+                    b.ToTable("FinanceSavingGoalEntries");
+                });
+
             modelBuilder.Entity("ManageLife.Entities.FinanceTransactionEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -2159,6 +2292,21 @@ namespace ManageLife.Migrations
                         .WithMany()
                         .HasForeignKey("ToWalletId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ManageLife.Entities.FinanceWalletEntity", null)
+                        .WithMany()
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ManageLife.Entities.FinanceSavingGoalEntryEntity", b =>
+                {
+                    b.HasOne("ManageLife.Entities.FinanceSavingGoalEntity", null)
+                        .WithMany()
+                        .HasForeignKey("GoalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("ManageLife.Entities.FinanceWalletEntity", null)
                         .WithMany()

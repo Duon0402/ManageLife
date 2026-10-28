@@ -59,6 +59,8 @@ namespace ManageLife.Data
         public DbSet<FinanceBudgetEntity> FinanceBudgets { get; set; } = default!;
         public DbSet<FinanceRecurringEntity> FinanceRecurrings { get; set; } = default!;
         public DbSet<FinanceDebtEntity> FinanceDebts { get; set; } = default!;
+        public DbSet<FinanceSavingGoalEntity> FinanceSavingGoals { get; set; } = default!;
+        public DbSet<FinanceSavingGoalEntryEntity> FinanceSavingGoalEntries { get; set; } = default!;
         public DbSet<AnkiCardEntity> AnkiCards { get; set; } = default!;
 
         #endregion
@@ -271,6 +273,27 @@ namespace ManageLife.Data
                 e.Property(x => x.PersonName).HasMaxLength(100);
                 e.Property(x => x.WalletId).HasMaxLength(255);
                 e.Property(x => x.Note).HasMaxLength(500);
+                e.HasOne<FinanceWalletEntity>().WithMany().HasForeignKey(x => x.WalletId).OnDelete(DeleteBehavior.Restrict);
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted });
+            });
+
+            builder.Entity<FinanceSavingGoalEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.Name).HasMaxLength(100);
+                e.Property(x => x.Icon).HasMaxLength(50);
+                e.Property(x => x.Color).HasMaxLength(9);
+                e.Property(x => x.Note).HasMaxLength(500);
+                e.HasIndex(x => new { x.OwnerId, x.IsDeleted });
+            });
+
+            builder.Entity<FinanceSavingGoalEntryEntity>(e =>
+            {
+                e.Property(x => x.OwnerId).HasMaxLength(255);
+                e.Property(x => x.GoalId).HasMaxLength(255);
+                e.Property(x => x.WalletId).HasMaxLength(255);
+                e.Property(x => x.Note).HasMaxLength(500);
+                e.HasOne<FinanceSavingGoalEntity>().WithMany().HasForeignKey(x => x.GoalId).OnDelete(DeleteBehavior.Restrict);
                 e.HasOne<FinanceWalletEntity>().WithMany().HasForeignKey(x => x.WalletId).OnDelete(DeleteBehavior.Restrict);
                 e.HasIndex(x => new { x.OwnerId, x.IsDeleted });
             });
