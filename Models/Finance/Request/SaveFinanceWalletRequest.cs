@@ -22,7 +22,7 @@ namespace ManageLife.Models
 
         [Required(ErrorMessage = "Thiếu màu ví")]
         [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Màu không hợp lệ (dạng #RRGGBB)")]
-        public string Color { get; set; } = "#2563EB";
+        public string Color { get; set; } = "#1F5C6E";
 
         [Range(-1_000_000_000_000, 1_000_000_000_000, ErrorMessage = "Số dư ban đầu không hợp lệ")]
         public long InitialBalance { get; set; }

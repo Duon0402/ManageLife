@@ -22,7 +22,7 @@ namespace ManageLife.Models
 
         [Required(ErrorMessage = "Thiếu màu danh mục")]
         [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Màu không hợp lệ (dạng #RRGGBB)")]
-        public string Color { get; set; } = "#64748B";
+        public string Color { get; set; } = "#6B675F";
 
         /// <summary>Danh mục cha; GĐ1 phải null.</summary>
         [StringLength(255, ErrorMessage = "Id danh mục cha không hợp lệ")]

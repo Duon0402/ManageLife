@@ -15,24 +15,24 @@ namespace ManageLife.Commons
 
         private static readonly (string Key, string Name, string Icon, string Color)[] ExpenseCategories =
         {
-            ("food", "Ăn uống", "silverware-fork-knife", "#F97316"),
-            ("transport", "Đi lại", "car-outline", "#3B82F6"),
-            ("housing", "Nhà ở", "home-outline", "#8B5CF6"),
-            ("bills", "Hoá đơn", "file-document-outline", "#0EA5E9"),
-            ("shopping", "Mua sắm", "shopping-outline", "#EC4899"),
-            ("fun", "Giải trí", "movie-open-outline", "#EAB308"),
-            ("health", "Sức khoẻ", "heart-pulse", "#EF4444"),
-            ("education", "Giáo dục", "school-outline", "#14B8A6"),
-            ("family", "Gia đình", "account-group-outline", "#22C55E"),
-            ("other-expense", "Khác", "dots-horizontal-circle-outline", "#64748B"),
+            ("food", "Ăn uống", "silverware-fork-knife", "#C2662D"),
+            ("transport", "Đi lại", "car-outline", "#3D6E9E"),
+            ("housing", "Nhà ở", "home-outline", "#7A4C69"),
+            ("bills", "Hoá đơn", "file-document-outline", "#2E7F8A"),
+            ("shopping", "Mua sắm", "shopping-outline", "#A8495A"),
+            ("fun", "Giải trí", "movie-open-outline", "#B58A1E"),
+            ("health", "Sức khoẻ", "heart-pulse", "#B23A2A"),
+            ("education", "Giáo dục", "school-outline", "#3F7F6B"),
+            ("family", "Gia đình", "account-group-outline", "#5E8C3A"),
+            ("other-expense", "Khác", "dots-horizontal-circle-outline", "#6B675F"),
         };
 
         private static readonly (string Key, string Name, string Icon, string Color)[] IncomeCategories =
         {
-            ("salary", "Lương", "cash-multiple", "#16A34A"),
-            ("bonus", "Thưởng", "gift-outline", "#F59E0B"),
-            ("interest", "Lãi", "percent-outline", "#0891B2"),
-            ("other-income", "Khác", "dots-horizontal-circle-outline", "#64748B"),
+            ("salary", "Lương", "cash-multiple", "#2B7349"),
+            ("bonus", "Thưởng", "gift-outline", "#C08A2E"),
+            ("interest", "Lãi", "percent-outline", "#356D8A"),
+            ("other-income", "Khác", "dots-horizontal-circle-outline", "#6B675F"),
         };
 
         /// <summary>Id cố định theo người dùng và key: GUID từ 16 byte đầu của SHA256("finance:{userId}:{key}").</summary>
@@ -49,7 +49,7 @@ namespace ManageLife.Commons
             Name = "Tiền mặt",
             Type = FinanceWalletType.Cash,
             Icon = "wallet-outline",
-            Color = "#2563EB",
+            Color = "#1F5C6E",
             InitialBalance = 0,
             SortOrder = 0,
             IsDefault = true,
